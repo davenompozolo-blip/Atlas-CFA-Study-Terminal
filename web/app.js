@@ -301,21 +301,331 @@ function ChunkCard({ chunk }) {
   );
 }
 
+// ── Formula Sheet view ────────────────────────────────────────────────────────
+
+function FormulaSheet() {
+  const [topics, setTopics] = useState(null);
+  const [formulas, setFormulas] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const sb = await getClient();
+        const [topicsRes, formulasRes] = await Promise.all([
+          sb.from("vw_codex_priority").select("topic_id, name, band, focus_index"),
+          sb.from("codex_chunks")
+            .select("id, doc_id, topic_id, heading, body, lm, codex_topics(name, band)")
+            .eq("is_formula", true)
+            .order("topic_id"),
+        ]);
+        if (topicsRes.error) throw topicsRes.error;
+        if (formulasRes.error) throw formulasRes.error;
+        setTopics(topicsRes.data || []);
+        setFormulas(formulasRes.data || []);
+      } catch (e) {
+        setErr(e.message);
+      }
+    })();
+  }, []);
+
+  if (err) return h(ErrorBox, { msg: err });
+  if (!formulas || !topics) return h(Loader);
+
+  // sort topics by focus_index desc so deficit topics come first
+  const topicOrder = [...topics].sort((a, b) => Number(b.focus_index) - Number(a.focus_index));
+  const topicMap = Object.fromEntries(topics.map(t => [t.topic_id, t]));
+
+  const filtered = filter === "all"
+    ? formulas
+    : formulas.filter(f => f.topic_id === filter);
+
+  // group by topic preserving deficit order
+  const grouped = [];
+  for (const t of topicOrder) {
+    const chunks = filtered.filter(f => f.topic_id === t.topic_id);
+    if (chunks.length) grouped.push({ topic: t, chunks });
+  }
+  // any formulas whose topic isn't in vw_codex_priority
+  const seen = new Set(topicOrder.map(t => t.topic_id));
+  const orphan = filtered.filter(f => !seen.has(f.topic_id));
+  if (orphan.length) grouped.push({ topic: null, chunks: orphan });
+
+  return h(Fragment, null,
+    h("div", { class: "page-title" }, "Formula Sheet"),
+    h("div", { class: "page-sub" }, `${formulas.length} formulas · deficit topics first`),
+
+    h("div", { class: "filter-bar" },
+      h("button", {
+        class: `filter-btn ${filter === "all" ? "active" : ""}`,
+        onClick: () => setFilter("all"),
+      }, "All"),
+      topicOrder.map(t =>
+        h("button", {
+          key: t.topic_id,
+          class: `filter-btn ${filter === t.topic_id ? "active" : ""}`,
+          onClick: () => setFilter(t.topic_id),
+        }, t.name)
+      ),
+    ),
+
+    grouped.length === 0
+      ? h("div", { class: "empty-state" }, "No formulas match.")
+      : grouped.map(({ topic, chunks }) =>
+          h("div", { key: topic?.topic_id || "orphan", class: "formula-group" },
+            h("div", { class: "formula-group-header" },
+              topic
+                ? h(Fragment, null,
+                    h("span", { class: "formula-group-name" }, topic.name),
+                    h(Chip, { band: topic.band }),
+                  )
+                : h("span", { class: "formula-group-name" }, "Other"),
+            ),
+            h("div", { class: "formula-grid" },
+              chunks.map(f =>
+                h("div", { key: f.id, class: "formula-card" },
+                  f.heading && h("div", { class: "formula-card-heading" }, f.heading),
+                  h("div", { class: "formula-card-body" }, f.body),
+                  f.lm && h("div", { class: "formula-card-meta" }, `LM ${f.lm}`),
+                )
+              )
+            ),
+          )
+        ),
+  );
+}
+
+// ── Example Drill view ────────────────────────────────────────────────────────
+
+// SM-2 interval calculation
+function sm2Next(quality, prevEF, prevInterval) {
+  const ef = Math.max(1.3, prevEF + 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  let interval;
+  if (quality < 3) {
+    interval = 1;
+  } else if (prevInterval <= 1) {
+    interval = 1;
+  } else if (prevInterval === 1) {
+    interval = 6;
+  } else {
+    interval = Math.round(prevInterval * ef);
+  }
+  return { ef, interval, nextDue: new Date(Date.now() + interval * 86400000).toISOString() };
+}
+
+function ExampleDrill() {
+  const [examples, setExamples] = useState(null);
+  const [idx, setIdx] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const [filter, setFilter] = useState("all");
+  const [topics, setTopics] = useState(null);
+  const [progress, setProgress] = useState({});  // chunk_id → {ef, interval, due}
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState(null);
+  const [sessionStats, setSessionStats] = useState({ rated: 0, due: 0 });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const sb = await getClient();
+        const [topicsRes, examplesRes, progressRes] = await Promise.all([
+          sb.from("vw_codex_priority").select("topic_id, name, band, focus_index"),
+          sb.from("codex_chunks")
+            .select("id, doc_id, topic_id, heading, body, lm, codex_topics(name, band)")
+            .eq("is_example", true)
+            .order("topic_id"),
+          sb.from("codex_drill_progress")
+            .select("chunk_id, ef, interval_days, next_due")
+            .eq("item_type", "example"),
+        ]);
+        if (topicsRes.error) throw topicsRes.error;
+        if (examplesRes.error) throw examplesRes.error;
+
+        const prog = {};
+        for (const p of (progressRes.data || [])) {
+          prog[p.chunk_id] = { ef: p.ef, interval: p.interval_days, due: p.next_due };
+        }
+
+        const topicOrder = [...(topicsRes.data || [])].sort((a, b) => Number(b.focus_index) - Number(a.focus_index));
+        setTopics(topicOrder);
+        setProgress(prog);
+
+        // sort: due first (deficit-topic-first within due), then new
+        const now = new Date().toISOString();
+        const due = [];
+        const fresh = [];
+        for (const ex of (examplesRes.data || [])) {
+          const p = prog[ex.id];
+          if (!p || p.due <= now) due.push(ex);
+          else fresh.push(ex);
+        }
+        // stable topic-order sort within each bucket
+        const topicRank = Object.fromEntries(topicOrder.map((t, i) => [t.topic_id, i]));
+        const byRank = (a, b) => (topicRank[a.topic_id] ?? 999) - (topicRank[b.topic_id] ?? 999);
+        due.sort(byRank);
+        fresh.sort(byRank);
+
+        const all = [...due, ...fresh];
+        setExamples(all);
+        setSessionStats({ rated: 0, due: due.length });
+        setIdx(0);
+        setRevealed(false);
+      } catch (e) {
+        setErr(e.message);
+      }
+    })();
+  }, []);
+
+  const filtered = examples
+    ? (filter === "all" ? examples : examples.filter(e => e.topic_id === filter))
+    : null;
+
+  const card = filtered?.[idx] ?? null;
+
+  const rate = useCallback(async (quality) => {
+    if (!card) return;
+    setSaving(true);
+    try {
+      const sb = await getClient();
+      const prev = progress[card.id] || { ef: 2.5, interval: 0 };
+      const next = sm2Next(quality, prev.ef, prev.interval);
+
+      await sb.from("codex_reviews").insert({
+        chunk_id: card.id,
+        rating: quality,
+        reviewed_at: new Date().toISOString(),
+      });
+
+      await sb.from("codex_drill_progress").upsert({
+        chunk_id: card.id,
+        item_type: "example",
+        ef: next.ef,
+        interval_days: next.interval,
+        next_due: next.nextDue,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "chunk_id,item_type" });
+
+      setProgress(prev => ({ ...prev, [card.id]: { ef: next.ef, interval: next.interval, due: next.nextDue } }));
+      setSessionStats(s => ({ ...s, rated: s.rated + 1 }));
+      setIdx(i => i + 1);
+      setRevealed(false);
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }, [card, progress]);
+
+  if (err) return h(ErrorBox, { msg: err });
+  if (!filtered) return h(Loader);
+
+  const done = idx >= filtered.length;
+
+  return h(Fragment, null,
+    h("div", { class: "page-title" }, "Example Drill"),
+    h("div", { class: "page-sub" },
+      `${sessionStats.due} due · ${sessionStats.rated} rated this session`
+    ),
+
+    h("div", { class: "filter-bar" },
+      h("button", {
+        class: `filter-btn ${filter === "all" ? "active" : ""}`,
+        onClick: () => { setFilter("all"); setIdx(0); setRevealed(false); },
+      }, "All"),
+      (topics || []).map(t =>
+        h("button", {
+          key: t.topic_id,
+          class: `filter-btn ${filter === t.topic_id ? "active" : ""}`,
+          onClick: () => { setFilter(t.topic_id); setIdx(0); setRevealed(false); },
+        }, t.name)
+      ),
+    ),
+
+    done
+      ? h("div", { class: "drill-done" },
+          h("div", { class: "drill-done-icon" }, "✓"),
+          h("div", { class: "drill-done-title" }, "Session complete"),
+          h("div", { class: "drill-done-sub" },
+            `You rated ${sessionStats.rated} example${sessionStats.rated !== 1 ? "s" : ""}.`
+          ),
+          h("button", { class: "drill-restart", onClick: () => { setIdx(0); setRevealed(false); } },
+            "Restart"
+          ),
+        )
+      : h(Fragment, null,
+          h("div", { class: "drill-progress" },
+            h("div", { class: "drill-progress-bar" },
+              h("div", { class: "drill-progress-fill", style: { width: `${(idx / filtered.length) * 100}%` } })
+            ),
+            h("span", { class: "drill-progress-label" }, `${idx + 1} / ${filtered.length}`),
+          ),
+
+          h("div", { class: "drill-card" },
+            h("div", { class: "drill-card-meta" },
+              card.codex_topics?.name && h("span", null, card.codex_topics.name),
+              card.codex_topics?.band && h(Chip, { band: card.codex_topics.band }),
+              card.lm && h("span", null, `LM ${card.lm}`),
+            ),
+            card.heading && h("div", { class: "drill-card-heading" }, card.heading),
+
+            h("div", { class: "drill-card-prompt" }, "Work through this example:"),
+            h("div", { class: "drill-card-body" },
+              revealed
+                ? card.body
+                : h("div", { class: "drill-hidden" },
+                    h("div", { class: "drill-hidden-text" }, "Hidden — click to reveal"),
+                  )
+            ),
+
+            !revealed
+              ? h("button", { class: "drill-reveal-btn", onClick: () => setRevealed(true) },
+                  "Reveal Answer"
+                )
+              : h("div", { class: "drill-rating" },
+                  h("div", { class: "drill-rating-label" }, "How well did you get it?"),
+                  h("div", { class: "drill-rating-btns" },
+                    [
+                      { q: 0, label: "0", desc: "Blackout" },
+                      { q: 1, label: "1", desc: "Wrong" },
+                      { q: 2, label: "2", desc: "Hard" },
+                      { q: 3, label: "3", desc: "OK" },
+                      { q: 4, label: "4", desc: "Good" },
+                      { q: 5, label: "5", desc: "Easy" },
+                    ].map(({ q, label, desc }) =>
+                      h("button", {
+                        key: q,
+                        class: `rating-btn q${q}`,
+                        disabled: saving,
+                        onClick: () => rate(q),
+                      },
+                        h("span", { class: "rating-num" }, label),
+                        h("span", { class: "rating-desc" }, desc),
+                      )
+                    )
+                  ),
+                ),
+          ),
+        ),
+  );
+}
+
 // ── App shell ─────────────────────────────────────────────────────────────────
 
 function App() {
   const hash = useRoute();
 
   let page;
-  const docMatch = hash.match(/^#\/doc\/(.+)$/);
-  if (docMatch) {
-    page = h(Reading, { docId: docMatch[1] });
-  } else {
-    page = h(Home);
-  }
+  const docMatch     = hash.match(/^#\/doc\/(.+)$/);
+  const isFormulas   = hash === "#/formulas";
+  const isDrill      = hash === "#/drill";
 
-  const isHome    = !docMatch;
-  const isReading = !!docMatch;
+  if (docMatch)      page = h(Reading,      { docId: docMatch[1] });
+  else if (isFormulas) page = h(FormulaSheet);
+  else if (isDrill)    page = h(ExampleDrill);
+  else                 page = h(Home);
+
+  const isHome = !docMatch && !isFormulas && !isDrill;
 
   return h(Fragment, null,
     h("nav", { class: "topbar" },
@@ -328,6 +638,14 @@ function App() {
           class: `nav-btn ${isHome ? "active" : ""}`,
           onClick: () => navigate("#/"),
         }, "Home"),
+        h("button", {
+          class: `nav-btn ${isFormulas ? "active" : ""}`,
+          onClick: () => navigate("#/formulas"),
+        }, "Formulas"),
+        h("button", {
+          class: `nav-btn ${isDrill ? "active" : ""}`,
+          onClick: () => navigate("#/drill"),
+        }, "Drill"),
       ),
     ),
     h("main", { class: "main" }, page),
