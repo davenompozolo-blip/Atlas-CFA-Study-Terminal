@@ -610,6 +610,264 @@ function ExampleDrill() {
   );
 }
 
+// ── LOS Tracker view ─────────────────────────────────────────────────────────
+
+const RATING_LABELS = [
+  { q: 0, label: "0", desc: "Blackout" },
+  { q: 1, label: "1", desc: "Wrong" },
+  { q: 2, label: "2", desc: "Hard" },
+  { q: 3, label: "3", desc: "OK" },
+  { q: 4, label: "4", desc: "Good" },
+  { q: 5, label: "5", desc: "Easy" },
+];
+
+function LosStatusDot({ p }) {
+  if (!p) return h("span", { class: "los-dot new", title: "New" });
+  const pct = Number(p.mastery || 0);
+  const cls = pct >= 80 ? "strong" : pct >= 50 ? "mid" : "weak";
+  return h("span", { class: `los-dot ${cls}`, title: `Mastery ${pct}%` });
+}
+
+function LosTracker() {
+  const [topics, setTopics]   = useState(null);
+  const [los, setLos]         = useState(null);       // all LOS rows
+  const [progress, setProgress] = useState({});       // los_id → progress row
+  const [filter, setFilter]   = useState("all");
+  const [mode, setMode]       = useState("browse");   // "browse" | "queue"
+  const [queueIdx, setQueueIdx] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const [saving, setSaving]   = useState(false);
+  const [sessionRated, setSessionRated] = useState(0);
+  const [err, setErr]         = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const sb = await getClient();
+        const [topicsRes, losRes, progRes] = await Promise.all([
+          sb.from("vw_codex_priority").select("topic_id, name, band, focus_index"),
+          sb.from("codex_los").select("id, doc_id, topic_id, los_num, outcome, command_verb")
+            .order("topic_id").order("los_num"),
+          sb.from("codex_progress").select("los_id, mastery, status, ease, interval_days, reps, next_due"),
+        ]);
+        if (topicsRes.error) throw topicsRes.error;
+        if (losRes.error) throw losRes.error;
+
+        const prog = {};
+        for (const p of (progRes.data || [])) prog[p.los_id] = p;
+
+        const sorted = [...(topicsRes.data || [])].sort(
+          (a, b) => Number(b.focus_index) - Number(a.focus_index)
+        );
+        setTopics(sorted);
+        setLos(losRes.data || []);
+        setProgress(prog);
+      } catch (e) {
+        setErr(e.message);
+      }
+    })();
+  }, []);
+
+  const rateLos = useCallback(async (losItem, quality) => {
+    setSaving(true);
+    try {
+      const sb = await getClient();
+      const prev = progress[losItem.id] || { ease: 2.5, interval_days: 0, reps: 0 };
+      const { ef, interval, nextDue } = sm2Next(quality, Number(prev.ease), Number(prev.interval_days));
+      const mastery = Math.min(100, Math.round((quality / 5) * 100));
+
+      await sb.from("codex_reviews").insert({
+        los_id: losItem.id,
+        rating: quality,
+        reviewed_at: new Date().toISOString(),
+      });
+
+      const TENANT = "00000000-0000-0000-0000-000000000001";
+      await sb.from("codex_progress").upsert({
+        tenant_id: TENANT,
+        los_id: losItem.id,
+        mastery,
+        status: quality >= 4 ? "strong" : quality >= 2 ? "mid" : "weak",
+        ease: ef,
+        interval_days: interval,
+        reps: (Number(prev.reps) || 0) + 1,
+        last_reviewed: new Date().toISOString(),
+        next_due: nextDue.split("T")[0],
+      }, { onConflict: "tenant_id,los_id" });
+
+      setProgress(p => ({
+        ...p,
+        [losItem.id]: {
+          ...p[losItem.id],
+          mastery, ease: ef, interval_days: interval,
+          next_due: nextDue.split("T")[0],
+          status: quality >= 4 ? "strong" : quality >= 2 ? "mid" : "weak",
+          reps: (Number(prev.reps) || 0) + 1,
+        }
+      }));
+      setSessionRated(r => r + 1);
+      setQueueIdx(i => i + 1);
+      setRevealed(false);
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }, [progress]);
+
+  if (err) return h(ErrorBox, { msg: err });
+  if (!los || !topics) return h(Loader);
+
+  const topicRank = Object.fromEntries(topics.map((t, i) => [t.topic_id, i]));
+  const now = new Date().toISOString().split("T")[0];
+
+  const filteredLos = filter === "all"
+    ? los
+    : los.filter(l => l.topic_id === filter);
+
+  // due queue: no progress or next_due <= today, sorted by deficit rank
+  const dueQueue = [...filteredLos]
+    .filter(l => { const p = progress[l.id]; return !p || (p.next_due || "9999") <= now; })
+    .sort((a, b) => (topicRank[a.topic_id] ?? 999) - (topicRank[b.topic_id] ?? 999));
+
+  const totalDue   = dueQueue.length;
+  const totalLos   = filteredLos.length;
+  const totalDone  = filteredLos.filter(l => progress[l.id]?.status === "strong").length;
+
+  // browse: group by topic
+  const grouped = [];
+  for (const t of topics) {
+    const items = filteredLos.filter(l => l.topic_id === t.topic_id);
+    if (items.length) grouped.push({ topic: t, items });
+  }
+
+  const queueCard = dueQueue[queueIdx] ?? null;
+  const queueDone = queueIdx >= dueQueue.length;
+
+  return h(Fragment, null,
+    h("div", { class: "page-title" }, "LOS Tracker"),
+    h("div", { class: "page-sub" },
+      `${totalLos} outcomes · ${totalDue} due · ${totalDone} strong · ${sessionRated} rated this session`
+    ),
+
+    h("div", { class: "los-toolbar" },
+      h("div", { class: "filter-bar" },
+        h("button", {
+          class: `filter-btn ${filter === "all" ? "active" : ""}`,
+          onClick: () => { setFilter("all"); setQueueIdx(0); setRevealed(false); },
+        }, "All"),
+        topics.map(t =>
+          h("button", {
+            key: t.topic_id,
+            class: `filter-btn ${filter === t.topic_id ? "active" : ""}`,
+            onClick: () => { setFilter(t.topic_id); setQueueIdx(0); setRevealed(false); },
+          }, t.name)
+        ),
+      ),
+      h("div", { class: "mode-toggle" },
+        h("button", {
+          class: `mode-btn ${mode === "browse" ? "active" : ""}`,
+          onClick: () => setMode("browse"),
+        }, "Browse"),
+        h("button", {
+          class: `mode-btn ${mode === "queue" ? "active" : ""}`,
+          onClick: () => { setMode("queue"); setQueueIdx(0); setRevealed(false); },
+        }, `Review Queue (${totalDue})`),
+      ),
+    ),
+
+    mode === "browse"
+      ? h("div", { class: "los-browse" },
+          grouped.map(({ topic, items }) =>
+            h("div", { key: topic.topic_id, class: "los-topic-group" },
+              h("div", { class: "los-topic-header" },
+                h("span", { class: "los-topic-name" }, topic.name),
+                h(Chip, { band: topic.band }),
+                h("span", { class: "los-topic-count" },
+                  `${items.filter(l => progress[l.id]?.status === "strong").length}/${items.length} strong`
+                ),
+              ),
+              h("div", { class: "los-browse-list" },
+                items.map(l => {
+                  const p = progress[l.id];
+                  const due = !p || (p.next_due || "9999") <= now;
+                  return h("div", { key: l.id, class: `los-browse-row ${due ? "due" : ""}` },
+                    h(LosStatusDot, { p }),
+                    h("div", { class: "los-browse-content" },
+                      h("div", { class: "los-browse-num" },
+                        l.command_verb && h("span", { class: "los-verb" }, l.command_verb),
+                        `LOS ${l.los_num}`,
+                      ),
+                      h("div", { class: "los-browse-text" }, l.outcome),
+                      p && h("div", { class: "los-browse-meta" },
+                        `Mastery ${p.mastery}% · ${p.reps} rep${p.reps !== 1 ? "s" : ""} · due ${p.next_due || "today"}`
+                      ),
+                    ),
+                  );
+                })
+              ),
+            )
+          )
+        )
+      : queueDone
+        ? h("div", { class: "drill-done" },
+            h("div", { class: "drill-done-icon" }, "✓"),
+            h("div", { class: "drill-done-title" }, "Queue cleared"),
+            h("div", { class: "drill-done-sub" },
+              `You reviewed ${sessionRated} LOS this session.`
+            ),
+            h("button", { class: "drill-restart",
+              onClick: () => { setQueueIdx(0); setRevealed(false); setSessionRated(0); }
+            }, "Restart"),
+          )
+        : h(Fragment, null,
+            h("div", { class: "drill-progress" },
+              h("div", { class: "drill-progress-bar" },
+                h("div", { class: "drill-progress-fill",
+                  style: { width: `${(queueIdx / dueQueue.length) * 100}%` } })
+              ),
+              h("span", { class: "drill-progress-label" }, `${queueIdx + 1} / ${dueQueue.length}`),
+            ),
+
+            h("div", { class: "drill-card" },
+              h("div", { class: "drill-card-meta" },
+                h("span", null, topics.find(t => t.topic_id === queueCard.topic_id)?.name || ""),
+                h("span", null, `LOS ${queueCard.los_num}`),
+                queueCard.command_verb && h("span", { class: "los-verb" }, queueCard.command_verb),
+              ),
+              h("div", { class: "drill-card-prompt" }, "Can you state this learning outcome?"),
+              h("div", { class: "drill-card-body" },
+                revealed
+                  ? queueCard.outcome
+                  : h("div", { class: "drill-hidden" },
+                      h("div", { class: "drill-hidden-text" }, "Hidden — click to reveal")
+                    )
+              ),
+              !revealed
+                ? h("button", { class: "drill-reveal-btn", onClick: () => setRevealed(true) },
+                    "Reveal"
+                  )
+                : h("div", { class: "drill-rating" },
+                    h("div", { class: "drill-rating-label" }, "How well did you know it?"),
+                    h("div", { class: "drill-rating-btns" },
+                      RATING_LABELS.map(({ q, label, desc }) =>
+                        h("button", {
+                          key: q,
+                          class: `rating-btn q${q}`,
+                          disabled: saving,
+                          onClick: () => rateLos(queueCard, q),
+                        },
+                          h("span", { class: "rating-num" }, label),
+                          h("span", { class: "rating-desc" }, desc),
+                        )
+                      )
+                    ),
+                  ),
+            ),
+          ),
+  );
+}
+
 // ── App shell ─────────────────────────────────────────────────────────────────
 
 function App() {
@@ -619,13 +877,15 @@ function App() {
   const docMatch     = hash.match(/^#\/doc\/(.+)$/);
   const isFormulas   = hash === "#/formulas";
   const isDrill      = hash === "#/drill";
+  const isLos        = hash === "#/los";
 
-  if (docMatch)      page = h(Reading,      { docId: docMatch[1] });
+  if (docMatch)        page = h(Reading,      { docId: docMatch[1] });
   else if (isFormulas) page = h(FormulaSheet);
   else if (isDrill)    page = h(ExampleDrill);
+  else if (isLos)      page = h(LosTracker);
   else                 page = h(Home);
 
-  const isHome = !docMatch && !isFormulas && !isDrill;
+  const isHome = !docMatch && !isFormulas && !isDrill && !isLos;
 
   return h(Fragment, null,
     h("nav", { class: "topbar" },
@@ -646,6 +906,10 @@ function App() {
           class: `nav-btn ${isDrill ? "active" : ""}`,
           onClick: () => navigate("#/drill"),
         }, "Drill"),
+        h("button", {
+          class: `nav-btn ${isLos ? "active" : ""}`,
+          onClick: () => navigate("#/los"),
+        }, "LOS"),
       ),
     ),
     h("main", { class: "main" }, page),
