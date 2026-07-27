@@ -1008,6 +1008,16 @@
       position: absolute; left: -1.1em; top: 0;
       color: var(--cyan); font-size: 13px; line-height: 1.7;
     }
+    /* "Term: definition" lead-in, so a bullet has internal structure */
+    .unit-prose .li-term {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .unit-prose .li-term::after {
+      content: ":";
+      color: var(--text-3);
+      font-weight: 400;
+    }
     .unit-prose ol.md-list li::marker {
       color: var(--cyan); font-family: var(--font-mono);
       font-size: 13px; font-weight: 600;

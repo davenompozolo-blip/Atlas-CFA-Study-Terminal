@@ -712,11 +712,74 @@ function wrapSegments(lines) {
   return segs;
 }
 
+// The extractor often emits the bullet glyph on a line of its own, with the
+// item text on the following lines. MD_LIST requires text on the same line, so
+// those lines have to be recognised separately or they render as stray "•".
+const MD_BULLET_ONLY = /^\s*[-*•▪·]\s*$/;
+
+function isListStart(line) {
+  return MD_LIST.test(line) || MD_BULLET_ONLY.test(line);
+}
+
 // A line that ends one block and starts another
 function isBlockStart(line, next) {
-  return MD_HEAD.test(line) || MD_BOLDLINE.test(line) || MD_LIST.test(line) ||
+  return MD_HEAD.test(line) || MD_BOLDLINE.test(line) || isListStart(line) ||
          MD_CALLOUT.test(line) || MD_QUOTE.test(line) ||
          (line.includes("|") && isTableSep(next));
+}
+
+// "Term: definition" is the dominant shape in this corpus. Marking the lead-in
+// gives structure inside a bullet instead of one undifferentiated sentence.
+function liHtml(text) {
+  const m = text.match(/^([^:]{2,60}):\s+([\s\S]+)$/);
+  if (m) return `<span class="li-term">${mdInline(m[1])}</span> ${mdInline(m[2])}`;
+  return mdInline(text);
+}
+
+// The PDF extractor flattens tables to one cell per line. Where rows are
+// numbered, the structure is recoverable: after wrap-joining, a bare integer
+// marks the start of a row and the cells before the first "1" are the header.
+// Bails out unless the shape is unambiguous, so ordinary prose is never
+// mangled into a table.
+function reconstructTable(segs) {
+  const bare = s => /^\d{1,2}$/.test(s.trim());
+  const first = segs.findIndex(s => s.trim() === "1");
+  if (first < 2) return null;
+
+  const header = segs.slice(0, first).map(s => s.trim());
+  if (header.length > 6) return null;
+  if (header.some(c => !c || c.length > 48 || /[.:;]$/.test(c))) return null;
+
+  // Ascending rather than strictly consecutive: the extractor occasionally
+  // drops a row number, and swallowing the rest of the table is worse than
+  // tolerating a gap.
+  const starts = [];
+  let last = 0;
+  for (let k = first; k < segs.length; k++) {
+    const n = Number(segs[k]);
+    if (bare(segs[k]) && n > last) { starts.push(k); last = n; }
+  }
+  if (starts.length < 2) return null;
+
+  const rows = [];
+  for (let r = 0; r < starts.length; r++) {
+    const to = r + 1 < starts.length ? starts[r + 1] : segs.length;
+    const cells = segs.slice(starts[r], to).map(s => s.trim()).filter(Boolean);
+    if (cells.length < 2) return null;
+    if (cells.length > header.length) {
+      const tail = cells.slice(header.length - 1).join(" ");
+      cells.length = header.length - 1;
+      cells.push(tail);
+    }
+    while (cells.length < header.length) cells.push("");
+    rows.push(cells);
+  }
+
+  return '<div class="md-table-wrap"><table class="md-table"><thead><tr>' +
+    header.map(c => `<th>${mdInline(c)}</th>`).join("") +
+    "</tr></thead><tbody>" +
+    rows.map(r => "<tr>" + r.map(c => `<td>${mdInline(c)}</td>`).join("") + "</tr>").join("") +
+    "</tbody></table></div>";
 }
 
 function mdToHtml(md) {
@@ -779,21 +842,25 @@ function mdToHtml(md) {
     }
 
     // ── lists (-, *, •, ▪, ·, 1., 1)) ───────────────────────────────────────
-    if (MD_LIST.test(line)) {
+    if (isListStart(line)) {
       const ordered = /^\s*\d+[.)]/.test(line);
       const items = [];
-      while (i < lines.length && MD_LIST.test(lines[i])) {
-        let text = lines[i].match(MD_LIST)[2];
+      while (i < lines.length && isListStart(lines[i])) {
+        const m = lines[i].match(MD_LIST);
+        const parts = m ? [m[2]] : [];   // no capture when the glyph is alone
         i++;
         // absorb wrapped continuation lines so a bullet is not split mid-thought
         while (i < lines.length && lines[i].trim() && !isBlockStart(lines[i], lines[i + 1])) {
-          text += " " + lines[i].trim(); i++;
+          parts.push(lines[i]); i++;
         }
-        items.push(text);
+        const text = wrapSegments(parts).join(" ").trim();
+        if (text) items.push(text);
       }
-      const tag = ordered ? "ol" : "ul";
-      out.push(`<${tag} class="md-list">` +
-               items.map(t => `<li>${mdInline(t)}</li>`).join("") + `</${tag}>`);
+      if (items.length) {
+        const tag = ordered ? "ol" : "ul";
+        out.push(`<${tag} class="md-list">` +
+                 items.map(t => `<li>${liHtml(t)}</li>`).join("") + `</${tag}>`);
+      }
       continue;
     }
 
@@ -813,7 +880,9 @@ function mdToHtml(md) {
       para.push(lines[i]); i++;
     }
     if (para.length) {
-      out.push(`<p>${wrapSegments(para).map(mdInline).join("<br>")}</p>`);
+      const segs = wrapSegments(para);
+      const table = reconstructTable(segs);
+      out.push(table || `<p>${segs.map(mdInline).join("<br>")}</p>`);
     }
   }
 
