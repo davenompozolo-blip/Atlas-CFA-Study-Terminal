@@ -190,11 +190,10 @@ function TopicRow({ topic, isOpen, onToggle, docs }) {
                   key: doc.id, class: "reading-card",
                   onClick: () => navigate(`#/read/${doc.id}`),
                 },
-                  h("div", { class: "reading-title" }, doc.reading),
+                  h("div", { class: "reading-title" }, readingTitle(doc)),
                   h("div", { class: "reading-meta" },
-                    doc.lm ? `LM ${doc.lm}` : "",
-                    `${doc.chunk_count} chunks`,
-                    `${doc.los_count} LOS`,
+                    readingMeta(doc).map((m, k) =>
+                      h("span", { key: k, class: "reading-meta-item" }, m)),
                   ),
                 )
               )
@@ -292,7 +291,7 @@ function ReadingPane({ docId, theme, onToggleTheme }) {
       h("div", { class: "read-header-meta" },
         h(Chip, { band: topicBand }),
         h("span", null, topicName),
-        doc.lm && h("span", null, `LM ${doc.lm}`),
+        doc.lm && h("span", null, `Module ${doc.lm}`),
       ),
       h("button", {
         class: "theme-toggle",
@@ -301,7 +300,7 @@ function ReadingPane({ docId, theme, onToggleTheme }) {
       }, theme === "dark" ? "☀" : "🌙"),
     ),
 
-    h("div", { class: "read-title" }, doc.reading),
+    h("div", { class: "read-title" }, readingTitle(doc)),
 
     // ── Progress rail ───────────────────────────────────────────────────────
     h("div", { class: "read-rail" },
@@ -614,16 +613,193 @@ function PracticeUnit({ unit, payload: p }) {
 
 // ── Minimal markdown → HTML ────────────────────────────────────────────────────
 // Handles bold, italic, inline code, and newlines only — no XSS vectors.
+// ── display helpers ───────────────────────────────────────────────────────────
+// Internal field names and ingest artefacts should never reach the UI.
+
+const PLACEHOLDER_TITLE = /^\s*page\s+\d+\s+of\s+\d+\s*$/i;
+
+function readingTitle(doc) {
+  if (doc?.reading && !PLACEHOLDER_TITLE.test(doc.reading)) return doc.reading;
+  return doc?.lm ? `Module ${doc.lm}` : "Untitled reading";
+}
+
+function plural(n, one, many) {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+// Human-readable chips only; anything zero or missing is omitted rather than
+// rendered as "0 chunks".
+function readingMeta(doc) {
+  const out = [];
+  if (doc?.lm) out.push(`Module ${doc.lm}`);
+  if (doc?.los_count > 0) out.push(plural(doc.los_count, "outcome", "outcomes"));
+  if (doc?.chunk_count > 0) out.push(plural(doc.chunk_count, "section", "sections"));
+  return out;
+}
+
+// ── markdown rendering ────────────────────────────────────────────────────────
+// Block-level parser. Escapes first, then applies inline formatting to the
+// escaped text, so no untrusted markup can survive into the DOM.
+
+function esc(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function mdInline(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
+}
+
+const MD_HEAD     = /^\s*(#{1,6})\s+(.*)$/;
+const MD_BOLDLINE = /^\s*\*\*(.+?)\*\*\s*:?\s*$/;
+const MD_LIST     = /^\s*([-*•▪·]|\d+[.)])\s+(.*)$/;
+const MD_QUOTE    = /^\s*>\s?/;
+const MD_CALLOUT  =
+  /^\s*(KEY|NOTE|TIP|WARNING|CAUTION|REMEMBER|IMPORTANT|EXAM TIP|EXAMPLE)\s*[:\-–—]\s*(.*)$/i;
+
+function calloutClass(tag) {
+  const t = tag.toUpperCase();
+  if (/WARNING|CAUTION/.test(t)) return "warn";
+  if (/NOTE|TIP|EXAMPLE/.test(t)) return "note";
+  return "key";
+}
+
+function isTableSep(line) {
+  return /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(line || "");
+}
+
+function splitRow(line) {
+  return line.replace(/^\s*\|/, "").replace(/\|\s*$/, "").split("|").map(c => c.trim());
+}
+
+// The PDF extractor hard-wraps prose mid-sentence, but it also flattens table
+// cells onto their own lines. Blindly joining every line would run those cells
+// together; keeping every line break leaves prose fragmented. So join a line
+// onto the previous one only when it actually reads as a continuation — the
+// previous line has no terminal punctuation and this one opens lower-case.
+function wrapSegments(lines) {
+  const segs = [];
+  for (const raw of lines) {
+    const t = raw.trim();
+    if (!t) continue;
+    if (!segs.length) { segs.push(t); continue; }
+    const prev = segs[segs.length - 1];
+    const continues = /^[a-z(→,;%$]/.test(t) && !/[.;:!?]$/.test(prev);
+    if (continues) segs[segs.length - 1] = `${prev} ${t}`;
+    else segs.push(t);
+  }
+  return segs;
+}
+
+// A line that ends one block and starts another
+function isBlockStart(line, next) {
+  return MD_HEAD.test(line) || MD_BOLDLINE.test(line) || MD_LIST.test(line) ||
+         MD_CALLOUT.test(line) || MD_QUOTE.test(line) ||
+         (line.includes("|") && isTableSep(next));
+}
+
 function mdToHtml(md) {
   if (!md) return "";
-  return md
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/`(.+?)`/g, '<code class="inline-code">$1</code>')
-    .replace(/\n{2,}/g, "</p><p>")
-    .replace(/\n/g, "<br>")
-    .replace(/^/, "<p>").replace(/$/, "</p>");
+  const lines = String(md).replace(/\r\n?/g, "\n").split("\n");
+  const out = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) { i++; continue; }
+
+    // ── pipe table ──────────────────────────────────────────────────────────
+    if (line.includes("|") && isTableSep(lines[i + 1])) {
+      const head = splitRow(line);
+      i += 2;
+      const rows = [];
+      while (i < lines.length && lines[i].trim() && lines[i].includes("|")) {
+        rows.push(splitRow(lines[i])); i++;
+      }
+      out.push(
+        '<div class="md-table-wrap"><table class="md-table"><thead><tr>' +
+        head.map(c => `<th>${mdInline(c)}</th>`).join("") +
+        "</tr></thead><tbody>" +
+        rows.map(r => "<tr>" + r.map(c => `<td>${mdInline(c)}</td>`).join("") + "</tr>").join("") +
+        "</tbody></table></div>"
+      );
+      continue;
+    }
+
+    // ── headings ────────────────────────────────────────────────────────────
+    const hm = line.match(MD_HEAD);
+    if (hm) {
+      const lvl = Math.min(hm[1].length + 1, 4);
+      out.push(`<h${lvl} class="md-h md-h${lvl}">${mdInline(hm[2])}</h${lvl}>`);
+      i++; continue;
+    }
+
+    // A line that is nothing but bold text is a section heading, not a sentence
+    const bm = line.match(MD_BOLDLINE);
+    if (bm) {
+      out.push(`<h3 class="md-h md-h3">${mdInline(bm[1])}</h3>`);
+      i++; continue;
+    }
+
+    // ── callouts (KEY: / NOTE: / WARNING: …) ────────────────────────────────
+    const cm = line.match(MD_CALLOUT);
+    if (cm) {
+      const body = [cm[2]];
+      i++;
+      while (i < lines.length && lines[i].trim() && !isBlockStart(lines[i], lines[i + 1])) {
+        body.push(lines[i].trim()); i++;
+      }
+      out.push(
+        `<div class="md-callout md-callout-${calloutClass(cm[1])}">` +
+        `<span class="md-callout-tag">${esc(cm[1].toUpperCase())}</span>` +
+        `<div class="md-callout-body">${mdInline(body.join(" ").trim())}</div></div>`
+      );
+      continue;
+    }
+
+    // ── lists (-, *, •, ▪, ·, 1., 1)) ───────────────────────────────────────
+    if (MD_LIST.test(line)) {
+      const ordered = /^\s*\d+[.)]/.test(line);
+      const items = [];
+      while (i < lines.length && MD_LIST.test(lines[i])) {
+        let text = lines[i].match(MD_LIST)[2];
+        i++;
+        // absorb wrapped continuation lines so a bullet is not split mid-thought
+        while (i < lines.length && lines[i].trim() && !isBlockStart(lines[i], lines[i + 1])) {
+          text += " " + lines[i].trim(); i++;
+        }
+        items.push(text);
+      }
+      const tag = ordered ? "ol" : "ul";
+      out.push(`<${tag} class="md-list">` +
+               items.map(t => `<li>${mdInline(t)}</li>`).join("") + `</${tag}>`);
+      continue;
+    }
+
+    // ── blockquote ──────────────────────────────────────────────────────────
+    if (MD_QUOTE.test(line)) {
+      const body = [];
+      while (i < lines.length && MD_QUOTE.test(lines[i])) {
+        body.push(lines[i].replace(MD_QUOTE, "")); i++;
+      }
+      out.push(`<blockquote class="md-quote">${mdInline(body.join(" "))}</blockquote>`);
+      continue;
+    }
+
+    // ── paragraph ───────────────────────────────────────────────────────────
+    const para = [];
+    while (i < lines.length && lines[i].trim() && !isBlockStart(lines[i], lines[i + 1])) {
+      para.push(lines[i]); i++;
+    }
+    if (para.length) {
+      out.push(`<p>${wrapSegments(para).map(mdInline).join("<br>")}</p>`);
+    }
+  }
+
+  return out.join("");
 }
 
 // ── Formula Sheet ──────────────────────────────────────────────────────────────
@@ -684,7 +860,7 @@ function FormulaSheet() {
                 h("div", { key: f.id, class: "formula-card" },
                   f.heading && h("div", { class: "formula-card-heading" }, f.heading),
                   h("div", { class: "formula-card-body" }, f.body),
-                  f.lm && h("div", { class: "formula-card-meta" }, `LM ${f.lm}`),
+                  f.lm && h("div", { class: "formula-card-meta" }, `Module ${f.lm}`),
                 )
               )
             ),
@@ -772,7 +948,7 @@ function ExampleDrill() {
       : h(Fragment, null,
           h("div", { class: "drill-progress" }, h("div", { class: "drill-progress-bar" }, h("div", { class: "drill-progress-fill", style: { width: `${(idx / filtered.length) * 100}%` } })), h("span", { class: "drill-progress-label" }, `${idx + 1} / ${filtered.length}`)),
           h("div", { class: "drill-card" },
-            h("div", { class: "drill-card-meta" }, card.codex_topics?.name && h("span", null, card.codex_topics.name), card.codex_topics?.band && h(Chip, { band: card.codex_topics.band }), card.lm && h("span", null, `LM ${card.lm}`)),
+            h("div", { class: "drill-card-meta" }, card.codex_topics?.name && h("span", null, card.codex_topics.name), card.codex_topics?.band && h(Chip, { band: card.codex_topics.band }), card.lm && h("span", null, `Module ${card.lm}`)),
             card.heading && h("div", { class: "drill-card-heading" }, card.heading),
             h("div", { class: "drill-card-prompt" }, "Work through this example:"),
             h("div", { class: "drill-card-body" }, revealed ? card.body : h("div", { class: "drill-hidden" }, h("div", { class: "drill-hidden-text" }, "Hidden — click to reveal"))),
