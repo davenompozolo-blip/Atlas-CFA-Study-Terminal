@@ -463,7 +463,7 @@ function UnitRenderer({ unit }) {
   }
 
   if (unit.kind === "example") {
-    return h(ExampleUnit, { payload: p });
+    return h(ExampleUnit, { payload: p, title: unit.title });
   }
 
   if (unit.kind === "practice") {
@@ -504,14 +504,28 @@ function UnitRenderer({ unit }) {
 
 // ── Example unit ───────────────────────────────────────────────────────────────
 
-function ExampleUnit({ payload: p }) {
+function ExampleUnit({ payload: p, title }) {
   const [revealed, setRevealed] = useState(false);
+  const allSteps = p.steps || [];
+
+  // The generator sets `prompt` to the chunk heading, which is also the unit
+  // title — rendering both leaves the card looking empty before you expand it.
+  // When they duplicate, promote the first step to be the visible setup and
+  // reveal the remainder as the worked solution.
+  const norm = s => String(s || "").trim().toLowerCase();
+  const duplicated = title && p.prompt && norm(p.prompt) === norm(title);
+  const intro = duplicated ? (allSteps[0]?.text || "") : p.prompt;
+  const steps = duplicated ? allSteps.slice(1) : allSteps;
+  const hasSolution = steps.length > 0 || !!p.answer;
+
   return h("div", { class: "unit-example" },
-    p.prompt && h("div", { class: "example-prompt" }, p.prompt),
+    intro && h("div", { class: "example-prompt" }, intro),
+    !hasSolution && !intro &&
+      h("div", { class: "unit-body-fallback" }, "No worked detail captured for this example."),
     revealed
       ? h(Fragment, null,
-          p.steps?.length > 0 && h("ol", { class: "example-steps" },
-            p.steps.map((s, i) =>
+          steps.length > 0 && h("ol", { class: "example-steps" },
+            steps.map((s, i) =>
               h("li", { key: i, class: "example-step" },
                 h("div", { class: "example-step-text" }, s.text),
                 s.calc && h("div", { class: "example-step-calc" }, s.calc),
@@ -524,7 +538,11 @@ function ExampleUnit({ payload: p }) {
           ),
           h("button", { class: "example-toggle", onClick: () => setRevealed(false) }, "▲ collapse"),
         )
-      : h("button", { class: "drill-reveal-btn", onClick: () => setRevealed(true) }, "Show worked solution"),
+      : hasSolution && h("button", {
+          class: "drill-reveal-btn", onClick: () => setRevealed(true),
+        }, steps.length > 0
+             ? `Show worked solution (${steps.length} step${steps.length === 1 ? "" : "s"})`
+             : "Show answer"),
   );
 }
 
