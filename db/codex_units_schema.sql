@@ -38,7 +38,11 @@ select u.reading_id, u.topic_id,
        count(*) filter (where p.status = 'done') as units_done,
        round(100.0 * count(*) filter (where p.status='done') / nullif(count(*),0), 0) as pct,
        coalesce(sum(u.est_minutes),0) as est_minutes_total,
-       coalesce(sum(u.est_minutes) filter (where p.status <> 'done'),0) as est_minutes_left
+       -- coalesce is required: units with no codex_unit_progress row have
+       -- p.status = NULL, and `NULL <> 'done'` is NULL rather than true, which
+       -- would exclude every untouched unit and make this read 0 for any
+       -- reading that has not been started.
+       coalesce(sum(u.est_minutes) filter (where coalesce(p.status,'untouched') <> 'done'),0) as est_minutes_left
 from codex_units u
 left join codex_unit_progress p on p.unit_id = u.id
 group by u.reading_id, u.topic_id;
