@@ -34,7 +34,7 @@ begin
 
   select string_agg(
            case when coalesce(ch.heading,'') <> ''
-                then '**'||ch.heading||E'\n\n'||coalesce(ch.body,'')
+                then '**'||ch.heading||'**'||E'\n\n'||coalesce(ch.body,'')
                 else coalesce(ch.body,'') end,
            E'\n\n' order by array_position(p_ids, ch.id))
     into v_prose

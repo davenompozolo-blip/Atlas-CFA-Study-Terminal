@@ -1027,6 +1027,156 @@
       font-family: var(--font-display); font-size: 24px; font-weight: 700;
     }
     .read-complete-sub { color: var(--text-2); font-size: 15px; max-width: 380px; }
+
+    /* ── rendered markdown: hierarchy ───────────────────────────────── */
+    /* Headings step down in size and colour so a scan reveals structure
+       before any of the prose is read. */
+    .unit-prose .md-h {
+      font-family: var(--font-display);
+      line-height: 1.3;
+      margin: 1.6em 0 .6em;
+      scroll-margin-top: 80px;
+    }
+    .unit-prose .md-h:first-child { margin-top: 0; }
+    .unit-prose .md-h2 {
+      font-size: 20px; font-weight: 700; color: var(--text);
+      padding-bottom: .3em; border-bottom: 1px solid var(--border);
+    }
+    .unit-prose .md-h3 {
+      font-size: 17px; font-weight: 700; color: var(--cyan);
+      letter-spacing: .01em;
+    }
+    .unit-prose .md-h4 {
+      font-size: 15px; font-weight: 600; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: .06em;
+    }
+
+    .unit-prose p { margin: 0 0 1em; }
+    .unit-prose p:last-child { margin-bottom: 0; }
+    .unit-prose strong { font-weight: 600; color: var(--text); }
+
+    /* ── rendered markdown: lists ───────────────────────────────────── */
+    .unit-prose .md-list {
+      margin: 0 0 1.1em; padding-left: 1.35em;
+      display: flex; flex-direction: column; gap: .45em;
+    }
+    .unit-prose .md-list li {
+      line-height: 1.7; padding-left: .2em;
+    }
+    .unit-prose ul.md-list { list-style: none; padding-left: 1.1em; }
+    .unit-prose ul.md-list li { position: relative; }
+    .unit-prose ul.md-list li::before {
+      content: "▪";
+      position: absolute; left: -1.1em; top: 0;
+      color: var(--cyan); font-size: 13px; line-height: 1.7;
+    }
+    .unit-prose ol.md-list li::marker {
+      color: var(--cyan); font-family: var(--font-mono);
+      font-size: 13px; font-weight: 600;
+    }
+
+    /* ── rendered markdown: tables ──────────────────────────────────── */
+    /* Wrapper scrolls on its own so a wide table never scrolls the page. */
+    .md-table-wrap {
+      overflow-x: auto;
+      margin: 0 0 1.3em;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
+    }
+    .md-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+    }
+    .md-table th {
+      text-align: left;
+      font-family: var(--font-display);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: .06em; text-transform: uppercase;
+      color: var(--cyan);
+      background: var(--card2);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      position: sticky; top: 0;
+    }
+    .md-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      line-height: 1.6;
+      vertical-align: top;
+      color: var(--text);
+    }
+    .md-table tbody tr:last-child td { border-bottom: none; }
+    .md-table tbody tr:nth-child(even) { background: rgba(255,255,255,.02); }
+    :root[data-theme="light"] .md-table tbody tr:nth-child(even) { background: rgba(0,0,0,.02); }
+    .md-table tbody tr:hover { background: rgba(58,214,224,.05); }
+
+    /* ── rendered markdown: callouts ────────────────────────────────── */
+    /* Tier separation: an exam key reads differently from a passing note. */
+    .md-callout {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 16px;
+      margin: 0 0 1.2em;
+      border-radius: var(--radius);
+      border-left: 3px solid var(--border);
+      background: var(--card);
+      font-size: 15px; line-height: 1.65;
+    }
+    .md-callout-tag {
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: .08em;
+      padding: 2px 7px; border-radius: 3px;
+      margin-top: 2px;
+    }
+    .md-callout-body { flex: 1; }
+
+    .md-callout-key {
+      border-left-color: var(--amber);
+      background: var(--amber-bg);
+    }
+    .md-callout-key .md-callout-tag { background: rgba(245,166,35,.18); color: var(--amber); }
+
+    .md-callout-note {
+      border-left-color: var(--cyan);
+      background: var(--navy);
+    }
+    .md-callout-note .md-callout-tag { background: rgba(58,214,224,.15); color: var(--cyan); }
+
+    .md-callout-warn {
+      border-left-color: var(--red);
+      background: rgba(224,85,85,.08);
+    }
+    .md-callout-warn .md-callout-tag { background: rgba(224,85,85,.18); color: var(--red); }
+
+    /* ── rendered markdown: quotes / asides ─────────────────────────── */
+    /* Supporting detail sits back visually from must-know content. */
+    .unit-prose .md-quote {
+      margin: 0 0 1.2em;
+      padding: 2px 0 2px 16px;
+      border-left: 2px solid var(--border);
+      color: var(--text-2);
+      font-size: 14.5px;
+      font-style: italic;
+    }
+
+    .unit-prose .inline-code, .md-callout .inline-code {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      background: var(--card2); color: var(--cyan);
+      padding: 1px 5px; border-radius: 3px;
+    }
+
+    /* ── reading card meta ──────────────────────────────────────────── */
+    .reading-meta-item { white-space: nowrap; }
+    .reading-meta-item + .reading-meta-item::before {
+      content: "·";
+      margin-right: 10px;
+      color: var(--text-3);
+    }
   </style>
 </head>
 <body>

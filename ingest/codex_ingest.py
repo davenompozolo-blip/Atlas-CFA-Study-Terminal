@@ -126,6 +126,84 @@ def _command_verb(outcome: str) -> Optional[str]:
     return m.group(1).lower() if m else None
 
 
+def _table_to_md(rows: list) -> str:
+    """
+    Render an extracted table as a GitHub-style pipe table.
+
+    page.extract_text() flattens a table into one cell per line, which is
+    unreadable downstream — the reading pane receives a vertical stream of
+    unlabelled values with no way to recover the columns. Emitting real pipe
+    syntax lets the UI render an actual table.
+    """
+    if not rows:
+        return ""
+
+    # normalise: None cells -> "", collapse internal newlines, drop empty rows
+    clean = []
+    for row in rows:
+        cells = [(c or "").replace("\n", " ").replace("|", "\\|").strip() for c in row]
+        if any(cells):
+            clean.append(cells)
+    if len(clean) < 2:
+        return ""
+
+    width = max(len(r) for r in clean)
+    clean = [r + [""] * (width - len(r)) for r in clean]
+    if width < 2:
+        return ""
+
+    header, body = clean[0], clean[1:]
+    # a table whose header row is blank is more likely a layout artefact
+    if not any(header):
+        return ""
+
+    out = ["| " + " | ".join(header) + " |",
+           "|" + "|".join(["---"] * width) + "|"]
+    out += ["| " + " | ".join(r) + " |" for r in body]
+    return "\n".join(out)
+
+
+def _page_text_with_tables(page) -> str:
+    """
+    Extract a page as text, but render any detected tables as markdown instead
+    of letting extract_text() flatten them.
+
+    Table regions are masked out of the text layer so their cells are not
+    emitted twice.
+    """
+    try:
+        tables = page.find_tables()
+    except Exception:
+        tables = []
+
+    if not tables:
+        return page.extract_text(x_tolerance=2, y_tolerance=2) or ""
+
+    bboxes = [t.bbox for t in tables]
+
+    def outside_tables(obj):
+        xm = (obj.get("x0", 0) + obj.get("x1", 0)) / 2
+        ym = (obj.get("top", 0) + obj.get("bottom", 0)) / 2
+        return not any(x0 <= xm <= x1 and top <= ym <= bottom
+                       for (x0, top, x1, bottom) in bboxes)
+
+    try:
+        body = page.filter(outside_tables).extract_text(x_tolerance=2, y_tolerance=2) or ""
+    except Exception:
+        body = page.extract_text(x_tolerance=2, y_tolerance=2) or ""
+
+    parts = [body]
+    for t in tables:
+        try:
+            md = _table_to_md(t.extract())
+        except Exception:
+            md = ""
+        if md:
+            parts.append(md)
+
+    return "\n\n".join(p for p in parts if p and p.strip())
+
+
 def _parse_los(full_text: str) -> list[dict]:
     """
     Extract LOS from the full PDF text. Tries templates A, B, C in order;
@@ -319,7 +397,7 @@ def parse_pdf(path: Path, topic_id: str) -> dict:
     with pdfplumber.open(path) as pdf:
         pages = len(pdf.pages)
         for page in pdf.pages:
-            t = page.extract_text(x_tolerance=2, y_tolerance=2)
+            t = _page_text_with_tables(page)
             if t:
                 full_text += t + "\n"
 
