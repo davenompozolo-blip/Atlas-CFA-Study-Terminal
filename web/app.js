@@ -842,7 +842,12 @@ function inferNumericGrid(segs) {
     if (!isNumericCell(segs[i])) continue;
     const start = i;
     while (i + 1 < segs.length && isNumericCell(segs[i + 1])) i++;
-    if (i - start + 1 >= 2) runs.push([start, i]);
+    // A run must contain a real number. Dashes and "n/a" are placeholders, and
+    // a run made only of them is not evidence of a numeric column — in a tick
+    // chart ("✓ Primary driver / — / —") two dashes otherwise imply two value
+    // columns and collapse a four-column table into three.
+    const hasDigit = segs.slice(start, i + 1).some(c => /\d/.test(c));
+    if (i - start + 1 >= 2 && hasDigit) runs.push([start, i]);
   }
   if (runs.length < 2) return null;
 
@@ -873,6 +878,9 @@ function inferNumericGrid(segs) {
     const labelFrom = r === 0 ? headerLen : runs[r - 1][1] + 1;
     const label = segs.slice(labelFrom, s).map(x => x.trim()).join(" ").trim();
     if (!label) return null;
+    // A label that reads as a value (CHF 22.0B, (2,321), ~35) means a value
+    // column used a format the run detector missed, so the grid is shifted.
+    if (/^(?:[A-Z]{2,3}\s*)?[~(]?[\d.,]+\s*[A-Za-z%]{0,2}\)?$/.test(label)) return null;
     rows.push([label, ...segs.slice(s, e + 1).map(x => x.trim())]);
   }
 
