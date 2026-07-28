@@ -108,6 +108,55 @@ Seed JSONL from this session is in `codex_seed/` (documents, los, chunks), loada
 
 ---
 
+## 4.4 Structured .docx ingest (preferred source)
+
+PDF extraction flattens tables to one cell per line, destroying the columns
+before the data ever reaches the database — roughly half of all concept units
+are affected, and no renderer can recover it. Word notes carry the structure
+explicitly, so `ingest/codex_docx.py` is the preferred path for new material.
+
+Authoring contract — the converter keys off these, so keep them exact:
+
+| Element | Word styling | Becomes |
+|---|---|---|
+| Title block | Bold paragraphs before the first Heading 1 | reading title, topic |
+| `LEARNING OUTCOMES` | Heading 1, then a 2-column table `LOS n \| Outcome` | the `los` unit |
+| `SECTION n: TITLE (LOS x)` | Heading 1 | one `concept` unit, tagged with that LOS |
+| Sub-topic | Heading 2 / Heading 3 | `##` / `###` inside the unit's prose |
+| Comparison table | Any table with 2+ columns and 2+ rows | markdown pipe table |
+| Exam trap | 1-row 2-column table, first cell `!` | `EXAM TRAP:` callout (red) |
+| Formula / definition box | 1-row 2-column table, first cell is a title | entry in the unit's `formulas[]` |
+| Worked example / step list | Single-column table, first row is the title | `###` heading + list |
+
+Notes:
+
+* Rows beginning `Step 1:`, `Step 2:` … are detected and rendered as an
+  ordered list with the redundant prefix stripped.
+* ALL-CAPS headings are title-cased for display, preserving roman numerals so
+  `STANDARD II` does not become `Standard Ii`.
+* A document without a `LEARNING OUTCOMES` section (Ethics, which is organised
+  by Standard rather than by LOS) simply produces no `los` unit.
+* Unit IDs use the same `sha1('unit:<reading_id>:<ord>')` scheme as the PDF
+  generator, and `reading_id` is `sha1(topic_id + filename)`, so re-running is
+  idempotent per file.
+* Re-running deletes and reinserts that reading's units, which cascades to
+  `codex_unit_progress` for that reading.
+
+Usage:
+
+```bash
+pip install -r ingest/requirements.txt
+export SUPABASE_URL=https://<ref>.supabase.co
+export SUPABASE_SERVICE_ROLE_KEY=<key>
+
+python ingest/codex_docx.py notes/*.docx --dry-run   # inspect first
+python ingest/codex_docx.py notes/*.docx             # write
+python ingest/codex_docx.py notes/x.docx --emit-sql out.sql   # SQL instead
+```
+
+Topic is inferred from the filename token (`CFA_L2_QM_...` -> `quant`) or the
+title block, and can be overridden with `--topic`.
+
 ## 5. The ATLAS Codex module (CC build)
 
 Stack and house style are the ATLAS defaults: vanilla CDN React, `h` alias, Supabase client, no bundler. Design tokens unchanged: `--cyan` #3ad6e0, `--amber`, `--card`, `--bg` #0a0d12; Syne display, DM Sans body, JetBrains Mono data.

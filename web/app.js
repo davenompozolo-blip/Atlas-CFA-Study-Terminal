@@ -676,11 +676,11 @@ const MD_BOLDLINE = /^\s*\*\*(.+?)\*\*\s*:?\s*$/;
 const MD_LIST     = /^\s*([-*•▪·]|\d+[.)])\s+(.*)$/;
 const MD_QUOTE    = /^\s*>\s?/;
 const MD_CALLOUT  =
-  /^\s*(KEY|NOTE|TIP|WARNING|CAUTION|REMEMBER|IMPORTANT|EXAM TIP|EXAMPLE)\s*[:\-–—]\s*(.*)$/i;
+  /^\s*(KEY|NOTE|TIP|WARNING|CAUTION|REMEMBER|IMPORTANT|EXAM TIP|EXAM TRAP|PITFALL|EXAMPLE)\s*[:\-–—]\s*(.*)$/i;
 
 function calloutClass(tag) {
   const t = tag.toUpperCase();
-  if (/WARNING|CAUTION/.test(t)) return "warn";
+  if (/WARNING|CAUTION|TRAP|PITFALL/.test(t)) return "warn";
   if (/NOTE|TIP|EXAMPLE/.test(t)) return "note";
   return "key";
 }
