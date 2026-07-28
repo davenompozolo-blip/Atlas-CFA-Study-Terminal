@@ -1094,6 +1094,20 @@
     }
     .md-callout-note .md-callout-tag { background: rgba(58,214,224,.15); color: var(--cyan); }
 
+    /* Ethics is built on a compliance-vs-violation contrast; these must read
+       as opposites at a glance, not as two identical grey boxes. */
+    .md-callout-good {
+      border-left-color: var(--green);
+      background: var(--green-bg);
+    }
+    .md-callout-good .md-callout-tag { background: rgba(61,224,138,.18); color: var(--green); }
+
+    .md-callout-bad {
+      border-left-color: var(--red);
+      background: rgba(224,85,85,.10);
+    }
+    .md-callout-bad .md-callout-tag { background: rgba(224,85,85,.20); color: var(--red); }
+
     .md-callout-warn {
       border-left-color: var(--red);
       background: rgba(224,85,85,.08);

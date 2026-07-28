@@ -60,7 +60,54 @@ TOPIC_MAP = {
     "PM": "pm", "PORTFOLIO": "pm",
 }
 
-CALLOUT_MARKERS = {"!", "⚠", "!!", "⚠️"}
+# The notes were generated programmatically and carry meaning in cell SHADING,
+# not in the marker glyph — the glyph is only a secondary cue and varies by
+# document (! in QM, ✗/✓/⚠ in Ethics). Classifying on fill recovers box kinds
+# that would otherwise flatten into anonymous tables: in Ethics LM2 alone, 155
+# of 224 tables are compliance / violation / trap boxes.
+FILL_SEMANTICS = {
+    "C0392B": "trap",        # red — exam trap
+    "8B3A00": "trap",        # dark orange — exam trap (Ethics)
+    "8B0000": "violation",   # dark red — breach example
+    "1A5C2A": "compliance",  # green — correct-conduct example
+    "C5A028": "key",         # gold — key box
+    "B8860B": "key",         # dark gold — key box
+    "4A235A": "formula",     # purple — formula / procedures
+    "1F3864": "section",     # navy — section header / verbatim standard
+    "1E6B7A": "teal",        # teal — comparison table or worked example
+}
+
+GLYPH_SEMANTICS = {"!": "trap", "⚠": "trap", "⚠️": "trap",
+                   "✗": "violation", "✘": "violation", "×": "violation",
+                   "✓": "compliance", "✔": "compliance"}
+
+CALLOUT_LABEL = {"trap": "EXAM TRAP", "violation": "VIOLATION",
+                 "compliance": "COMPLIANCE", "key": "KEY"}
+
+
+def cell_fill(cell):
+    """Shading fill of a table cell, upper-cased, or None."""
+    from docx.oxml.ns import qn
+    tcPr = cell._tc.tcPr
+    if tcPr is None:
+        return None
+    shd = tcPr.find(qn("w:shd"))
+    if shd is None:
+        return None
+    fill = shd.get(qn("w:fill"))
+    return fill.upper() if fill and fill not in ("auto",) else None
+
+
+def table_semantics(tbl):
+    """Semantic role of a table from its first cell's fill, then its glyph."""
+    try:
+        fill = cell_fill(tbl.rows[0].cells[0])
+    except Exception:
+        fill = None
+    if fill and fill in FILL_SEMANTICS:
+        return FILL_SEMANTICS[fill]
+    marker = cell_text(tbl.rows[0].cells[0])
+    return GLYPH_SEMANTICS.get(marker)
 
 
 # ── docx traversal ────────────────────────────────────────────────────────────
@@ -126,14 +173,27 @@ def card_to_md(tbl):
 
 def classify_2col(tbl):
     """
-    A 1-row 2-column table is either a callout (marker cell) or a
-    formula/definition box (titled cell). Returns (kind, label, body).
+    A 1-row 2-column table is a callout (trap / violation / compliance / key)
+    or a formula box. Fill decides; the marker glyph is the fallback.
+    Returns (kind, label, body).
     """
     marker = cell_text(tbl.rows[0].cells[0])
     body = cell_text(tbl.rows[0].cells[1])
-    if marker in CALLOUT_MARKERS:
-        return "callout", "EXAM TRAP", body
-    return "formula", marker, body
+    sem = table_semantics(tbl)
+
+    if sem in CALLOUT_LABEL:
+        # a titled gold/purple box keeps its title; a bare glyph has none
+        if sem == "key" and marker and marker not in GLYPH_SEMANTICS:
+            return "callout", "KEY", f"**{marker}** — {body}"
+        return "callout", CALLOUT_LABEL[sem], body
+
+    if sem == "formula":
+        label = marker if marker and marker not in GLYPH_SEMANTICS else "Formula"
+        return "formula", label, body
+
+    if marker in GLYPH_SEMANTICS:
+        return "callout", CALLOUT_LABEL[GLYPH_SEMANTICS[marker]], body
+    return "formula", marker or "Formula", body
 
 
 # ── document -> units ─────────────────────────────────────────────────────────
@@ -246,16 +306,28 @@ def section_to_markdown(sec):
             parts.append(b)
         else:
             ncols, nrows = len(b.columns), len(b.rows)
+            sem = table_semantics(b)
             if ncols == 2 and nrows == 1:
                 sort, label, body = classify_2col(b)
                 if sort == "callout":
-                    parts.append(f"\nEXAM TRAP: {body}")
+                    parts.append(f"\n{label}: {body}")
                 else:
                     formulas.append({"label": label, "expr": body, "where": ""})
             elif ncols == 1:
-                md = card_to_md(b)
-                if md:
-                    parts.append("\n" + md)
+                rows = [cell_text(r.cells[0]) for r in b.rows]
+                rows = [r for r in rows if r]
+                if sem == "section" and len(rows) > 1:
+                    # navy single-column blocks carry verbatim wording (the text
+                    # of a Standard); a blockquote marks it as quoted, not gloss
+                    parts.append("\n### " + rows[0])
+                    parts.extend("> " + r for r in rows[1:])
+                elif sem == "key" and len(rows) > 1:
+                    parts.append(f"\nKEY: {rows[0]}")
+                    parts.extend(f"- {r}" for r in rows[1:])
+                else:
+                    md = card_to_md(b)
+                    if md:
+                        parts.append("\n" + md)
             else:
                 md = table_to_md(b)
                 if md:
