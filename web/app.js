@@ -1052,7 +1052,13 @@ function mdToHtml(md) {
       let best = null;
       for (let start = 0; start <= Math.min(4, segs.length - 6) && !best; start++) {
         const rest = segs.slice(start);
-        const html = reconstructTable(rest) || inferNumericGrid(rest) || inferGrid(segs, start);
+        // Offsets are granted only to detectors anchored on explicit evidence
+        // — row numbers, or runs of numbers. Column-shape inference is too weak
+        // to also choose where the table starts: given that freedom it finds
+        // grids in tables whose blank corner cell was dropped by extraction,
+        // shifting every row by one and filing row labels as column headers.
+        const html = reconstructTable(rest) || inferNumericGrid(rest)
+                     || (start === 0 ? inferGrid(segs) : null);
         if (html) best = { start, html };
       }
       if (best) {
