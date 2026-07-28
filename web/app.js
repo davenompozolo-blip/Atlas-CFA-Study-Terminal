@@ -673,13 +673,15 @@ function mdInline(s) {
 
 const MD_HEAD     = /^\s*(#{1,6})\s+(.*)$/;
 const MD_BOLDLINE = /^\s*\*\*(.+?)\*\*\s*:?\s*$/;
-const MD_LIST     = /^\s*([-*•▪·]|\d+[.)])\s+(.*)$/;
+const MD_LIST     = /^\s*([-*•▪·●◦‣]|\d+[.)])\s+(.*)$/;
 const MD_QUOTE    = /^\s*>\s?/;
 const MD_CALLOUT  =
-  /^\s*(KEY|NOTE|TIP|WARNING|CAUTION|REMEMBER|IMPORTANT|EXAM TIP|EXAM TRAP|PITFALL|EXAMPLE)\s*[:\-–—]\s*(.*)$/i;
+  /^\s*(KEY|NOTE|TIP|WARNING|CAUTION|REMEMBER|IMPORTANT|EXAM TIP|EXAM TRAP|PITFALL|EXAMPLE|COMPLIANCE|VIOLATION)\s*[:\-–—]\s*(.*)$/i;
 
 function calloutClass(tag) {
   const t = tag.toUpperCase();
+  if (/VIOLATION/.test(t)) return "bad";
+  if (/COMPLIANCE/.test(t)) return "good";
   if (/WARNING|CAUTION|TRAP|PITFALL/.test(t)) return "warn";
   if (/NOTE|TIP|EXAMPLE/.test(t)) return "note";
   return "key";
@@ -715,7 +717,7 @@ function wrapSegments(lines) {
 // The extractor often emits the bullet glyph on a line of its own, with the
 // item text on the following lines. MD_LIST requires text on the same line, so
 // those lines have to be recognised separately or they render as stray "•".
-const MD_BULLET_ONLY = /^\s*[-*•▪·]\s*$/;
+const MD_BULLET_ONLY = /^\s*[-*•▪·●◦‣]\s*$/;
 
 function isListStart(line) {
   return MD_LIST.test(line) || MD_BULLET_ONLY.test(line);
