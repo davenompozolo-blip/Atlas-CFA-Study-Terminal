@@ -707,7 +707,14 @@ function wrapSegments(lines) {
     if (!t) continue;
     if (!segs.length) { segs.push(t); continue; }
     const prev = segs[segs.length - 1];
-    const continues = /^[a-z(→,;%$]/.test(t) && !/[.;:!?]$/.test(prev);
+    // lower-case opener is the usual continuation cue; a trailing connector
+    // ("Extracting &" / "Preparing") is the other, and case cannot detect it
+    // Only .!? actually end a cell. Semicolons and colons routinely fall at a
+    // wrap point inside one ("…ground to powder;" / "concentrated to ~25%"),
+    // and treating them as terminal splits a single cell in two — which then
+    // throws off the column count inferred by inferGrid.
+    const continues = (/^[a-z(→,;%$]/.test(t) || /[&/,\-–]$/.test(prev))
+                      && !/[.!?]$/.test(prev);
     if (continues) segs[segs.length - 1] = `${prev} ${t}`;
     else segs.push(t);
   }
@@ -721,6 +728,65 @@ const MD_BULLET_ONLY = /^\s*[-*•▪·●◦‣]\s*$/;
 
 function isListStart(line) {
   return MD_LIST.test(line) || MD_BULLET_ONLY.test(line);
+}
+
+// Flattened tables without row numbers still have a grid: N header cells
+// followed by an exact multiple of N data cells. Recovering N by trying each
+// candidate and scoring how uniform the resulting columns are is safe only if
+// the winner is unambiguous — a wrong N pairs the wrong value with the wrong
+// label, which for exam material is worse than leaving it as a flat list.
+// Hence the guards below, and the requirement that the best N clearly beat the
+// runner-up before any table is emitted.
+const GRID_MIN_SCORE = 0.62;
+const GRID_MIN_MARGIN = 0.05;
+
+function columnUniformity(cells) {
+  const lens = cells.map(c => c.length);
+  const mean = lens.reduce((a, b) => a + b, 0) / lens.length;
+  if (!mean) return 0;
+  const sd = Math.sqrt(lens.reduce((a, b) => a + (b - mean) ** 2, 0) / lens.length);
+  return 1 / (1 + sd / mean);
+}
+
+function inferGrid(segs) {
+  if (segs.length < 6) return null;
+  const scored = [];
+
+  for (let n = 2; n <= 6; n++) {
+    const data = segs.slice(n);
+    if (data.length < n * 2 || data.length % n !== 0) continue;
+
+    const header = segs.slice(0, n).map(s => s.trim());
+    // headers are short labels, never sentences
+    if (header.some(c => !c || c.length > 42 || /[.!?]$/.test(c))) continue;
+
+    const rows = data.length / n;
+    let score = 0;
+    for (let j = 0; j < n; j++) {
+      const col = [];
+      for (let r = 0; r < rows; r++) col.push(data[r * n + j].trim());
+      if (col.some(c => !c)) { score = 0; break; }
+      score += columnUniformity(col);
+    }
+    if (!score) continue;
+    scored.push({ n, header, rows, data, score: score / n });
+  }
+
+  if (!scored.length) return null;
+  scored.sort((a, b) => b.score - a.score);
+  const best = scored[0];
+  if (best.score < GRID_MIN_SCORE) return null;
+  if (scored[1] && best.score - scored[1].score < GRID_MIN_MARGIN) return null;
+
+  const body = [];
+  for (let r = 0; r < best.rows; r++) {
+    body.push(best.data.slice(r * best.n, (r + 1) * best.n).map(s => s.trim()));
+  }
+  return '<div class="md-table-wrap"><table class="md-table"><thead><tr>' +
+    best.header.map(c => `<th>${mdInline(c)}</th>`).join("") +
+    "</tr></thead><tbody>" +
+    body.map(r => "<tr>" + r.map(c => `<td>${mdInline(c)}</td>`).join("") + "</tr>").join("") +
+    "</tbody></table></div>";
 }
 
 // A line that ends one block and starts another
@@ -883,7 +949,7 @@ function mdToHtml(md) {
     }
     if (para.length) {
       const segs = wrapSegments(para);
-      const table = reconstructTable(segs);
+      const table = reconstructTable(segs) || inferGrid(segs);
       out.push(table || `<p>${segs.map(mdInline).join("<br>")}</p>`);
     }
   }
