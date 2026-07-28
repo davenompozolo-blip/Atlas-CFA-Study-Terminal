@@ -1,0 +1,502 @@
+#!/usr/bin/env python3
+"""
+ingest/codex_docx.py — ATLAS Codex .docx ingest.
+
+Structured Word notes carry the pedagogy the PDFs lost: real headings, real
+tables, and explicit callout markers. Extracting from .docx therefore preserves
+structure directly rather than trying to infer it from flattened text.
+
+Expected document shape (see CODEX_SPEC.md):
+
+    CFA LEVEL II | <Topic>            <- title block
+    LM<n>: <Reading title>
+    H1  LEARNING OUTCOMES            <- 2-col table: LOS n | Outcome
+    H1  SECTION 1: <TITLE> (LOS 1)   <- one concept unit per H1 section
+    H2  <sub-topic>                  <- becomes a sub-heading in prose
+        <paragraphs>
+        <multi-col table>            -> markdown pipe table
+        <1x2 table, marker "!">      -> EXAM TRAP callout
+        <1x2 table, titled>          -> formula / definition box
+        <1-col table, titled>        -> titled card (worked example, steps)
+    H1  SECTION n: EXAM TRAPS — LMx
+
+Emitted markdown uses only constructs the reading pane already renders:
+pipe tables, `#`/`##` headings, `-` lists and `EXAM TRAP:` / `KEY:` callouts.
+
+Usage:
+    python ingest/codex_docx.py notes/*.docx --dry-run
+    python ingest/codex_docx.py notes/*.docx --emit-sql out.sql
+    python ingest/codex_docx.py notes/*.docx          # direct Supabase write
+"""
+
+import argparse
+import glob as globmod
+import hashlib
+import json
+import os
+import re
+import sys
+
+try:
+    import docx
+    from docx.table import Table
+    from docx.text.paragraph import Paragraph
+except ImportError:
+    sys.exit("python-docx not installed — run: pip install python-docx")
+
+TENANT = "00000000-0000-0000-0000-000000000000"
+
+# filename/topic-line token -> codex_topics.id
+TOPIC_MAP = {
+    "QM": "quant", "QUANT": "quant", "QUANTITATIVE": "quant",
+    "ETHICS": "eth", "ETH": "eth",
+    "FI": "fi", "FIXED": "fi",
+    "EQ": "eq", "EQUITY": "eq",
+    "DER": "der", "DERIVATIVES": "der",
+    "ALT": "alt", "ALTERNATIVE": "alt",
+    "CORP": "corp", "CORPORATE": "corp",
+    "FSA": "fsa",
+    "ECO": "eco", "ECONOMICS": "eco",
+    "PM": "pm", "PORTFOLIO": "pm",
+}
+
+CALLOUT_MARKERS = {"!", "⚠", "!!", "⚠️"}
+
+
+# ── docx traversal ────────────────────────────────────────────────────────────
+
+def iter_blocks(doc):
+    """Yield Paragraph and Table objects in document order."""
+    for child in doc.element.body.iterchildren():
+        if child.tag.endswith("}p"):
+            yield Paragraph(child, doc)
+        elif child.tag.endswith("}tbl"):
+            yield Table(child, doc)
+
+
+def style_name(p):
+    try:
+        return p.style.name or "Body"
+    except Exception:
+        return "Body"
+
+
+def cell_text(c):
+    return " ".join(c.text.split()).strip()
+
+
+# ── markdown emitters ─────────────────────────────────────────────────────────
+
+def md_escape_cell(s):
+    return s.replace("|", "\\|")
+
+
+def table_to_md(tbl):
+    """Multi-column table -> GitHub pipe table."""
+    rows = [[md_escape_cell(cell_text(c)) for c in r.cells] for r in tbl.rows]
+    rows = [r for r in rows if any(r)]
+    if len(rows) < 2:
+        return ""
+    width = max(len(r) for r in rows)
+    rows = [r + [""] * (width - len(r)) for r in rows]
+    head, body = rows[0], rows[1:]
+    out = ["| " + " | ".join(head) + " |",
+           "|" + "|".join(["---"] * width) + "|"]
+    out += ["| " + " | ".join(r) + " |" for r in body]
+    return "\n".join(out)
+
+
+def card_to_md(tbl):
+    """Single-column table -> titled card rendered as heading + list."""
+    rows = [cell_text(r.cells[0]) for r in tbl.rows]
+    rows = [r for r in rows if r]
+    if not rows:
+        return ""
+    title, items = rows[0], rows[1:]
+    if not items:
+        return f"**{title}**"
+    numbered = all(re.match(r"^step\s*\d+\b", it, re.I) for it in items)
+    lines = [f"### {title}", ""]
+    for it in items:
+        if numbered:
+            it = re.sub(r"^step\s*\d+\s*[:.\-–]\s*", "", it, flags=re.I)
+        lines.append(f"- {it}")
+    return "\n".join(lines)
+
+
+def classify_2col(tbl):
+    """
+    A 1-row 2-column table is either a callout (marker cell) or a
+    formula/definition box (titled cell). Returns (kind, label, body).
+    """
+    marker = cell_text(tbl.rows[0].cells[0])
+    body = cell_text(tbl.rows[0].cells[1])
+    if marker in CALLOUT_MARKERS:
+        return "callout", "EXAM TRAP", body
+    return "formula", marker, body
+
+
+# ── document -> units ─────────────────────────────────────────────────────────
+
+LOS_IN_HEADING = re.compile(r"\(LOS\s*([0-9]+)", re.I)
+LOS_ROW = re.compile(r"^LOS\s*([0-9]+)", re.I)
+VERB = re.compile(
+    r"^(describe|formulate|explain|calculate|interpret|evaluate|contrast|compare|"
+    r"identify|determine|analyze|analyse|demonstrate|justify|recommend|estimate|"
+    r"distinguish|discuss|define|apply)\b", re.I)
+
+
+def unit_id(reading_id, ord_):
+    return hashlib.sha1(f"unit:{reading_id}:{ord_}".encode()).hexdigest()[:16]
+
+
+ROMAN = re.compile(r"^(?:M{0,3})(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$")
+MINOR = {"of", "the", "and", "in", "for", "to", "a", "an", "on", "or", "vs", "with"}
+
+
+def smart_title(s):
+    """
+    Title-case an ALL-CAPS heading without destroying roman numerals or
+    acronyms — plain .title() turns "STANDARD II" into "Standard Ii".
+    """
+    words = s.split()
+    out = []
+    for i, w in enumerate(words):
+        core = w.strip("():,.—-")
+        pad_l = w[:len(w) - len(w.lstrip("("))]
+        pad_r = w[len(core) + len(pad_l):]
+        if core and ROMAN.match(core):
+            out.append(pad_l + core + pad_r)
+        elif core.lower() in MINOR and i not in (0, len(words) - 1):
+            out.append(pad_l + core.lower() + pad_r)
+        else:
+            out.append(pad_l + core.capitalize() + pad_r)
+    return " ".join(out)
+
+
+def parse_docx(path):
+    """Returns dict with title, topic_token, los_rows, sections."""
+    d = docx.Document(path)
+    blocks = list(iter_blocks(d))
+
+    title_lines, sections = [], []
+    current = None
+    seen_h1 = False
+
+    for b in blocks:
+        if isinstance(b, Paragraph):
+            text = " ".join(b.text.split()).strip()
+            if not text:
+                continue
+            s = style_name(b)
+            if s == "Heading 1":
+                seen_h1 = True
+                current = {"title": text, "blocks": []}
+                sections.append(current)
+                continue
+            if not seen_h1:
+                title_lines.append(text)
+                continue
+            if current is not None:
+                current["blocks"].append(("h2" if s == "Heading 2" else
+                                          "h3" if s == "Heading 3" else "p", text))
+        else:
+            if current is not None:
+                current["blocks"].append(("tbl", b))
+
+    return {"title_lines": title_lines, "sections": sections}
+
+
+def extract_los(sections):
+    """Pull LOS rows from the LEARNING OUTCOMES section's table."""
+    los = []
+    for sec in sections:
+        if "LEARNING OUTCOME" not in sec["title"].upper():
+            continue
+        for kind, b in sec["blocks"]:
+            if kind != "tbl":
+                continue
+            for r in b.rows:
+                cells = [cell_text(c) for c in r.cells]
+                if len(cells) < 2:
+                    continue
+                m = LOS_ROW.match(cells[0])
+                if not m:
+                    continue
+                text = cells[1]
+                vm = VERB.match(text)
+                los.append({
+                    "los_num": int(m.group(1)),
+                    "outcome": text,
+                    "command_verb": vm.group(1).lower() if vm else None,
+                })
+    return los
+
+
+def section_to_markdown(sec):
+    """Render one H1 section's blocks to markdown + collected formula boxes."""
+    parts, formulas = [], []
+    for kind, b in sec["blocks"]:
+        if kind == "h2":
+            parts.append(f"\n## {b}")
+        elif kind == "h3":
+            parts.append(f"\n### {b}")
+        elif kind == "p":
+            # Inline ALL-CAPS lead-ins read as emphasis, not shouting
+            parts.append(b)
+        else:
+            ncols, nrows = len(b.columns), len(b.rows)
+            if ncols == 2 and nrows == 1:
+                sort, label, body = classify_2col(b)
+                if sort == "callout":
+                    parts.append(f"\nEXAM TRAP: {body}")
+                else:
+                    formulas.append({"label": label, "expr": body, "where": ""})
+            elif ncols == 1:
+                md = card_to_md(b)
+                if md:
+                    parts.append("\n" + md)
+            else:
+                md = table_to_md(b)
+                if md:
+                    parts.append("\n" + md)
+    return "\n\n".join(p for p in parts if p and p.strip()), formulas
+
+
+def build_units(path, doc_id, topic_id, next_reading_id=None):
+    parsed = parse_docx(path)
+    sections = parsed["sections"]
+    los_rows = extract_los(sections)
+
+    units = []
+    ordn = 0
+
+    if los_rows:
+        units.append({
+            "id": unit_id(doc_id, ordn), "tenant_id": TENANT,
+            "reading_id": doc_id, "topic_id": topic_id, "ord": ordn,
+            "kind": "los", "title": "Learning Outcomes", "est_minutes": 2,
+            "los_num": None,
+            "payload": {"outcomes": [
+                {"num": l["los_num"], "text": l["outcome"], "verb": l["command_verb"]}
+                for l in sorted(los_rows, key=lambda x: x["los_num"])]},
+            "source_chunk_ids": [],
+        })
+        ordn += 1
+
+    all_formulas = []
+    for sec in sections:
+        if "LEARNING OUTCOME" in sec["title"].upper():
+            continue
+        prose, formulas = section_to_markdown(sec)
+        all_formulas.extend(formulas)
+        if not prose.strip() and not formulas:
+            continue
+        m = LOS_IN_HEADING.search(sec["title"])
+        title = re.sub(r"^SECTION\s*\d+\s*[:.\-–]\s*", "", sec["title"], flags=re.I)
+        title = re.sub(r"\s*\(LOS[^)]*\)\s*$", "", title).strip() or sec["title"]
+        # source headings are upper-case for emphasis; title-case reads better
+        if title.isupper():
+            title = smart_title(title)
+        units.append({
+            "id": unit_id(doc_id, ordn), "tenant_id": TENANT,
+            "reading_id": doc_id, "topic_id": topic_id, "ord": ordn,
+            "kind": "concept", "title": title[:120],
+            "est_minutes": max(4, min(14, len(prose) // 420 or 4)),
+            "los_num": int(m.group(1)) if m else None,
+            "payload": {"prose_md": prose, "formulas": formulas,
+                        "illustration": None, "key_terms": []},
+            "source_chunk_ids": [],
+        })
+        ordn += 1
+
+    units.append({
+        "id": unit_id(doc_id, ordn), "tenant_id": TENANT,
+        "reading_id": doc_id, "topic_id": topic_id, "ord": ordn,
+        "kind": "recap", "title": "Recap", "est_minutes": 3, "los_num": None,
+        "payload": {
+            "formulas": all_formulas[:8],
+            "los_revisited": [l["los_num"] for l in sorted(los_rows, key=lambda x: x["los_num"])],
+            "next_reading_id": next_reading_id,
+        },
+        "source_chunk_ids": [],
+    })
+
+    return parsed, los_rows, units
+
+
+# ── identity ──────────────────────────────────────────────────────────────────
+
+def infer_topic(path, title_lines):
+    base = os.path.basename(path).upper()
+    for tok, tid in TOPIC_MAP.items():
+        if re.search(rf"[_\-]{tok}[_\-]", base):
+            return tid
+    joined = " ".join(title_lines).upper()
+    for tok, tid in TOPIC_MAP.items():
+        if tok in joined:
+            return tid
+    return None
+
+
+def infer_reading(title_lines, path):
+    for line in title_lines:
+        if re.match(r"^(LM|READING)\s*\d+\s*[:.\-–]", line, re.I):
+            return line
+    stem = os.path.splitext(os.path.basename(path))[0]
+    stem = re.sub(r"^[0-9a-f]{6,}-", "", stem)
+    return re.sub(r"[_\-]+", " ", re.sub(r"^CFA_L2_", "", stem, flags=re.I)).strip()
+
+
+def infer_lm(reading):
+    m = re.search(r"\bLM\s*(\d+)", reading, re.I)
+    return int(m.group(1)) if m else None
+
+
+# ── SQL emission ──────────────────────────────────────────────────────────────
+
+def q(s):
+    if s is None:
+        return "null"
+    return "'" + str(s).replace("'", "''") + "'"
+
+
+def write_supabase(sb, doc_meta, los_rows, units):
+    """
+    Write via PostgREST table operations rather than raw SQL — Supabase exposes
+    no generic SQL endpoint, and service_role bypasses RLS for these tables.
+    """
+    d = doc_meta
+    sb.table("codex_documents").upsert({
+        "id": d["id"], "tenant_id": TENANT, "topic_id": d["topic_id"],
+        "reading": d["reading"], "lm": d["lm"], "source_file": d["source_file"],
+        "pages": 0, "los_count": len(los_rows),
+        "section_count": d["section_count"], "chunk_count": 0,
+        "content_hash": d["content_hash"], "ingest_method": "docx",
+    }, on_conflict="id").execute()
+
+    sb.table("codex_los").delete().eq("doc_id", d["id"]).execute()
+    if los_rows:
+        sb.table("codex_los").insert([{
+            "id": hashlib.sha1(f"los:{d['id']}:{l['los_num']}".encode()).hexdigest()[:16],
+            "tenant_id": TENANT, "doc_id": d["id"], "topic_id": d["topic_id"],
+            "los_num": l["los_num"], "outcome": l["outcome"],
+            "command_verb": l["command_verb"], "source": "docx",
+        } for l in los_rows]).execute()
+
+    # replaces the reading's units; cascades to codex_unit_progress for this
+    # reading only, which is why re-running is safest before study begins
+    sb.table("codex_units").delete().eq("reading_id", d["id"]).execute()
+    for i in range(0, len(units), 25):
+        sb.table("codex_units").insert(units[i:i + 25]).execute()
+
+
+def emit_sql(doc_meta, los_rows, units):
+    out = []
+    d = doc_meta
+    out.append(
+        "insert into codex_documents (id, tenant_id, topic_id, reading, lm, source_file, "
+        "pages, los_count, section_count, chunk_count, content_hash, ingest_method) values ("
+        f"{q(d['id'])}, {q(TENANT)}, {q(d['topic_id'])}, {q(d['reading'])}, "
+        f"{d['lm'] if d['lm'] is not None else 'null'}, {q(d['source_file'])}, 0, "
+        f"{len(los_rows)}, {d['section_count']}, 0, {q(d['content_hash'])}, 'docx') "
+        "on conflict (id) do update set reading=excluded.reading, lm=excluded.lm, "
+        "los_count=excluded.los_count, section_count=excluded.section_count, "
+        "ingest_method=excluded.ingest_method;")
+
+    out.append(f"delete from codex_los where doc_id = {q(d['id'])};")
+    for l in los_rows:
+        lid = hashlib.sha1(f"los:{d['id']}:{l['los_num']}".encode()).hexdigest()[:16]
+        out.append(
+            "insert into codex_los (id, tenant_id, doc_id, topic_id, los_num, outcome, "
+            f"command_verb, source) values ({q(lid)}, {q(TENANT)}, {q(d['id'])}, "
+            f"{q(d['topic_id'])}, {l['los_num']}, {q(l['outcome'])}, "
+            f"{q(l['command_verb'])}, 'docx') on conflict (id) do nothing;")
+
+    out.append(f"delete from codex_units where reading_id = {q(d['id'])};")
+    for u in units:
+        out.append(
+            "insert into codex_units (id, tenant_id, reading_id, topic_id, ord, kind, "
+            "title, est_minutes, los_num, payload, source_chunk_ids) values ("
+            f"{q(u['id'])}, {q(TENANT)}, {q(u['reading_id'])}, {q(u['topic_id'])}, "
+            f"{u['ord']}, {q(u['kind'])}, {q(u['title'])}, {u['est_minutes']}, "
+            f"{u['los_num'] if u['los_num'] is not None else 'null'}, "
+            f"{q(json.dumps(u['payload'], ensure_ascii=False))}::jsonb, '{{}}');")
+    return "\n".join(out)
+
+
+# ── CLI ───────────────────────────────────────────────────────────────────────
+
+def main():
+    ap = argparse.ArgumentParser(description="ATLAS Codex .docx ingest")
+    ap.add_argument("targets", nargs="+", help=".docx files or globs")
+    ap.add_argument("--topic", help="Override topic_id")
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--emit-sql", metavar="PATH", help="Write SQL instead of calling Supabase")
+    args = ap.parse_args()
+
+    paths = []
+    for t in args.targets:
+        paths.extend(sorted(globmod.glob(t)) if any(c in t for c in "*?[") else [t])
+    paths = [p for p in paths if p.lower().endswith(".docx")]
+    if not paths:
+        sys.exit("No .docx files matched.")
+
+    sql_chunks, pending = [], []
+    for path in paths:
+        parsed = parse_docx(path)
+        topic_id = args.topic or infer_topic(path, parsed["title_lines"])
+        if not topic_id:
+            print(f"!! {os.path.basename(path)}: could not infer topic — use --topic")
+            continue
+        reading = infer_reading(parsed["title_lines"], path)
+        doc_id = hashlib.sha1((topic_id + os.path.basename(path)).encode()).hexdigest()[:16]
+
+        _, los_rows, units = build_units(path, doc_id, topic_id)
+        with open(path, "rb") as fh:
+            content_hash = hashlib.sha256(fh.read()).hexdigest()
+
+        doc_meta = {
+            "id": doc_id, "topic_id": topic_id, "reading": reading,
+            "lm": infer_lm(reading),
+            "source_file": os.path.basename(path),
+            "section_count": len(parsed["sections"]),
+            "content_hash": content_hash,
+        }
+
+        kinds = {}
+        for u in units:
+            kinds[u["kind"]] = kinds.get(u["kind"], 0) + 1
+        print(f"{os.path.basename(path)[:56]:58s} topic={topic_id:5s} "
+              f"LOS={len(los_rows):2d} units={len(units):2d} {kinds}")
+
+        if args.dry_run:
+            for u in units[:3]:
+                head = (u["payload"].get("prose_md") or "")[:180].replace("\n", " ⏎ ")
+                print(f"    [{u['ord']}] {u['kind']:8s} {str(u['title'])[:44]:46s} {head}")
+            continue
+
+        if args.emit_sql:
+            sql_chunks.append(emit_sql(doc_meta, los_rows, units))
+        else:
+            pending.append((doc_meta, los_rows, units))
+
+    if args.emit_sql and sql_chunks:
+        with open(args.emit_sql, "w") as fh:
+            fh.write("\n".join(sql_chunks) + "\n")
+        print(f"\nSQL written to {args.emit_sql}")
+    elif pending:
+        url = os.environ.get("SUPABASE_URL", "").rstrip("/")
+        key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+        if not url or not key:
+            sys.exit("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, or use --emit-sql.")
+        from supabase import create_client
+        sb = create_client(url, key)
+        for doc_meta, los_rows, units in pending:
+            write_supabase(sb, doc_meta, los_rows, units)
+            print(f"  wrote {doc_meta['reading'][:50]} ({len(units)} units)")
+        print(f"\nDone — {len(pending)} reading(s) written to Supabase.")
+
+
+if __name__ == "__main__":
+    main()
