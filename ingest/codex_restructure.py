@@ -67,15 +67,34 @@ INPUT:
 {body}
 ---"""
 
-NUM = re.compile(r"-?\d[\d,]*\.?\d*%?")
+MINUS = "-−–—‐"
+NUM = re.compile(r"([-+−–—‐]?)(\d[\d,]*(?:\.\d+)?)(%?)")
 
 
 def numbers(text):
-    """Multiset of numeric tokens, for verifying nothing was lost or invented."""
+    """
+    Multiset of signed numeric tokens, for verifying nothing was lost, invented
+    or altered.
+
+    The sign has to be part of the key. This corpus contains 274 numbers written
+    with a Unicode minus and 138 with an explicit plus — including correlations
+    like −0.11, where the sign carries the whole meaning. Matching only ASCII
+    "-" would score −1.3% and 1.3% as identical and let a flipped sign through,
+    which is precisely the corruption this guard exists to catch.
+
+    A dash sitting directly after a digit is a range separator ("6.8–7.2"), not
+    a sign, so it is not counted as one.
+    """
+    t = text or ""
     out = {}
-    for tok in NUM.findall(text or ""):
-        t = tok.rstrip(".,")
-        out[t] = out.get(t, 0) + 1
+    for m in NUM.finditer(t):
+        sign, val, pct = m.group(1), m.group(2), m.group(3)
+        if sign and m.start() > 0 and t[m.start() - 1].isdigit():
+            sign = ""                      # range separator, not a sign
+        if sign and sign in MINUS:
+            sign = "-"                     # normalise the minus glyphs
+        key = f"{sign}{val.replace(',', '')}{pct}"
+        out[key] = out.get(key, 0) + 1
     return out
 
 
@@ -187,6 +206,12 @@ def main():
             tables = out.count("|---")
             print(f"  ok    {label:46s} {tables} table(s)")
             if args.dry_run:
+                # the point of a dry run is to read the markdown before it is
+                # written, so print it rather than only counting tables
+                print("  " + "─" * 72)
+                for line in out.split("\n"):
+                    print("  │ " + line)
+                print("  " + "─" * 72 + "\n")
                 continue
             p = dict(u["payload"])
             p["prose_md_raw"] = p.get("prose_md", "")
