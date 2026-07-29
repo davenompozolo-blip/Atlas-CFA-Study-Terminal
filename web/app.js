@@ -748,7 +748,8 @@ function columnUniformity(cells) {
   return 1 / (1 + sd / mean);
 }
 
-function inferGrid(segs) {
+function inferGrid(segs, start = 0) {
+  segs = start ? segs.slice(start) : segs;
   if (segs.length < 6) return null;
   const scored = [];
 
@@ -786,6 +787,107 @@ function inferGrid(segs) {
     best.header.map(c => `<th>${mdInline(c)}</th>`).join("") +
     "</tr></thead><tbody>" +
     body.map(r => "<tr>" + r.map(c => `<td>${mdInline(c)}</td>`).join("") + "</tr>").join("") +
+    "</tbody></table></div>";
+}
+
+// Numeric tables survive flattening better than they look, because the values
+// betray the shape: a table with k numeric columns emits runs of exactly k
+// numbers separated by a label. That gives the column count directly, without
+// having to guess, and it tolerates cells that wrapped onto two lines — the
+// label is simply everything between two runs, however many lines that took.
+// This is what recovers tables inferGrid cannot, e.g. one whose header reads
+// "Collateral" / "Return" on separate lines.
+const NUMERIC_CELL = /^(?:[-+−–—]?[\d][\d,]*(?:\.\d+)?%?|[—–-]|n\/?a)$/i;
+
+function isNumericCell(s) {
+  return NUMERIC_CELL.test((s || "").trim());
+}
+
+// Merge wrapped header cells until the header has exactly `target` cells.
+// A lone word that is also the final word of two or more sibling headers is
+// almost certainly a wrapped tail ("Return", under "Total Return" / "Spot
+// Return"), so prefer that; otherwise merge the shortest adjacent pair.
+function compressHeader(cells, target) {
+  const out = cells.slice();
+  let guard = 0;
+  while (out.length > target && guard++ < 8) {
+    const tails = {};
+    for (const c of out) {
+      const w = c.trim().split(/\s+/).pop();
+      if (w) tails[w] = (tails[w] || 0) + 1;
+    }
+    let pick = -1;
+    for (let i = 1; i < out.length; i++) {
+      const c = out[i].trim();
+      if (!/\s/.test(c) && (tails[c] || 0) >= 2) { pick = i - 1; break; }
+    }
+    if (pick < 0) {
+      let best = Infinity;
+      for (let i = 0; i < out.length - 1; i++) {
+        const len = out[i].length + out[i + 1].length;
+        if (len < best) { best = len; pick = i; }
+      }
+    }
+    out.splice(pick, 2, `${out[pick]} ${out[pick + 1]}`.replace(/\s+/g, " ").trim());
+  }
+  return out;
+}
+
+function inferNumericGrid(segs) {
+  if (segs.length < 8) return null;
+
+  // maximal runs of consecutive numeric cells
+  const runs = [];
+  for (let i = 0; i < segs.length; i++) {
+    if (!isNumericCell(segs[i])) continue;
+    const start = i;
+    while (i + 1 < segs.length && isNumericCell(segs[i + 1])) i++;
+    // A run must contain a real number. Dashes and "n/a" are placeholders, and
+    // a run made only of them is not evidence of a numeric column — in a tick
+    // chart ("✓ Primary driver / — / —") two dashes otherwise imply two value
+    // columns and collapse a four-column table into three.
+    const hasDigit = segs.slice(start, i + 1).some(c => /\d/.test(c));
+    if (i - start + 1 >= 2 && hasDigit) runs.push([start, i]);
+  }
+  if (runs.length < 2) return null;
+
+  const k = runs[0][1] - runs[0][0] + 1;
+  if (k < 2 || k > 8) return null;
+  if (!runs.every(r => r[1] - r[0] + 1 === k)) return null;   // ragged: decline
+
+  const n = k + 1;
+  const firstRun = runs[0][0];
+  if (firstRun < n) return null;                 // no room for header + label
+
+  // Row 1's label may itself have wrapped, so the header boundary is not
+  // simply firstRun-1. Walk the boundary back until the header validates —
+  // a cell ending in a full stop is prose, not a header, which is what
+  // excludes an over-long guess.
+  let header = null, headerLen = 0;
+  for (let hLen = firstRun - 1; hLen >= n; hLen--) {
+    const cand = compressHeader(segs.slice(0, hLen).map(s => s.trim()), n);
+    if (cand.length !== n) continue;
+    if (cand.some(c => !c || c.length > 48 || /[.!?]$/.test(c))) continue;
+    header = cand; headerLen = hLen; break;
+  }
+  if (!header) return null;
+
+  const rows = [];
+  for (let r = 0; r < runs.length; r++) {
+    const [s, e] = runs[r];
+    const labelFrom = r === 0 ? headerLen : runs[r - 1][1] + 1;
+    const label = segs.slice(labelFrom, s).map(x => x.trim()).join(" ").trim();
+    if (!label) return null;
+    // A label that reads as a value (CHF 22.0B, (2,321), ~35) means a value
+    // column used a format the run detector missed, so the grid is shifted.
+    if (/^(?:[A-Z]{2,3}\s*)?[~(]?[\d.,]+\s*[A-Za-z%]{0,2}\)?$/.test(label)) return null;
+    rows.push([label, ...segs.slice(s, e + 1).map(x => x.trim())]);
+  }
+
+  return '<div class="md-table-wrap"><table class="md-table"><thead><tr>' +
+    header.map(c => `<th>${mdInline(c)}</th>`).join("") +
+    "</tr></thead><tbody>" +
+    rows.map(r => "<tr>" + r.map(c => `<td>${mdInline(c)}</td>`).join("") + "</tr>").join("") +
     "</tbody></table></div>";
 }
 
@@ -949,8 +1051,33 @@ function mdToHtml(md) {
     }
     if (para.length) {
       const segs = wrapSegments(para);
-      const table = reconstructTable(segs) || inferGrid(segs);
-      out.push(table || `<p>${segs.map(mdInline).join("<br>")}</p>`);
+      // A table is often preceded by a line or two of lead-in prose, so the
+      // header does not always start at the first segment. Take the EARLIEST
+      // start that yields a candidate, and prefer the detector resting on the
+      // strongest evidence — explicit row numbers, then numeric runs, then
+      // pure column-shape inference. Ranking by row count instead would let a
+      // spurious 2-column reading beat the correct 4-column one.
+      let best = null;
+      for (let start = 0; start <= Math.min(4, segs.length - 6) && !best; start++) {
+        const rest = segs.slice(start);
+        // Offsets are granted only to detectors anchored on explicit evidence
+        // — row numbers, or runs of numbers. Column-shape inference is too weak
+        // to also choose where the table starts: given that freedom it finds
+        // grids in tables whose blank corner cell was dropped by extraction,
+        // shifting every row by one and filing row labels as column headers.
+        const html = reconstructTable(rest) || inferNumericGrid(rest)
+                     || (start === 0 ? inferGrid(segs) : null);
+        if (html) best = { start, html };
+      }
+      if (best) {
+        // whatever preceded the table is real prose and must still be shown
+        if (best.start > 0) {
+          out.push(`<p>${segs.slice(0, best.start).map(mdInline).join("<br>")}</p>`);
+        }
+        out.push(best.html);
+      } else {
+        out.push(`<p>${segs.map(mdInline).join("<br>")}</p>`);
+      }
     }
   }
 
