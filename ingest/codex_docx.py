@@ -507,12 +507,34 @@ def main():
     ap.add_argument("--emit-sql", metavar="PATH", help="Write SQL instead of calling Supabase")
     args = ap.parse_args()
 
-    paths = []
+    # Accept a folder, a glob, or explicit files. A bare folder is searched
+    # recursively, which is the friendliest form on Windows, where PowerShell
+    # passes "*.docx" through literally rather than expanding it.
+    paths, doc_only = [], []
     for t in args.targets:
-        paths.extend(sorted(globmod.glob(t)) if any(c in t for c in "*?[") else [t])
-    paths = [p for p in paths if p.lower().endswith(".docx")]
+        t = t.strip('"').strip("'")
+        if os.path.isdir(t):
+            for root, _dirs, files in os.walk(t):
+                for f in files:
+                    (paths if f.lower().endswith(".docx")
+                     else doc_only if f.lower().endswith(".doc") else []
+                     ).append(os.path.join(root, f))
+        elif any(c in t for c in "*?["):
+            paths.extend(globmod.glob(t, recursive=True))
+        else:
+            paths.append(t)
+
+    paths = sorted({p for p in paths if p.lower().endswith(".docx")
+                    and not os.path.basename(p).startswith("~$")})
+
     if not paths:
-        sys.exit("No .docx files matched.")
+        print("No .docx files matched.\n")
+        print("Pass the folder itself and it will be searched recursively, e.g.")
+        print(r'    python ingest/codex_docx.py "C:\Users\you\Documents\CFA notes"')
+        if doc_only:
+            print(f"\nFound {len(doc_only)} legacy .doc file(s), which cannot be read.")
+            print("Open each in Word and Save As .docx, then re-run.")
+        sys.exit(1)
 
     sql_chunks, pending = [], []
     for path in paths:
