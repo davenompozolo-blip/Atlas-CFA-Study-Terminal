@@ -271,7 +271,8 @@ def extract_los(sections):
     """Pull LOS rows from the LEARNING OUTCOMES section's table."""
     los = []
     for sec in sections:
-        if "LEARNING OUTCOME" not in sec["title"].upper():
+        t = sec["title"].upper()
+        if "LEARNING OUTCOME" not in t and "LOS CHECKLIST" not in t:
             continue
         for kind, b in sec["blocks"]:
             if kind != "tbl":
@@ -358,8 +359,9 @@ def build_units(path, doc_id, topic_id, next_reading_id=None):
 
     all_formulas = []
     for sec in sections:
-        if "LEARNING OUTCOME" in sec["title"].upper():
-            continue
+        st = sec["title"].upper()
+        if "LEARNING OUTCOME" in st or "LOS CHECKLIST" in st:
+            continue   # already emitted as the los unit
         prose, formulas = section_to_markdown(sec)
         all_formulas.extend(formulas)
         if not prose.strip() and not formulas:
@@ -399,14 +401,66 @@ def build_units(path, doc_id, topic_id, next_reading_id=None):
 
 # ── identity ──────────────────────────────────────────────────────────────────
 
+# Full curriculum topic names, as they appear in the "CFA LEVEL II | <Topic>"
+# title line. This is the authoritative source — it is stated by the document
+# rather than guessed from a filename.
+TOPIC_NAMES = [
+    ("QUANTITATIVE", "quant"), ("ECONOMIC", "eco"),
+    ("FINANCIAL STATEMENT", "fsa"), ("CORPORATE ISSUER", "corp"),
+    ("EQUITY", "eq"), ("FIXED INCOME", "fi"), ("DERIVATIVE", "der"),
+    ("ALTERNATIVE", "alt"), ("PORTFOLIO MANAGEMENT", "pm"),
+    ("ETHIC", "eth"),
+]
+
+# Subject keywords for filenames that name the reading rather than the topic.
+# Ordered most specific first; matched against the whole filename.
+FILENAME_SUBJECTS = [
+    ("HEDGEFUND", "alt"), ("HEDGE_FUND", "alt"), ("REALESTATE", "alt"),
+    ("REAL_ESTATE", "alt"), ("COMMODIT", "alt"), ("PRIVATE_CAPITAL", "alt"),
+    ("INTERCORPORATE", "fsa"), ("FINANCIAL_INSTITUTION", "fsa"),
+    ("QUALITY_FINANCIAL", "fsa"), ("EMPLOYEE_COMPENSATION", "fsa"),
+    ("MULTINATIONAL", "fsa"),
+    ("CONTINGENT_CLAIM", "der"), ("FORWARD_COMMITMENT", "der"),
+    ("COSTOFCAPITAL", "corp"), ("COST_OF_CAPITAL", "corp"),
+    ("CORPORATERESTRUCTURING", "corp"), ("RESTRUCTURING", "corp"),
+    ("DIVIDENDS", "corp"), ("SHAREREPURCHASE", "corp"), ("ESG", "corp"),
+    ("GOVERNANCE", "corp"),
+    ("CURRENCY", "eco"), ("EXCHANGERATE", "eco"), ("ECONOMICGROWTH", "eco"),
+    ("DISCOUNTED_DIVIDEND", "eq"), ("FREE_CASH_FLOW", "eq"),
+    ("MARKET_BASED", "eq"), ("RESIDUAL_INCOME", "eq"),
+    ("PRIVATE_COMPANY", "eq"), ("EQUITY", "eq"),
+    ("YIELD_CURVE", "fi"), ("TERM_STRUCTURE", "fi"), ("CREDIT", "fi"),
+]
+
+
 def infer_topic(path, title_lines):
-    base = os.path.basename(path).upper()
+    """
+    Topic from, in order: the document's own title line, an explicit token in
+    the filename, then a subject keyword.
+
+    Substring matching over the whole title was the original approach and was
+    badly wrong — "EQ" matches inside "frEQuency", "FI" inside "FInancial" and
+    "ETH" inside "mETHod", which filed Economics under Equity and Intercorporate
+    Investments under Ethics.
+    """
+    # 1. "CFA LEVEL II | Quantitative Methods" — stated, not inferred
+    for line in title_lines:
+        if "|" in line:
+            tail = line.split("|")[-1].strip().upper()
+            for name, tid in TOPIC_NAMES:
+                if name in tail:
+                    return tid
+
+    # 2. explicit token delimited in the filename (CFA_L2_QM_LM1_...)
+    stem = os.path.splitext(os.path.basename(path))[0].upper()
+    parts = set(re.split(r"[_\-\s]+", stem))
     for tok, tid in TOPIC_MAP.items():
-        if re.search(rf"[_\-]{tok}[_\-]", base):
+        if tok in parts:
             return tid
-    joined = " ".join(title_lines).upper()
-    for tok, tid in TOPIC_MAP.items():
-        if tok in joined:
+
+    # 3. subject keyword anywhere in the filename
+    for kw, tid in FILENAME_SUBJECTS:
+        if kw in stem:
             return tid
     return None
 
@@ -501,7 +555,7 @@ def emit_sql(doc_meta, los_rows, units):
 
 def main():
     ap = argparse.ArgumentParser(description="ATLAS Codex .docx ingest")
-    ap.add_argument("targets", nargs="+", help=".docx files or globs")
+    ap.add_argument("targets", nargs="+", help=".docx files, folders, or globs")
     ap.add_argument("--topic", help="Override topic_id")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--emit-sql", metavar="PATH", help="Write SQL instead of calling Supabase")
