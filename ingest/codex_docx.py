@@ -132,6 +132,52 @@ def cell_text(c):
     return " ".join(c.text.split()).strip()
 
 
+def para_size(p):
+    """Point size of the first run that declares one, else None."""
+    for r in p.runs:
+        if r.font is not None and r.font.size is not None:
+            return round(r.font.size.pt, 1)
+    return None
+
+
+def para_bold(p):
+    return any(r.bold for r in p.runs if r.bold is not None)
+
+
+def infer_heading_sizes(blocks):
+    """
+    Map font sizes to heading levels for documents that use direct formatting
+    instead of named Heading styles.
+
+    Not every generation of these notes used Word's Heading styles — some carry
+    the hierarchy purely as bold text at decreasing point sizes. Without this,
+    such a document yields no sections at all and produces only a recap.
+
+    Body size is the most common size in the document; anything bold and larger
+    is a heading. The largest of those is the title block, and the sizes below
+    it become h1, h2, h3 in order.
+    """
+    from collections import Counter
+    sizes, bold_sizes = Counter(), Counter()
+    for b in blocks:
+        if isinstance(b, Table) or not b.text.strip():
+            continue
+        sz = para_size(b)
+        if sz is None:
+            continue
+        sizes[sz] += 1
+        if para_bold(b):
+            bold_sizes[sz] += 1
+    if not sizes or not bold_sizes:
+        return {}
+    body = sizes.most_common(1)[0][0]
+    larger = sorted((s for s in bold_sizes if s > body), reverse=True)
+    if len(larger) < 2:
+        return {}
+    # larger[0] is the document title; the rest are heading levels
+    return {sz: lvl for sz, lvl in zip(larger[1:], ["h1", "h2", "h3"])}
+
+
 # ── markdown emitters ─────────────────────────────────────────────────────────
 
 def md_escape_cell(s):
@@ -239,6 +285,18 @@ def parse_docx(path):
     d = docx.Document(path)
     blocks = list(iter_blocks(d))
 
+    # Prefer named Heading styles; fall back to bold-and-larger font sizes
+    uses_named = any(isinstance(b, Paragraph) and style_name(b).startswith("Heading")
+                     for b in blocks)
+    size_levels = {} if uses_named else infer_heading_sizes(blocks)
+
+    def level_of(par):
+        if uses_named:
+            s = style_name(par)
+            return {"Heading 1": "h1", "Heading 2": "h2",
+                    "Heading 3": "h3"}.get(s)
+        return size_levels.get(para_size(par)) if para_bold(par) else None
+
     title_lines, sections = [], []
     current = None
     seen_h1 = False
@@ -248,8 +306,8 @@ def parse_docx(path):
             text = " ".join(b.text.split()).strip()
             if not text:
                 continue
-            s = style_name(b)
-            if s == "Heading 1":
+            lvl = level_of(b)
+            if lvl == "h1":
                 seen_h1 = True
                 current = {"title": text, "blocks": []}
                 sections.append(current)
@@ -258,8 +316,7 @@ def parse_docx(path):
                 title_lines.append(text)
                 continue
             if current is not None:
-                current["blocks"].append(("h2" if s == "Heading 2" else
-                                          "h3" if s == "Heading 3" else "p", text))
+                current["blocks"].append((lvl if lvl in ("h2", "h3") else "p", text))
         else:
             if current is not None:
                 current["blocks"].append(("tbl", b))
