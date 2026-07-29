@@ -564,28 +564,22 @@ def main():
     # Accept a folder, a glob, or explicit files. A bare folder is searched
     # recursively, which is the friendliest form on Windows, where PowerShell
     # passes "*.docx" through literally rather than expanding it.
-    candidates = []
+    paths, doc_only = [], []
     for t in args.targets:
         t = t.strip('"').strip("'")
         if os.path.isdir(t):
             for root, _dirs, files in os.walk(t):
-                candidates.extend(os.path.join(root, f) for f in files)
+                for f in files:
+                    (paths if f.lower().endswith(".docx")
+                     else doc_only if f.lower().endswith(".doc") else []
+                     ).append(os.path.join(root, f))
         elif any(c in t for c in "*?["):
-            candidates.extend(globmod.glob(t, recursive=True))
+            paths.extend(globmod.glob(t, recursive=True))
         else:
-            candidates.append(t)
+            paths.append(t)
 
-    # Drop Word lock files (~$name.docx, present whenever a document is open),
-    # and anything that is not an existing file — a mistyped path or a directory
-    # named *.docx would otherwise reach the parser and crash it.
-    candidates = [p for p in candidates
-                  if not os.path.basename(p).startswith("~$") and os.path.isfile(p)]
-
-    # Classify after expanding every input form, so a .doc passed explicitly or
-    # by glob still produces the conversion guidance below rather than a bare
-    # "no match".
-    paths = sorted({p for p in candidates if p.lower().endswith(".docx")})
-    doc_only = sorted({p for p in candidates if p.lower().endswith(".doc")})
+    paths = sorted({p for p in paths if p.lower().endswith(".docx")
+                    and not os.path.basename(p).startswith("~$")})
 
     if not paths:
         print("No .docx files matched.\n")
