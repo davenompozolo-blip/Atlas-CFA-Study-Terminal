@@ -1,0 +1,1460 @@
+{
+ "topic_id": "alt",
+ "module": "LM1",
+ "module_title": "Introduction to Commodities and Commodity Derivatives",
+ "source_ref": "CFA 2026 L2 V8/LM1",
+ "units": [
+  {
+   "ordinal": 1,
+   "title": "Why Commodities Are Different",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Every other asset class in the CFA curriculum is valued by discounting cash flows. Commodities cannot be, and almost everything else in this module follows from that single fact."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "A commodity is a physical good attributable to a natural resource, tradable and supplied without substantial differentiation. That fungibility is what makes standardised futures contracts possible. Commodities trade in physical (spot) markets, where prices reflect current or very near-term supply and demand, and in futures markets, where a price is established today for a defined quantity and quality delivered at a future date."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "A share entitles you to residual earnings. A bond entitles you to coupons and principal. A barrel of oil entitles you to nothing, and costs you money to hold. There is no cash flow stream to discount, so commodity valuation is an exercise in supply, demand, and the economics of carrying physical inventory."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Equities and bonds",
+       "Commodities"
+      ],
+      "rows": [
+       [
+        "Cash flows",
+        "Dividends, coupons, principal",
+        "None"
+       ],
+       [
+        "Valuation basis",
+        "Discounted expected cash flows",
+        "Supply, demand, cost of carry"
+       ],
+       [
+        "Cost of holding",
+        "Essentially zero",
+        "Storage, insurance, spoilage, financing"
+       ],
+       [
+        "Benefit of holding",
+        "Income received",
+        "Convenience yield (non-cash)"
+       ],
+       [
+        "Typical exposure",
+        "The security itself",
+        "Futures, not physical"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "Because investment is conducted overwhelmingly through futures rather than physical delivery, the curriculum treats commodity investing and commodity futures as effectively the same subject. Exchanges allow risk transfer and provide a valuable price discovery function."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Sector characteristics"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "The distinguishing features across sectors are storability, seasonality, and the production-to-consumption chain. Storability is the one to anchor on, because it drives term structure and roll return later in the module."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Sector",
+       "Examples",
+       "Defining characteristics"
+      ],
+      "rows": [
+       [
+        "Energy",
+        "Crude, natural gas, refined products",
+        "Largest by index weight. Consumed near-continuously with a thin storage buffer. Geopolitically sensitive."
+       ],
+       [
+        "Grains",
+        "Corn, wheat, soybeans, rice",
+        "Seasonal harvest fixed by calendar. Storable in silos. Weather-driven supply shocks."
+       ],
+       [
+        "Industrial metals",
+        "Copper, aluminium, zinc, nickel",
+        "Warehoused indefinitely. Demand tracks industrial and construction activity."
+       ],
+       [
+        "Livestock",
+        "Cattle, hogs",
+        "Poor storability once processed. Feed is a major input. Biological production lags."
+       ],
+       [
+        "Precious metals",
+        "Gold, silver, platinum",
+        "Effectively infinite storage life. Gold held perpetually as an alternative currency."
+       ],
+       [
+        "Softs",
+        "Coffee, cocoa, cotton, sugar",
+        "Tropical, geographically concentrated. Tree crops take years to mature."
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "The common thread is <strong>inelastic short-run supply</strong>. Mines take a decade from discovery to output; coffee trees take years to bear; a grain crop is fixed once planted. When demand moves unexpectedly, price does nearly all the adjusting, which is why commodity price series spike rather than drift."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Market participants"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "prose",
+     "payload": {
+      "text": "Three groups, distinguished by motive. The motives matter because they generate the risk premium that the theories in Section 3 attempt to explain."
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Participant",
+       "Position",
+       "Motive"
+      ],
+      "rows": [
+       [
+        "Producers",
+        "Naturally long the physical, so they <strong>sell</strong> futures",
+        "Certainty of price, not profit. Willingly gives up expected return to shed risk."
+       ],
+       [
+        "Consumers",
+        "Naturally short the input, so they <strong>buy</strong> futures",
+        "Certainty of input cost. Hedging intensity varies with the input's share of expenses."
+       ],
+       [
+        "Speculators",
+        "Take the other side of hedgers",
+        "Profit. Expect compensation for absorbing the price risk hedgers shed."
+       ],
+       [
+        "Arbitrageurs",
+        "Cash-and-carry and spread positions",
+        "Risk-free profit. Their activity enforces the pricing relationships."
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "prose",
+     "payload": {
+      "text": "Exchanges and analysts participate without taking risk: exchanges guarantee performance through clearing and margin, analysts inform decisions without positions."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 2,
+   "title": "Term Structure: Contango and Backwardation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "The single most examined relationship in the module. Roll return, the theories of futures returns, and index construction all hang off these two definitions."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "<strong>Contango:</strong> futures price is <strong>above</strong> spot. The curve slopes upward.<br><strong>Backwardation:</strong> futures price is <strong>below</strong> spot. The curve slopes downward."
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Contango",
+       "Backwardation"
+      ],
+      "rows": [
+       [
+        "Relationship",
+        "Futures &gt; Spot",
+        "Futures &lt; Spot"
+       ],
+       [
+        "Longer-dated contracts",
+        "Priced higher",
+        "Priced lower"
+       ],
+       [
+        "Roll return on a long",
+        "Negative",
+        "Positive"
+       ],
+       [
+        "Inventory condition",
+        "Ample; storage costs dominate",
+        "Tight; convenience yield dominates"
+       ],
+       [
+        "Which side dominates",
+        "Supply dominates demand",
+        "Demand dominates supply"
+       ],
+       [
+        "Typical sectors",
+        "Grains, metals, precious metals, softs",
+        "Energy, and any tight market"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "prose",
+     "payload": {
+      "text": "The terms also describe the relationship between two futures contracts, not only futures against spot. If the June contract trades below the March contract, that segment of the curve is in backwardation regardless of where spot sits."
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "A question giving a table of spot and futures prices and asking which market is in backwardation is asking you to find the one where futures sits below spot. Do not overthink it. Storable commodities with ample inventory sit in contango; commodities consumed just-in-time with tight inventory sit in backwardation."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 3,
+   "title": "Three Theories of Futures Returns",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Three competing explanations for where the futures price sits relative to the expected future spot price. Each is testable, each is incomplete, and the exam expects you to distinguish them."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Insurance theory (Keynes)"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "Producers sell futures to lock in a price. To attract speculators onto the other side, they accept a futures price <strong>below the expected future spot price</strong>. That discount is the speculator's insurance premium, earned as the futures price converges upward toward spot."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "prose",
+     "payload": {
+      "text": "Keynes called this <em>normal backwardation</em>, and the wording repays attention."
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "<strong>Backwardation</strong> compares the futures price to the <strong>current spot</strong> price. <strong>Normal backwardation</strong> compares it to the <strong>expected future spot</strong> price. These are different claims, and the exam exploits the difference routinely."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "<strong>Weakness.</strong> It assumes producers systematically hedge more than consumers, and it predicts backwardation always. Many commodity futures markets sit in contango for extended periods, which the theory cannot accommodate."
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Hedging pressure hypothesis"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "prose",
+     "payload": {
+      "text": "A generalisation of Keynes. Rather than assuming producers dominate, it asks which side is under greater hedging pressure at any given moment."
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Condition",
+       "Curve",
+       "Mechanism"
+      ],
+      "rows": [
+       [
+        "Producer (short) hedging dominates",
+        "Backwardation",
+        "Excess selling pressure depresses the futures price to induce speculators to buy"
+       ],
+       [
+        "Consumer (long) hedging dominates",
+        "Contango",
+        "Excess buying pressure elevates the futures price to induce speculators to sell"
+       ],
+       [
+        "Balanced hedging",
+        "Roughly flat",
+        "No net pressure in either direction"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "prose",
+     "payload": {
+      "text": "This matches observed sector variation. Fast food chains hedge livestock, grains, and energy aggressively because input costs are a large share of expenses in a low-price-point, highly competitive business. Clothing retailers largely do not hedge cotton, because it is a few percentage points of an expense base dominated by marketing, rent, and occupancy."
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "prose",
+     "payload": {
+      "text": "<strong>Weakness.</strong> Hedging asymmetry is very difficult to measure. Producers are far more concentrated in commodity exposure than consumers, who are diffuse. And both sides sometimes speculate rather than hedge, deliberately or otherwise: corporate treasuries run as profit centres adjust hedges on market views, and the 1993 collapse of Metallgesellschaft AG on a badly constructed gasoline, fuel oil, and heating oil hedge remains the defining example of flawed commercial hedging."
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Theory of storage (Kaldor)"
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "prose",
+     "payload": {
+      "text": "The most mechanically useful of the three, because it produces an actual pricing relationship."
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Futures price = Spot price + Direct storage costs − Convenience yield",
+      "label": "Theory of storage"
+     }
+    },
+    {
+     "ord": 15,
+     "block_type": "prose",
+     "payload": {
+      "text": "The key question the theory addresses is whether supply or demand dominates the price economics. A commodity that is regularly stored should trade higher in the future to compensate for rent, insurance, inspection, and spoilage, so supply dominates and the curve is in contango. A commodity consumed along a just-in-time chain avoids those costs, demand dominates, and current prices exceed futures prices."
+     }
+    },
+    {
+     "ord": 16,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "<strong>Convenience yield</strong> is the non-cash benefit of holding the physical commodity. Inventory acts as a buffer against a supply disruption that would otherwise shut down operations. Because that concern is inversely related to inventory size, the yield is <strong>low when stock is abundant and rises as inventories diminish</strong>."
+      ]
+     }
+    },
+    {
+     "ord": 17,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Inventory",
+       "Convenience yield",
+       "Resulting curve"
+      ],
+      "rows": [
+       [
+        "Abundant",
+        "Low — no scarcity concern",
+        "Contango: storage costs dominate"
+       ],
+       [
+        "Tight",
+        "High — scarcity is a live risk",
+        "Backwardation: convenience yield dominates"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 18,
+     "block_type": "worked",
+     "payload": {
+      "title": "Libya, 2011 — the theory working in real time",
+      "blocks": [
+       {
+        "text": "Civil war placed Libyan high-quality crude production in jeopardy, constricting supply. The effects propagated unevenly along the curve.",
+        "kind": "prose"
+       },
+       {
+        "items": [
+         "Spot price of high-quality crude rose immediately as supply was constricted.",
+         "Convenience yield spiked in near-dated contracts as European refiners scrambled for physical barrels. The high quality of Libyan crude restricted which substitutes could replace it.",
+         "Deferred contracts moved far less. Traders assumed replacement supply would arrive, so convenience yield remained lower in the deferred months, though geography and oil-industry logistics imposed a multi-month delay.",
+         "Near prices rose more than far prices, pressuring crude to trade in backwardation through 2011."
+        ],
+        "kind": "list"
+       },
+       {
+        "text": "Nothing about long-run oil supply changed materially. What changed was the value of having a barrel in your tank <em>this week</em>.",
+        "kind": "prose"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 19,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Comparing the three"
+     }
+    },
+    {
+     "ord": 20,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Insurance theory",
+       "Hedging pressure",
+       "Theory of storage"
+      ],
+      "rows": [
+       [
+        "Originator",
+        "Keynes",
+        "Hicks and others",
+        "Kaldor"
+       ],
+       [
+        "Core driver",
+        "Producers demand price insurance",
+        "Net balance of hedging demand",
+        "Inventory levels"
+       ],
+       [
+        "Predicts",
+        "Backwardation always",
+        "Either shape",
+        "Either shape"
+       ],
+       [
+        "Key variable",
+        "Producer risk aversion",
+        "Hedging asymmetry",
+        "Convenience yield"
+       ],
+       [
+        "Main weakness",
+        "Cannot explain persistent contango",
+        "Asymmetry is unmeasurable",
+        "Storage costs and convenience yield unobservable"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 21,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "All three share one limitation, and the curriculum is explicit about it: the key inputs are unobservable or highly volatile. Storage costs are proprietary. Weather, war, and technology can reset convenience yield overnight. Even defining inventory is hard, since corn suitable for feed may not be suitable for human consumption. These are frameworks requiring judgement, not pricing calculators."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 4,
+   "title": "Components of Futures Returns",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Where the calculations live. A fully collateralised futures position generates return from three sources; an index adds a fourth."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Total return = Price return + Roll return + Collateral return",
+      "label": "Fully collateralised position"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Index total return = Price + Roll + Collateral + Rebalance",
+      "label": "Index"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Price return"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "The change in the futures price, generally the front-month contract."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Price return = (Current price − Previous price) / Previous price"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Note the subtlety: this is the change in the <strong>futures</strong> price, not the physical commodity price. Physical markets lack the standardisation needed to construct a clean series, so the front-month contract serves as the proxy."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Roll return"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "Contracts expire. Maintaining continuous exposure requires selling the near contract and buying a later-dated one, and the price difference between them generates the roll return."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Roll return = [(Near price − Far price) / Near price] × % of position rolled"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "<strong>Backwardation</strong> — the far contract is cheaper, so you buy <strong>more</strong> contracts → positive roll return.<br><strong>Contango</strong> — the far contract is dearer, so you buy <strong>fewer</strong> contracts → negative roll return."
+      ]
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "worked",
+     "payload": {
+      "title": "Rolling in backwardation, and in contango",
+      "blocks": [
+       {
+        "text": "<strong>Backwardation.</strong> An investor holds £110 of wheat futures exposure. The near contract carries £10 of exposure each; the far contract carries only £9.",
+        "kind": "prose"
+       },
+       {
+        "items": [
+         "Current position: £110 ÷ £10 = <strong>11 contracts</strong>",
+         "To maintain exposure: £110 ÷ £9 = 12.2, rounded to <strong>12 contracts</strong>",
+         "Roll 11 forward and buy 1 more. The contract count <strong>rises</strong>."
+        ],
+        "kind": "list"
+       },
+       {
+        "text": "<strong>Contango.</strong> An investor holds £108 of gasoline futures exposure. The near contract carries £9 each; the far contract carries £10.",
+        "kind": "prose"
+       },
+       {
+        "items": [
+         "Current position: £108 ÷ £9 = <strong>12 contracts</strong>",
+         "To maintain exposure: £108 ÷ £10 = 10.8, rounded to <strong>11 contracts</strong>",
+         "Roll 11 forward and sell the extra 1. The contract count <strong>falls</strong>."
+        ],
+        "kind": "list"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "worked",
+     "payload": {
+      "title": "Calculating roll return — WTI crude, 7 February 2019",
+      "blocks": [
+       {
+        "text": "Rolling the March contract into April using the S&amp;P GSCI methodology, which spreads the roll over five days (20% per day).",
+        "kind": "prose"
+       },
+       {
+        "items": [
+         "March contract close: $52.64 per barrel",
+         "April contract close: $53.00 per barrel"
+        ],
+        "kind": "list"
+       },
+       {
+        "text": "Step 1 · Gross roll return",
+        "kind": "step"
+       },
+       {
+        "expr": "($52.64 − $53.00) / $52.64 = −0.68%",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 2 · Apply the daily rollover portion",
+        "kind": "step"
+       },
+       {
+        "expr": "−0.68% × 20% = −0.13%",
+        "kind": "formula"
+       }
+      ],
+      "answer": "Net roll return −0.13% — negative, the signature of contango"
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "worked",
+     "payload": {
+      "title": "Contract count on a roll",
+      "blocks": [
+       {
+        "text": "An investor holds a $10,000 long position. Near-term contracts are valued at $4.00 each; the longer-term contract he wants is valued at $2.50.",
+        "kind": "prose"
+       },
+       {
+        "text": "Sell the existing position",
+        "kind": "step"
+       },
+       {
+        "expr": "$10,000 ÷ $4.00 = 2,500 contracts sold",
+        "kind": "formula"
+       },
+       {
+        "text": "Buy the replacement",
+        "kind": "step"
+       },
+       {
+        "expr": "$10,000 ÷ $2.50 = 4,000 contracts bought",
+        "kind": "formula"
+       },
+       {
+        "text": "The far contract is cheaper, so this market is in backwardation and the roll increases the contract count.",
+        "kind": "prose"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 15,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Roll return is an <strong>accounting attribution</strong>, not an independently harvestable return. You cannot construct a portfolio consisting only of roll returns. It exists to replicate part of the total return of a fully collateralised position, nothing more."
+      ]
+     }
+    },
+    {
+     "ord": 16,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Collateral return"
+     }
+    },
+    {
+     "ord": 17,
+     "block_type": "prose",
+     "payload": {
+      "text": "Futures require margin, not full payment. A fully collateralised position sets cash aside equal to the full notional value, and that cash earns interest."
+     }
+    },
+    {
+     "ord": 18,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>Initial margin</strong> is the minimum the exchange requires to open the position.",
+       "A <strong>margin call</strong> follows if the balance falls short; the broker demands funds or closes the position.",
+       "Fully collateralised means cash equals notional, so there is <strong>no leverage</strong>.",
+       "Most commodity indexes use short-term US Treasury bills. For a longer forecast horizon, match the term — a 10-year return forecast should use a 10-year constant maturity bond."
+      ]
+     }
+    },
+    {
+     "ord": 19,
+     "block_type": "worked",
+     "payload": {
+      "title": "Total return",
+      "blocks": [
+       {
+        "text": "An investor realises a 5% price return and a 2.5% roll return after rolling all contracts. She held the position for one year, fully collateralised at 100%, at a 2% risk-free rate. Calculate the annualised total return excluding leverage.",
+        "kind": "prose"
+       },
+       {
+        "items": [
+         "Price return = 5% (already annual, given the one-year holding period)",
+         "Roll return = 2.5%",
+         "Collateral return = 2% × 100% collateral = 2%"
+        ],
+        "kind": "list"
+       },
+       {
+        "text": "The positive roll return tells you this market was in backwardation over the period.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Total return = 5% + 2.5% + 2% = 9.5%"
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 5,
+   "title": "What the Long-Run Data Shows",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "The curriculum uses S&amp;P GSCI history to demonstrate how the components actually behave. Three of these numbers routinely surprise candidates."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_data",
+     "payload": {
+      "headers": [
+       "Component",
+       "Annualised return",
+       "Annualised volatility",
+       "Correlation with total"
+      ],
+      "rows": [
+       [
+        "Total return",
+        "6.8%",
+        "19.8%",
+        "1.00"
+       ],
+       [
+        "Price (spot) return",
+        "3.0%",
+        "19.8%",
+        "0.97"
+       ],
+       [
+        "Roll return",
+        "−1.3%",
+        "4.2%",
+        "−0.11"
+       ],
+       [
+        "Collateral return",
+        "5.0%",
+        "1.1%",
+        "−0.14"
+       ]
+      ],
+      "aligns": [
+       "",
+       "num",
+       "num",
+       "num"
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "<span class='sub'>S&amp;P GSCI, January 1970 to March 2019. Roll return defined as excess return minus spot return; collateral return as total return minus excess return.</span>"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "<strong>Collateral return contributed roughly three-quarters of the total.</strong> Over this period interest rates were high by modern standards, so simply holding T-bills against the position generated most of the return. Spot return contributed about 45% (3.0% of 6.8%).",
+       "<strong>Roll return was negative</strong>, subtracting about 130 basis points annually. The long-run drag came from commodities that spend most of their time in contango.",
+       "<strong>Volatility and correlation are driven almost entirely by price return</strong>, whose 19.8% standard deviation matches the index at 0.97 correlation. Roll and collateral returns do not drive month-to-month variation."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "A persistent misconception holds that backwardation reliably produces positive total returns. Ilmanen's own data showed roughly 40% of commodities examined had negative roll returns but positive total returns. Positive roll return does not guarantee positive total return, and roll return correlates only weakly with price return."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Roll return by sector"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Roll return is strongly sector dependent, and the pattern maps directly onto storability."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "table_data",
+     "payload": {
+      "headers": [
+       "Sector",
+       "Mean annual roll return",
+       "Why"
+      ],
+      "rows": [
+       [
+        "Livestock",
+        "−1.1%",
+        "Feedlot holding costs weigh on the curve"
+       ],
+       [
+        "Industrial metals",
+        "−1.3%",
+        "Warehoused for extended periods"
+       ],
+       [
+        "Energy",
+        "−1.5%",
+        "Consumed in real time with a thin storage buffer, so the only sector with a statistical possibility of positive mean roll — though that has diminished since 2010"
+       ],
+       [
+        "Agriculture",
+        "−4.5%",
+        "Silo storage across the season is expensive"
+       ],
+       [
+        "Precious metals",
+        "−5.1%",
+        "Gold stored perpetually as an alternative currency"
+       ],
+       [
+        "Softs",
+        "−5.5%",
+        "Warehoused tropical crops with meaningful carrying costs"
+       ]
+      ],
+      "aligns": [
+       "",
+       "num",
+       ""
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "The energy story is worth understanding rather than memorising. Since 2010, US shale production has raised oil's convenience yield to the point that historical scarcity risk is much lower than before. Oil supply risk shifted to China as it overtook the US as lead importer, and OPEC with Russia regained some pricing power through supply restriction."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Indexes and long-only strategies overweighting agriculture, livestock, precious metals, or softs should expect persistent negative roll. Energy offers the opportunity for positive roll, assuming producers successfully withhold supply. Sector allocation is therefore a first-order decision for a commodity investor."
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "prose",
+     "payload": {
+      "text": "Roll return has been relatively modest compared with price return over long horizons, but it can be meaningful in any single period. The curriculum has tested exactly this framing."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 6,
+   "title": "Commodity Swaps",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "A swap exchanges payments over multiple dates based on specified commodity reference prices or indexes, with a series of futures contracts often forming the reference. The appeal is customisation and administrative simplicity."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "Consider an independent oil refiner wanting to hedge purchases over an extended period. Rather than managing a large number of futures contracts, it enters a cash-settled swap: protected from a price spike, yet free to source physical crude wherever it chooses."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Why commercial participants prefer swaps"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Risk management and risk transfer without setting up and managing multiple futures contracts.",
+       "<strong>Customisation</strong> unavailable in standardised futures. The refiner can reference a specific grade (Heavy Louisiana Sweet rather than WTI), or a blend that shifts seasonally.",
+       "Quantity can vary over time — lowering hedged exposure during planned refinery shutdown and maintenance periods."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "On the other side sits a swap dealer, typically a bank or trading company. The dealer may hedge its assumed exposure in the futures market, negotiate an offsetting swap with a second dealer, arrange a physical purchase contract with a producer, or simply retain the price risk and seek to profit from its market information."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "worked",
+     "payload": {
+      "title": "Excess return swap — the refiner",
+      "blocks": [
+       {
+        "text": "An oil refiner goes long a swap at end-December that pays the amount exceeding $70 per barrel at each month-end through September. The refiner pays a $25 premium for the privilege, since it is effectively long a series of call options.",
+        "kind": "prose"
+       },
+       {
+        "headers": [
+         "Month",
+         "Reference price",
+         "Cash flow vs $70"
+        ],
+        "rows": [
+         [
+          "Premium",
+          "—",
+          "−$25"
+         ],
+         [
+          "January",
+          "$64",
+          "$0"
+         ],
+         [
+          "February",
+          "$75",
+          "+$5"
+         ],
+         [
+          "March",
+          "$71",
+          "+$1"
+         ],
+         [
+          "April",
+          "$66",
+          "$0"
+         ],
+         [
+          "May",
+          "$65",
+          "$0"
+         ],
+         [
+          "June",
+          "$63",
+          "$0"
+         ],
+         [
+          "July",
+          "$66",
+          "$0"
+         ],
+         [
+          "August",
+          "$72",
+          "+$2"
+         ],
+         [
+          "September",
+          "$78",
+          "+$8"
+         ],
+         [
+          "Total",
+          "",
+          "−$9"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num",
+         "num"
+        ],
+        "total_rows": [
+         10
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "The swap lost $9 over nine months, effectively raising the cost of a barrel by $1 for the period. But it protected the company against a cash squeeze during months when an oil price spike could have impaired liquidity, and it defined the cost up front.",
+        "kind": "prose"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Total return swap"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "prose",
+     "payload": {
+      "text": "The change in the index level equals returns from the price change of each constituent futures contract, plus interest earned on cash collateral. If the index rises the buyer receives payment net of the fee; if it falls the seller receives payment plus the fee."
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "Used by large institutional investors rather than commodity producers or buyers, typically for the low return correlation of commodities with other asset classes, or as an inflation hedge for asset/liability matching."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "worked",
+     "payload": {
+      "title": "Total return swap — pension plan",
+      "blocks": [
+       {
+        "text": "A manager of a £2 billion defined benefit plan seeks roughly 5% commodity exposure, or £100 million, referenced to a commodity index over five years, contracted with a bank after an RFP process.",
+        "kind": "prose"
+       },
+       {
+        "items": [
+         "Day 1: index rises 1% → the dealer owes £1 million (£100m × 1%)",
+         "Day 2: index falls 5% → the manager owes £5 million"
+        ],
+        "kind": "list"
+       },
+       {
+        "text": "The dealer commonly hedges its short index exposure with futures or physical positions. The manager does not hedge, since the commodity risk-return exposure is precisely what was sought.",
+        "kind": "prose"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Basis swap"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "prose",
+     "payload": {
+      "text": "Exchanges periodic payments based on two related commodity reference prices that are not perfectly correlated, adjusting for the difference (the basis) between a highly liquid futures contract and an illiquid but related material."
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "A swap paying the difference between Brent crude (very liquid) and heavy crude available in the Gulf of Mexico (less liquid). Valuable for US Gulf Coast refineries invested in processing cheaper heavy crudes from Mexico or Venezuela, whose prices do not move in tandem with Brent.",
+       "In grains, basis may instead refer to the difference between the soybean contract and physical soybeans available for delivery at the Mississippi River. The term is commodity-specific."
+      ]
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Variance and volatility swaps"
+     }
+    },
+    {
+     "ord": 15,
+     "block_type": "prose",
+     "payload": {
+      "text": "Two parties periodically exchange payments based on the proportional difference between observed actual variance in commodity price levels over consecutive periods and a fixed variance established at the outset. Volatility swaps settle on realised volatility, the square root of variance. Both express a view on price turbulence without a directional view on price."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 7,
+   "title": "Commodity Index Construction",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Design choices materially affect returns, which is why construction is a distinct learning outcome rather than a footnote."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "The five design decisions"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "Which commodities to include — breadth of coverage across sectors.",
+       "How to weight them — production, liquidity, consumption, equal, or fixed weights.",
+       "Which contracts to hold — front month only, or spread along the curve.",
+       "How to roll — timing, duration, and whether the roll is optimised.",
+       "How and when to rebalance — frequency of resetting weights to target."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Because roll return is sector dependent, the weighting scheme partly determines the index's structural roll drag. Production weighting gives enormous influence to energy, since the world produces far more energy by value than precious metals. An index overweighting agriculture, livestock, precious metals, or softs inherits their negative roll."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Rolling methodology"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "The S&amp;P GSCI rolls over five business days, moving 20% of the position daily. This spreads execution risk but locks in whatever curve shape prevails during that window.",
+       "Some indexes roll on a single day, concentrating execution risk.",
+       "<strong>Optimised-roll</strong> indexes select the contract along the curve that maximises backwardation or minimises contango, rather than mechanically rolling into the next month."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "worked",
+     "payload": {
+      "title": "Optimised roll selection",
+      "blocks": [
+       {
+        "text": "A June copper contract sits at 1% backwardation versus the reference. An August contract sits at 3% backwardation, two months further out.",
+        "kind": "prose"
+       },
+       {
+        "expr": "August: 3% ÷ 2 months = 1.5% per month &nbsp;&gt;&nbsp; June: 1.0% per month",
+        "kind": "formula"
+       },
+       {
+        "text": "On a per-month basis the August contract is superior, so an optimised-roll index selects it. Optimisation is typically applied across contracts falling within the next 12 calendar months.",
+        "kind": "prose"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Rebalance return"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "Fixed-weight indexes drift as component prices move. Periodic rebalancing sells outperformers and buys underperformers, mechanically capturing a portion of mean reversion. This is the fourth component of index total return."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Tends to be positive when component prices are volatile and mean-reverting.",
+       "Tends toward zero or negative when components trend persistently.",
+       "Production-weighted indexes that let weights float generate little or none."
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Major indexes compared"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Index",
+       "Weighting",
+       "Distinguishing feature"
+      ],
+      "rows": [
+       [
+        "S&amp;P GSCI",
+        "World production",
+        "Heavy energy concentration. Five-day roll."
+       ],
+       [
+        "Bloomberg Commodity Index",
+        "Production and liquidity, with sector caps",
+        "Caps limit energy dominance"
+       ],
+       [
+        "Rogers International",
+        "Consumption weighted, fixed",
+        "Broadest commodity coverage"
+       ],
+       [
+        "Thomson Reuters/CoreCommodity CRB",
+        "Fixed weights by tier",
+        "Long history, tiered rebalancing"
+       ],
+       [
+        "Deutsche Bank Liquid Commodity",
+        "Liquidity focused, narrow",
+        "Optimised roll to reduce contango drag"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "The learning outcome asks how construction <em>affects index returns</em>. The chain: weighting determines sector exposure → sector exposure determines roll drag → rolling methodology determines how efficiently that drag is managed. Indexes holding contracts that more commonly trade in backwardation may improve forward-looking returns; those holding contracts commonly in contango may hurt performance."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 8,
+   "title": "Consolidation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Formulas"
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Concept",
+       "Formula"
+      ],
+      "rows": [
+       [
+        "Total return, fully collateralised",
+        "Price return + Roll return + Collateral return"
+       ],
+       [
+        "Index total return",
+        "Price + Roll + Collateral + Rebalance"
+       ],
+       [
+        "Price return",
+        "(Current price − Previous price) / Previous price"
+       ],
+       [
+        "Roll return",
+        "[(Near price − Far price) / Near price] × % rolled"
+       ],
+       [
+        "Theory of storage",
+        "Futures = Spot + Storage costs − Convenience yield"
+       ],
+       [
+        "Contracts needed on a roll",
+        "Total exposure ÷ Price per contract"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Directional relationships"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "If…",
+       "Then…"
+      ],
+      "rows": [
+       [
+        "Inventories are abundant",
+        "Convenience yield low, curve tends to contango"
+       ],
+       [
+        "Inventories are tight",
+        "Convenience yield high, curve tends to backwardation"
+       ],
+       [
+        "Market is in contango",
+        "Roll return negative, roll buys fewer contracts"
+       ],
+       [
+        "Market is in backwardation",
+        "Roll return positive, roll buys more contracts"
+       ],
+       [
+        "Producers hedge more than consumers",
+        "Backwardation, under hedging pressure"
+       ],
+       [
+        "Consumers hedge more than producers",
+        "Contango, under hedging pressure"
+       ],
+       [
+        "The commodity is storable",
+        "Structural tendency to contango and negative roll"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Ten points for a final pass"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "Commodities have no cash flows, so valuation rests on supply, demand, and carry, not discounting.",
+       "Contango is futures above spot; backwardation is futures below spot.",
+       "Normal backwardation compares futures to <em>expected future</em> spot, not current spot.",
+       "Convenience yield is the non-cash benefit of holding physical inventory, and rises as inventory falls.",
+       "Total return decomposes into price, roll, and collateral, plus rebalance for an index.",
+       "Backwardation means rolling into cheaper contracts, so you buy more of them.",
+       "Roll return is an accounting attribution, not an independently investable return stream.",
+       "Historically collateral return contributed most of long-run index return; roll return was a net drag.",
+       "Roll return is sector dependent, with storable sectors showing persistent negative roll.",
+       "All three theories rely on unobservable or volatile inputs, so they demand judgement, not calculation."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Notes prepared from the CFA Program 2026 Level II curriculum, Volume 8, Learning Module 1. Worked examples follow the curriculum's own illustrations. Exhibit figures are as published."
+     }
+    }
+   ]
+  }
+ ]
+}
