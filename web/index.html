@@ -1268,7 +1268,13 @@
       padding: 13px 18px; border-radius: 3px; margin-top: 18px;
       text-align: center; border: none;
     }
-    .blk-answer-label { display: none; }
+    /* visually hidden, not removed — a screen reader still announces "Answer"
+       before the value, which is the only thing marking it as the result */
+    .blk-answer-label {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+    }
 
     .unit-blocks .md-table-wrap { border: none; background: none; border-radius: 0; }
     .unit-blocks .md-table {
@@ -1287,6 +1293,10 @@
     }
     .unit-blocks .md-table tbody tr:nth-child(even) { background: none; }
     .unit-blocks .md-table tbody tr:last-child td { border-bottom: none; }
+    /* ContentBlock derives the class from block_type — table_compare becomes
+       tbl-compare — while a table nested in a worked example carries whatever
+       string its `variant` holds. Both are matched. */
+    .unit-blocks .md-table.tbl-compare td:first-child,
     .unit-blocks .md-table.cmp td:first-child { color: var(--text); font-weight: 500; }
     .unit-blocks .md-table tr.total-row td {
       color: var(--cyan); font-weight: 700; border-top: 1px solid var(--border);
