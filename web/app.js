@@ -539,7 +539,9 @@ function BlockTable({ payload, cls }) {
     h("table", { class: `md-table ${cls || ""}` },
       headers.length > 0 && h("thead", null,
         h("tr", null, headers.map((c, i) =>
-          h("th", { key: i, class: aligns[i] === "num" ? "num" : "" }, safeInline(c) && c)))),
+          // headers are plain text, passed as a child so Preact escapes them;
+          // safeInline is for the cells, which do carry authored markup
+          h("th", { key: i, class: aligns[i] === "num" ? "num" : "" }, c)))),
       h("tbody", null,
         rows.map((r, ri) =>
           h("tr", { key: ri, class: payload.total_rows?.includes(ri) ? "total-row" : "" },
@@ -564,6 +566,13 @@ function WorkedBlock({ payload }) {
     (payload.blocks || []).map((b, i) => {
       if (b.kind === "table")   return h(BlockTable, { key: i, payload: b, cls: b.variant || "" });
       if (b.kind === "step")    return rawHtml("blk-step", b.text, true);
+      // a nested list carries `items`, not `text` — falling through to the
+      // prose branch would render it as an empty box
+      if (b.kind === "list" || b.kind === "list_ordered")
+        return h(b.kind === "list_ordered" ? "ol" : "ul",
+          { key: i, class: "md-list blk-list" },
+          (b.items || []).map((it, j) =>
+            h("li", { key: j, dangerouslySetInnerHTML: { __html: markLeadIn(safeInline(it)) } })));
       if (b.kind === "formula") return h("div", { key: i, class: "blk-formula" },
                                         h("div", { class: "blk-formula-expr" }, b.expr));
       return rawHtml("blk-prose", b.text, true);
