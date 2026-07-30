@@ -32,6 +32,10 @@ READINGS = {
     "LM4": "f74779747e1f9673",
 }
 
+# staging range for the ordinal shift — comfortably above any real ordinal, so
+# neither leg of the two-step move can land on an occupied slot
+PARK = 1000
+
 def unit_id(topic, module, ordinal):
     """16-char hex, matching the existing id format."""
     return hashlib.sha256(f"{topic}:{module}:{ordinal}:blocks-v1".encode()).hexdigest()[:16]
@@ -94,9 +98,18 @@ def emit(files):
         # 1. remove the blobs
         A(f"delete from codex_units where reading_id = {q(reading)} and kind = 'concept';")
 
-        # 3. make room: push survivors past the new concepts (los stays at 0)
-        A(f"update codex_units set ord = ord + {n_units} "
+        # 3. make room: push survivors past the new concepts (los stays at 0).
+        #
+        # codex_units has a non-deferrable unique (reading_id, ord), and Postgres
+        # checks it per row rather than at statement end, so a single
+        # "ord = ord + n" collides whenever a row's target ordinal is still
+        # occupied by a row that has not moved yet — 1 -> 9 while 9 is present.
+        # Every reading in this corpus hits that. Shifting through a range above
+        # any real ordinal first makes both steps collision-free.
+        A(f"update codex_units set ord = ord + {PARK} "
           f"where reading_id = {q(reading)} and kind <> 'los' and ord > 0;")
+        A(f"update codex_units set ord = ord - {PARK - n_units} "
+          f"where reading_id = {q(reading)} and kind <> 'los' and ord > {PARK};")
 
         # 2. new concept units
         for u in d["units"]:
@@ -116,8 +129,10 @@ def emit(files):
             for b in u["blocks"]:
                 rows.append(f"  ({q(uid)}, {b['ord']}, {q(b['block_type'])}, "
                             f"{jq(b['payload'])}, {q(d['source_ref'])}, now(), 'authored')")
-            A("insert into codex_blocks (unit_id, ord, block_type, payload, source_ref, reviewed_at, reviewed_by)\nvalues")
-            A(",\n".join(rows) + ";")
+            # a unit with no blocks would otherwise emit "values ;"
+            if rows:
+                A("insert into codex_blocks (unit_id, ord, block_type, payload, source_ref, reviewed_at, reviewed_by)\nvalues")
+                A(",\n".join(rows) + ";")
         A("")
 
     A("commit;")

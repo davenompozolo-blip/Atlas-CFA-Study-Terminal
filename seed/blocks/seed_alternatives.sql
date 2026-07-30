@@ -6,7 +6,8 @@ begin;
 -- ===== LM1: Introduction to Commodities and Commodity Derivatives =====
 -- 8 units, 104 blocks
 delete from codex_units where reading_id = '9e4f73e51fc88d63' and kind = 'concept';
-update codex_units set ord = ord + 8 where reading_id = '9e4f73e51fc88d63' and kind <> 'los' and ord > 0;
+update codex_units set ord = ord + 1000 where reading_id = '9e4f73e51fc88d63' and kind <> 'los' and ord > 0;
+update codex_units set ord = ord - 992 where reading_id = '9e4f73e51fc88d63' and kind <> 'los' and ord > 1000;
 insert into codex_units (id, reading_id, topic_id, ord, kind, title, est_minutes, payload)
 values ('18e4d304dff3ba64', '9e4f73e51fc88d63', 'alt', 1, 'concept', 'Why Commodities Are Different', 8, '{"source": "blocks-v1", "prose_md": ""}'::jsonb)
 on conflict (id) do update set title = excluded.title, ord = excluded.ord, est_minutes = excluded.est_minutes;
@@ -112,7 +113,7 @@ values
   ('8eaff957aae14950', 6, 'heading_2', '{"text": "Roll return by sector"}'::jsonb, 'CFA 2026 L2 V8/LM1', now(), 'authored'),
   ('8eaff957aae14950', 7, 'prose', '{"text": "Roll return is strongly sector dependent, and the pattern maps directly onto storability."}'::jsonb, 'CFA 2026 L2 V8/LM1', now(), 'authored'),
   ('8eaff957aae14950', 8, 'table_data', '{"headers": ["Sector", "Mean annual roll return", "Why"], "rows": [["Livestock", "−1.1%", "Feedlot holding costs weigh on the curve"], ["Industrial metals", "−1.3%", "Warehoused for extended periods"], ["Energy", "−1.5%", "Consumed in real time with a thin storage buffer, so the only sector with a statistical possibility of positive mean roll — though that has diminished since 2010"], ["Agriculture", "−4.5%", "Silo storage across the season is expensive"], ["Precious metals", "−5.1%", "Gold stored perpetually as an alternative currency"], ["Softs", "−5.5%", "Warehoused tropical crops with meaningful carrying costs"]], "aligns": ["", "num", ""]}'::jsonb, 'CFA 2026 L2 V8/LM1', now(), 'authored'),
-  ('8eaff957aae14950', 9, 'prose', '{"text": "The energy story is worth understanding rather than memorising. Since 2010, US shale production has raised oil''s convenience yield to the point that historical scarcity risk is much lower than before. Oil supply risk shifted to China as it overtook the US as lead importer, and OPEC with Russia regained some pricing power through supply restriction."}'::jsonb, 'CFA 2026 L2 V8/LM1', now(), 'authored'),
+  ('8eaff957aae14950', 9, 'prose', '{"text": "The energy story is worth understanding rather than memorising. Since 2010, US shale production has reduced oil''s convenience yield, because historical scarcity risk is much lower than before. Oil supply risk shifted to China as it overtook the US as lead importer, and OPEC with Russia regained some pricing power through supply restriction."}'::jsonb, 'CFA 2026 L2 V8/LM1', now(), 'authored'),
   ('8eaff957aae14950', 10, 'key', '{"paras": ["Indexes and long-only strategies overweighting agriculture, livestock, precious metals, or softs should expect persistent negative roll. Energy offers the opportunity for positive roll, assuming producers successfully withhold supply. Sector allocation is therefore a first-order decision for a commodity investor."]}'::jsonb, 'CFA 2026 L2 V8/LM1', now(), 'authored'),
   ('8eaff957aae14950', 11, 'prose', '{"text": "Roll return has been relatively modest compared with price return over long horizons, but it can be meaningful in any single period. The curriculum has tested exactly this framing."}'::jsonb, 'CFA 2026 L2 V8/LM1', now(), 'authored');
 delete from codex_blocks where unit_id = '5671b1c2e34d6223';
@@ -163,7 +164,8 @@ values
 -- ===== LM2: Overview of Types of Real Estate Investment =====
 -- 8 units, 95 blocks
 delete from codex_units where reading_id = 'ee918d2241cca38f' and kind = 'concept';
-update codex_units set ord = ord + 8 where reading_id = 'ee918d2241cca38f' and kind <> 'los' and ord > 0;
+update codex_units set ord = ord + 1000 where reading_id = 'ee918d2241cca38f' and kind <> 'los' and ord > 0;
+update codex_units set ord = ord - 992 where reading_id = 'ee918d2241cca38f' and kind <> 'los' and ord > 1000;
 insert into codex_units (id, reading_id, topic_id, ord, kind, title, est_minutes, payload)
 values ('fc976f27d24f844b', 'ee918d2241cca38f', 'alt', 1, 'concept', 'What Makes Real Estate Distinct', 6, '{"source": "blocks-v1", "prose_md": ""}'::jsonb)
 on conflict (id) do update set title = excluded.title, ord = excluded.ord, est_minutes = excluded.est_minutes;
@@ -301,7 +303,7 @@ delete from codex_blocks where unit_id = '08c4f1f8ee8c44f9';
 insert into codex_blocks (unit_id, ord, block_type, payload, source_ref, reviewed_at, reviewed_by)
 values
   ('08c4f1f8ee8c44f9', 1, 'heading_2', '{"text": "Formulas"}'::jsonb, 'CFA 2026 L2 V8/LM2', now(), 'authored'),
-  ('08c4f1f8ee8c44f9', 2, 'table_compare', '{"headers": ["Concept", "Formula"], "rows": [["Net operating income", "Effective gross income − Operating expenses − Maintenance allowance"], ["Gross rent", "Rate per unit area × Rentable area"], ["Loan-to-value", "Mortgage debt outstanding / Current property value"], ["Debt service coverage", "NOI / Debt service, interest plus principal"], ["Pre-tax cash flow", "NOI − Debt service"], ["Equity dividend rate", "Pre-tax cash flow / (Purchase price − Mortgage loan)"], ["Taxes", "t × (NOI − Interest − Depreciation)"], ["Direct capitalization", "Value = Expected NOI / Cap rate"], ["Terminal value", "NOI<sub>n</sub>(1+g) / (r − g)"], ["Terminal cap rate", "≈ r − g"], ["Cost approach", "Land + Replacement cost + Developer profit − Depreciation"], ["Unsmoothing", "R<sub>t</sub> = R*<sub>t</sub>/a + [(1−a)/a] R*<sub>t−1</sub>"]]}'::jsonb, 'CFA 2026 L2 V8/LM2', now(), 'authored'),
+  ('08c4f1f8ee8c44f9', 2, 'table_compare', '{"headers": ["Concept", "Formula"], "rows": [["Net operating income", "Effective gross income − Operating expenses − Maintenance allowance"], ["Gross rent", "Rate per unit area × Rentable area"], ["Loan-to-value", "Mortgage debt outstanding / Current property value"], ["Debt service coverage", "NOI / Debt service, interest plus principal"], ["Pre-tax cash flow", "NOI − Debt service"], ["Equity dividend rate", "Pre-tax cash flow / (Purchase price − Mortgage loan)"], ["Taxes", "t × (NOI − Interest − Depreciation)"], ["Direct capitalization", "Value = Expected NOI / Cap rate"], ["Terminal value", "NOI<sub>n</sub>(1+g) / (r − g)"], ["Terminal cap rate", "≈ r − g"], ["Cost approach", "Replacement cost − Depreciation  (replacement cost already includes land and developer profit)"], ["Unsmoothing", "R<sub>t</sub> = R*<sub>t</sub>/a + [(1−a)/a] R*<sub>t−1</sub>"]]}'::jsonb, 'CFA 2026 L2 V8/LM2', now(), 'authored'),
   ('08c4f1f8ee8c44f9', 3, 'heading_2', '{"text": "Directional relationships"}'::jsonb, 'CFA 2026 L2 V8/LM2', now(), 'authored'),
   ('08c4f1f8ee8c44f9', 4, 'table_signal', '{"headers": ["If…", "Then…"], "rows": [["Costs rise above a capped recovery", "The full excess reduces NOI"], ["Property appreciates with debt unchanged", "LTV falls, equity cushion rises"], ["NOI falls with debt service fixed", "Equity dividend rate falls proportionally more"], ["Year-one NOI is temporarily depressed", "Going-in cap rate sits below terminal cap rate"], ["Required return rises or growth falls", "Cap rate rises, property value falls"], ["Replacement cost exceeds market price", "Market is oversupplied, development stalls"], ["The index is appraisal-based", "Volatility and correlation understated, Sharpe overstated"]]}'::jsonb, 'CFA 2026 L2 V8/LM2', now(), 'authored'),
   ('08c4f1f8ee8c44f9', 5, 'heading_2', '{"text": "Ten points for a final pass"}'::jsonb, 'CFA 2026 L2 V8/LM2', now(), 'authored'),
@@ -311,7 +313,8 @@ values
 -- ===== LM3: Investments in Real Estate through Publicly Traded Securities =====
 -- 7 units, 86 blocks
 delete from codex_units where reading_id = 'e74131b7a8c16067' and kind = 'concept';
-update codex_units set ord = ord + 7 where reading_id = 'e74131b7a8c16067' and kind <> 'los' and ord > 0;
+update codex_units set ord = ord + 1000 where reading_id = 'e74131b7a8c16067' and kind <> 'los' and ord > 0;
+update codex_units set ord = ord - 993 where reading_id = 'e74131b7a8c16067' and kind <> 'los' and ord > 1000;
 insert into codex_units (id, reading_id, topic_id, ord, kind, title, est_minutes, payload)
 values ('c5ba152901d693d8', 'e74131b7a8c16067', 'alt', 1, 'concept', 'The Listed Real Estate Universe', 6, '{"source": "blocks-v1", "prose_md": ""}'::jsonb)
 on conflict (id) do update set title = excluded.title, ord = excluded.ord, est_minutes = excluded.est_minutes;
@@ -444,7 +447,8 @@ values
 -- ===== LM4: Hedge Fund Strategies =====
 -- 10 units, 108 blocks
 delete from codex_units where reading_id = 'f74779747e1f9673' and kind = 'concept';
-update codex_units set ord = ord + 10 where reading_id = 'f74779747e1f9673' and kind <> 'los' and ord > 0;
+update codex_units set ord = ord + 1000 where reading_id = 'f74779747e1f9673' and kind <> 'los' and ord > 0;
+update codex_units set ord = ord - 990 where reading_id = 'f74779747e1f9673' and kind <> 'los' and ord > 1000;
 insert into codex_units (id, reading_id, topic_id, ord, kind, title, est_minutes, payload)
 values ('0a7c8ba4d14bb398', 'f74779747e1f9673', 'alt', 1, 'concept', 'The Debate, and the Classification', 7, '{"source": "blocks-v1", "prose_md": ""}'::jsonb)
 on conflict (id) do update set title = excluded.title, ord = excluded.ord, est_minutes = excluded.est_minutes;

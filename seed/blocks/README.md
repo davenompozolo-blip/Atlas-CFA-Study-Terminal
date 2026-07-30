@@ -26,6 +26,18 @@ group by u.id, u.reading_id, u.ord, u.title
 order by u.reading_id, u.ord;
 ```
 
+Before running it, take a Supabase point-in-time-recovery checkpoint, or snapshot
+the two tables it touches:
+
+```sql
+create table codex_units_backup as select * from codex_units;
+create table codex_unit_progress_backup as select * from codex_unit_progress;
+```
+
+The transaction rolls itself back on failure, so this is not about the run going
+wrong — it is about the run succeeding and verification afterwards turning up
+something unexpected.
+
 ## What it replaces, and what it costs
 
 Per reading it runs two destructive statements before inserting:

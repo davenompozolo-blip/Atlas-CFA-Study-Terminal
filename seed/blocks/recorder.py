@@ -5,6 +5,7 @@ instead of emitting HTML. Same content source, different target.
 Run:  python3 emit_blocks.py
 """
 import json, re
+from pathlib import Path
 
 _units = []      # [{ordinal, title, blocks:[...]}]
 _meta  = {}
@@ -120,8 +121,11 @@ def render(outpath, modnum, topic, title, subtitle, footer, body_blocks, running
         blocks = [_to_block(d, i + 1) for i, d in enumerate(u["blocks"])]
         out["units"].append({"ordinal": u["ordinal"], "title": u["title"], "blocks": blocks})
 
-    json_path = re.sub(r'\.pdf$', '', outpath).split('/')[-1]
-    dest = f"/home/claude/codex/blocks_{json_path}.json"
+    # write next to this script, so regeneration updates the committed
+    # artifacts instead of an absolute path that only exists on one machine
+    stem = Path(outpath).name
+    stem = stem[:-4] if stem.endswith(".pdf") else stem
+    dest = str(Path(__file__).resolve().with_name(f"blocks_{stem}.json"))
     with open(dest, "w", encoding="utf8") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
 
