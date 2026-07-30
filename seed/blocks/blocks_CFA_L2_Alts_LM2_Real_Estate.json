@@ -1,0 +1,1590 @@
+{
+ "topic_id": "alt",
+ "module": "LM2",
+ "module_title": "Overview of Types of Real Estate Investment",
+ "source_ref": "CFA 2026 L2 V8/LM2",
+ "units": [
+  {
+   "ordinal": 1,
+   "title": "What Makes Real Estate Distinct",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Real estate sits between asset classes: contractual income like a bond, operating risk like an equity, priced in a market so illiquid and heterogeneous that no two assets are truly comparable. The module's organising claim is that once you adjust for those peculiarities, standard valuation machinery applies."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "The primary driver of expected value is the <strong>actual and potential economic use</strong> of the property. Everything downstream follows from that, with net operating income the common return metric for income-producing property."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Four ways to hold the exposure"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Public",
+       "Private"
+      ],
+      "rows": [
+       [
+        "Equity",
+        "REITs, REOCs, listed property funds",
+        "Direct ownership, private equity real estate funds"
+       ],
+       [
+        "Debt",
+        "Mortgage-backed securities, covered bonds",
+        "Direct mortgage lending, mezzanine loans"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "Core real estate investments are classified as <strong>equity</strong> where they represent claims on firms operating, developing, or servicing real estate, or on REITs that directly own and operate property; and as <strong>debt</strong> where they hold mortgage-backed securities or covered bonds."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Economic value drivers"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>GDP growth</strong> drives broad demand for space across all property types.",
+       "<strong>Job creation and wage growth</strong> drive office demand and retail spending respectively.",
+       "<strong>Population growth</strong> drives residential, and increasingly healthcare and senior housing.",
+       "<strong>Credit conditions</strong> contribute directly to the real estate cycle, since the asset class is habitually financed with substantial debt.",
+       "<strong>Local economic factors</strong> can dominate national conditions. A property is a fixed point on a map, and zoning, transport links, and neighbourhood trajectory are not diversifiable."
+      ]
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Cyclical versus structural forces"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "The curriculum draws this distinction deliberately, because the two demand different responses."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Cyclical",
+       "Structural"
+      ],
+      "rows": [
+       [
+        "Nature",
+        "Recurring, mean-reverting",
+        "One-directional regime change"
+       ],
+       [
+        "Examples",
+        "Credit availability, construction waves, vacancy cycles",
+        "E-commerce shifting demand from retail to logistics; remote work and office demand"
+       ],
+       [
+        "Response",
+        "Time entry and exit, ride the cycle",
+        "Reallocate permanently, do not await reversion"
+       ],
+       [
+        "Valuation impact",
+        "Near-term NOI and cap rates",
+        "Terminal value and useful economic life"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The curriculum's worked illustration is the pandemic. Retail footfall collapsed in 2020 and remained well below pre-pandemic levels through 2022, while e-commerce rose from an estimated 15% of total global retail sales in 2019 to a record 21% in 2021. As web sales held up after reopening and companies regionalised supply chains, <strong>logistics and warehouse rents rose at double to triple their pre-pandemic annual pace</strong>. A retail landlord waiting for mean reversion was waiting for something that was not coming back."
+      ]
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Investment features and portfolio role"
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "<strong>Current income</strong> — contractual rents give relatively predictable cash flow.",
+       "<strong>Capital appreciation</strong> — from rent growth, cap rate compression, or improved economic use.",
+       "<strong>Inflation hedging</strong> — escalation clauses and rising replacement cost. Imperfect, and strongest where lease terms are short enough to reprice.",
+       "<strong>Diversification</strong> — low reported correlation with equities and bonds, though Section 7 shows part of that is a measurement artefact.",
+       "<strong>Tax benefits</strong> — depreciation shields taxable income even as the property appreciates economically. Jurisdiction-specific."
+      ]
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "prose",
+     "payload": {
+      "text": "Against these sit illiquidity, large lot size, heterogeneity, management intensity, and the leverage risk that comes with habitually high debt levels."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 2,
+   "title": "Net Operating Income",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "NOI is to real estate what EBITDA is to a company: operating performance before financing and tax. It is the numerator in nearly every valuation and credit metric in the module, so the calculation needs to be automatic."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "formula",
+     "payload": {
+      "expr": "NOI = Effective gross income − Operating expenses − Property maintenance allowance"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Building effective gross income"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Component",
+       "Description"
+      ],
+      "rows": [
+       [
+        "Gross rent",
+        "Average lease rate per unit area × total rentable area"
+       ],
+       [
+        "Operating expense recovery",
+        "Costs passed through to tenants under the lease, subject to any cap"
+       ],
+       [
+        "Pass-through costs",
+        "Property taxes and insurance borne by the tenant"
+       ],
+       [
+        "Other income",
+        "Parking, signage, storage, percentage or overage rent"
+       ],
+       [
+        "Less: vacancies and concessions",
+        "Unoccupied space and rent-free incentive periods"
+       ],
+       [
+        " = Effective gross income",
+        "Revenue actually expected to be collected"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "Vacancy rate, the unoccupied percentage of total rentable space, is with market rent the variable that most affects a cash flow forecast. Large multi-tenant properties are rarely fully leased, because tenants move and properties are rehabilitated."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "Operating expenses split into fixed costs (taxes, insurance, service, repairs) and variable costs that move with occupancy, such as utilities. Whether these are borne by the owner or passed to tenants depends on lease terms."
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The property maintenance allowance"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "This is the line candidates most often misread. The allowance covers capital expenditure necessary to <strong>maintain</strong> the property's current economic use. It <strong>excludes</strong> capital expenditure that significantly upgrades or changes that economic use. Replacing a failing roof is in. Converting a warehouse to data centre space is not."
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Practice varies by jurisdiction: common in European and North American markets, less so elsewhere, such as in Japan.",
+       "It may include improvements made to accommodate particular tenants for retail or commercial use.",
+       "As with company analysis, judgement is required to separate regular and ongoing expenses from extraordinary items."
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "worked",
+     "payload": {
+      "title": "Wallonia Transit — NOI",
+      "blocks": [
+       {
+        "text": "A single-tenant warehouse in southern Belgium, 10,000 square metres of rentable space, fully let on a five-year lease at EUR52.50 per square metre annually. The tenant covers property taxes and insurance. The lease permits the lessor to recover EUR10.25 per square metre per year for servicing and repairs.",
+        "kind": "prose"
+       },
+       {
+        "headers": [
+         "Estimated cost",
+         "EUR"
+        ],
+        "rows": [
+         [
+          "Servicing and repairs",
+          "120,750"
+         ],
+         [
+          "Property tax",
+          "12,500"
+         ],
+         [
+          "Insurance",
+          "40,000"
+         ],
+         [
+          "Property maintenance allowance",
+          "100,000"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num"
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Step 1 · Gross rent",
+        "kind": "step"
+       },
+       {
+        "expr": "EUR52.50/m² × 10,000 m² = EUR525,000",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 2 · Operating expense recovery",
+        "kind": "step"
+       },
+       {
+        "expr": "EUR10.25/m² × 10,000 m² = EUR102,500",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 3 · Effective gross income",
+        "kind": "step"
+       },
+       {
+        "expr": "525,000 + 102,500 + 12,500 + 40,000 = EUR680,000",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 4 · Operating expenses",
+        "kind": "step"
+       },
+       {
+        "expr": "120,750 + 12,500 + 40,000 = EUR173,250",
+        "kind": "formula"
+       }
+      ],
+      "answer": "NOI = 680,000 − 173,250 − 100,000 = EUR406,750"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "worked",
+     "payload": {
+      "title": "Wallonia Transit — the recovery cap bites",
+      "blocks": [
+       {
+        "text": "Servicing and repair costs come in 20% above the original estimate.",
+        "kind": "prose"
+       },
+       {
+        "expr": "EUR120,750 × 1.20 = EUR144,900 &nbsp;—&nbsp; an increase of EUR24,150",
+        "kind": "formula"
+       },
+       {
+        "text": "The operating expense recovery is <strong>capped at EUR102,500</strong>. The tenant does not absorb the overrun, so the entire increase falls on the owner.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Revised NOI = EUR406,750 − EUR24,150 = EUR382,600"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "Recovery caps are a favourite exam device. When a recoverable cost rises above its cap, the full excess hits NOI. Were the recovery uncapped, NOI would be unchanged."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 3,
+   "title": "Leverage, Coverage, and Return Measures",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Buyers of real estate readily obtain long-term secured funding, because the property serves as collateral and most buildings have long useful lives. Mortgage lenders retain a first lien and the right to take possession on default."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "formula",
+     "payload": {
+      "expr": "LTV = Mortgage debt outstanding / Current property value",
+      "label": "Leverage"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "formula",
+     "payload": {
+      "expr": "DSC = Net operating income / Debt service",
+      "label": "Coverage"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Pre-tax cash flow = NOI − Debt service",
+      "label": "Levered cash flow"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Equity dividend rate = Pre-tax cash flow / (Purchase price − Mortgage loan)",
+      "label": "First-year return on equity"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "LTV fluctuates as property values change and loan principal amortises. A <strong>lower</strong> LTV corresponds to a <strong>higher</strong> equity position for the borrower.",
+       "Debt service in the DSC ratio is the <strong>full</strong> annual payment, interest plus principal, not interest alone.",
+       "Debt investors commonly write LTV and DSC into loan covenants to protect their interests.",
+       "The equity dividend rate is a first-year cash-on-cash measure. It omits tax effects and ignores capital gains or losses on sale."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "worked",
+     "payload": {
+      "title": "Wallonia Transit — leverage, coverage, and equity return",
+      "blocks": [
+       {
+        "text": "The owner purchased the facility for EUR3,750,000 at the start of the year with a EUR3,000,000 twenty-year fully amortising mortgage at 4% annually, equal payments at each year end. The annual payment is EUR220,745, of which first-year interest is EUR120,000.",
+        "kind": "prose"
+       },
+       {
+        "text": "Part 1 · LTV at end of year one, property value unchanged",
+        "kind": "step"
+       },
+       {
+        "expr": "Principal repaid = 220,745 − 120,000 = EUR100,745",
+        "kind": "formula"
+       },
+       {
+        "expr": "Debt outstanding = 3,000,000 − 100,745 = EUR2,899,255",
+        "kind": "formula"
+       },
+       {
+        "expr": "LTV = 2,899,255 / 3,750,000 = 0.773",
+        "kind": "formula"
+       },
+       {
+        "text": "Part 2 · After 10% appreciation",
+        "kind": "step"
+       },
+       {
+        "expr": "New value = 3,750,000 × 1.10 = EUR4,125,000",
+        "kind": "formula"
+       },
+       {
+        "expr": "LTV = 2,899,255 / 4,125,000 = 0.703",
+        "kind": "formula"
+       },
+       {
+        "text": "Debt is unchanged, so the fall in LTV reflects reduced leverage and an increased owner's equity position, achieved through appreciation rather than repayment.",
+        "kind": "prose"
+       },
+       {
+        "text": "Part 3 · Debt service coverage",
+        "kind": "step"
+       },
+       {
+        "expr": "DSC = 406,750 / 220,745 = 1.84",
+        "kind": "formula"
+       },
+       {
+        "text": "Part 4 · DSC under the cost overrun",
+        "kind": "step"
+       },
+       {
+        "expr": "DSC = 382,600 / 220,745 = 1.73",
+        "kind": "formula"
+       },
+       {
+        "text": "Part 5 · Equity dividend rate",
+        "kind": "step"
+       },
+       {
+        "expr": "Pre-tax cash flow = 406,750 − 220,745 = EUR186,005",
+        "kind": "formula"
+       },
+       {
+        "expr": "Initial equity = 3,750,000 − 3,000,000 = EUR750,000",
+        "kind": "formula"
+       },
+       {
+        "text": "Part 6 · Equity dividend rate under the cost overrun",
+        "kind": "step"
+       },
+       {
+        "expr": "Pre-tax cash flow = 382,600 − 220,745 = EUR161,855",
+        "kind": "formula"
+       }
+      ],
+      "answer": "Equity dividend rate = 161,855 / 750,000 = 21.6%"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Observe the leverage effect running through that example. NOI fell 5.9%, from EUR406,750 to EUR382,600. Pre-tax cash flow fell 13.0%, and the equity dividend rate dropped 320 basis points. Debt service is fixed, so the whole of NOI variability lands on the equity holder."
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "After-tax measures"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Taxes = t × (NOI − Interest expense − Depreciation expense)"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "prose",
+     "payload": {
+      "text": "Interest is deductible, so debt provides a tax shield beyond its leverage effect. Depreciation is a non-cash deduction sheltering income even while the property appreciates in market value. Given the finite life of most buildings, real estate assets are depreciated over estimated useful life as with any fixed asset; land generally is not."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 4,
+   "title": "Property Types",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Commercial real estate faces both cyclical and structural factors affecting economic use, cash flow, and relative risk and return. Lease length is the variable that ties them together."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Type",
+       "Lease length",
+       "Key considerations"
+      ],
+      "rows": [
+       [
+        "Multi-family residential",
+        "Short, typically annual",
+        "Reprices quickly, so a genuine inflation hedge. Many small tenants diversify credit risk but raise turnover. Regulatory risk is material."
+       ],
+       [
+        "Office",
+        "Long, 5–15 years",
+        "High tenant improvement costs. Structurally exposed to remote work. Location and building grade dominate."
+       ],
+       [
+        "Retail",
+        "Long, often with overage rent",
+        "Overage rent ties income to tenant sales, transmitting retail weakness directly into property income."
+       ],
+       [
+        "Industrial and logistics",
+        "Medium to long",
+        "Low tenant improvement costs. Structural beneficiary of e-commerce and supply chain regionalisation."
+       ],
+       [
+        "Hospitality",
+        "Effectively nightly",
+        "No lease protection. Behaves as an operating business rather than a property. Most cyclical."
+       ],
+       [
+        "Healthcare and senior housing",
+        "Long",
+        "Demographically driven, with heavy regulatory and operator dependence."
+       ],
+       [
+        "Self-storage",
+        "Short, monthly",
+        "Reprices rapidly, low operating cost, resilient across the cycle."
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "The general relationship: <strong>longer leases give more income certainty but less inflation protection and slower repricing</strong>. Hospitality sits at one extreme, repriced nightly with maximum cyclicality; long-lease office at the other."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "Berlin's Mietendeckel — regulatory risk to the re-lease outlook",
+      "blocks": [
+       {
+        "text": "Following soaring rents after the privatisation of formerly public housing post-reunification, Berlin lawmakers passed a rent cap in early 2020.",
+        "kind": "prose"
+       },
+       {
+        "items": [
+         "Owners of residential property built before 2014 were prevented from raising rents above June 2019 levels.",
+         "Rents more than 20% above fixed reference levels, set by location and quality, had to be reduced.",
+         "Rents were frozen for five years, after which a modest inflation increase was permitted."
+        ],
+        "kind": "list"
+       },
+       {
+        "text": "The immediate effect was an <strong>11% decline in rent</strong>. But Berlin's housing shortage became more severe as supply responded. A clean illustration of how local zoning and legal changes feed directly into the future lease outlook.",
+        "kind": "prose"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 5,
+   "title": "Due Diligence",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Public securities come with market prices, audited statements, and standardised disclosure. Real estate has none of that, and a property's physical attributes and exact location matter directly. That is why due diligence is a distinct learning outcome."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Market review and outlook"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Macroeconomic forecasts combined with local business conditions.",
+       "Web-based aggregated listing data helps establish a range of expectations, but analysts <strong>prefer actual sale prices to estimates or offer prices</strong>.",
+       "The real estate cycle phase dictates whether properties clear above or below offer, and whether owners concede rent-free periods, expense reductions, or amenities to hold headline lease rates.",
+       "Environmental factors are critical, especially for new development. Wildfire, hurricane, and flood vulnerability affect insurance cost, future appreciation, and income. Older structures may need costly upgrading to meet energy efficiency or other environmental standards."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Current lease review"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Current tenant rents versus forecast market rents for comparable properties.",
+       "Vacancies, representing potential future income.",
+       "Current lease length, with a lease expiration schedule supporting the rental income forecast.",
+       "Rental payment history, late payments, and defaults as a measure of tenant creditworthiness."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Future lease outlook"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Costs and incentives for renewing existing tenants and acquiring new ones, including broker commissions and downtime between leases.",
+       "Incentives may involve free rent periods and allowances for space improvements. These are typically <strong>not included in annual operating income</strong> but capitalised and amortised over the lease term.",
+       "Changes in local supply, and local zoning or legal changes such as rent caps and stabilisation."
+      ]
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Financial review, documentation review, property inspection"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Historical operating statements and expense trends, separating recurring from extraordinary items.",
+       "Title, liens, easements, encumbrances, lease documents including recovery caps and escalation clauses, and zoning or historical-protection compliance.",
+       "Physical condition, deferred maintenance, structural integrity, environmental site assessment, and existing service agreements with their transferability."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 6,
+   "title": "The Three Valuation Approaches",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Once the expected size and variability of future cash flows is established, real estate valuation resembles that for other financial assets: income, cost, and sales comparison."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Income approach: direct capitalization"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Property value = Expected NOI / Capitalization rate"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Capitalization rate = Expected NOI / Property value"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "Analysts derive cap rates from the current income and sale prices of comparable properties. Because the cap rate represents earnings cash flow for a given asset value, it is often compared to a bond's current yield, or to the inverse of an EV/EBITDA multiple: a return measure that excludes capital gains or losses."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "The required rate of return depends on benchmark interest rates, property-specific risk, and local supply and demand. A higher benchmark rate, greater property risk, or greater market oversupply all raise <em>r</em> and lower the present value of property cash flows."
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Going-in versus terminal cap rate"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Going-in cap rate",
+       "Terminal cap rate"
+      ],
+      "rows": [
+       [
+        "Based on",
+        "First year of ownership, initial annual cash flow",
+        "Expected income for the period after the anticipated sale"
+       ],
+       [
+        "Used for",
+        "Initial valuation and pricing",
+        "Terminal value within a DCF"
+       ],
+       [
+        "Under constant growth",
+        "Reflects near-term income dynamics",
+        "Approximately equals <em>r</em> − <em>g</em>"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Where near-term NOI is temporarily depressed, the going-in cap rate sits <strong>below</strong> the terminal cap rate, because the depressed numerator makes the initial yield look small. A negative <em>g</em> implies the property is approaching the end of its useful life and NOI is expected to decline."
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Income approach: discounted cash flow"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Property value = Σ NOI<sub>t</sub> / (1+r)<sup>t</sup> &nbsp;+&nbsp; Terminal value / (1+r)<sup>n</sup>"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Terminal value = NOI<sub>n</sub>(1+g) / (r − g)"
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "prose",
+     "payload": {
+      "text": "DCF is the right tool when NOI is not stable: a property being repositioned, one facing a temporary vacancy shock, or one with a known lease expiry cliff."
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "worked",
+     "payload": {
+      "title": "Eastmain Plaza — discounted cash flow valuation",
+      "blocks": [
+       {
+        "text": "A multistorey mixed-use office and retail development. Significant new retail space has opened nearby, so retail sales and rent receipts are expected to decline sharply in the coming year while office rentals remain stable. The investor plans a five-year hold, upgrading and re-letting the retail space. Required return 14%; NOI grows 3% in perpetuity after year five.",
+        "kind": "prose"
+       },
+       {
+        "headers": [
+         "Year",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5"
+        ],
+        "rows": [
+         [
+          "NOI (MYR)",
+          "8,259,417",
+          "6,092,385",
+          "13,539,114",
+          "14,020,153",
+          "14,515,622"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num",
+         "num",
+         "num",
+         "num",
+         "num"
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Note the shape: NOI dips in year two as the property maintenance allowance rises 50% during repositioning, then recovers strongly from year three as retail rents are regained.",
+        "kind": "prose"
+       },
+       {
+        "text": "Step 1 · Present value of years 1 to 5 at 14%",
+        "kind": "step"
+       },
+       {
+        "expr": "PV = MYR36,911,526",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 2 · Terminal value at end of year five",
+        "kind": "step"
+       },
+       {
+        "expr": "14,515,622 × 1.03 / (0.14 − 0.03) = MYR135,919,006",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 3 · Discount and sum",
+        "kind": "step"
+       },
+       {
+        "expr": "36,911,526 + 135,919,006 / (1.14)<sup>5</sup>",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 4 · Comparing the two cap rates",
+        "kind": "step"
+       },
+       {
+        "expr": "Going-in = 8,259,417 / 107,503,599 = 7.68% &nbsp;&nbsp;vs&nbsp;&nbsp; Terminal = r − g = 11%",
+        "kind": "formula"
+       },
+       {
+        "text": "The going-in cap rate is lower precisely because year-one NOI is temporarily depressed by the retail disruption. Direct capitalization on that depressed figure would badly undervalue the property, which is exactly why DCF is appropriate here.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Property value = MYR107,503,599"
+     }
+    },
+    {
+     "ord": 15,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "A common distractor divides the <em>sixth</em>-year NOI by the <em>going-in</em> cap rate. Terminal value uses the terminal cap rate, which under constant growth equals <em>r</em> − <em>g</em>. Check which NOI and which rate the question is pairing."
+      ]
+     }
+    },
+    {
+     "ord": 16,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Cost approach"
+     }
+    },
+    {
+     "ord": 17,
+     "block_type": "prose",
+     "payload": {
+      "text": "Considers the cost of reproducing or replicating the asset, deducting depreciation and other factors that reduce value. Replacement cost includes buying the land and constructing a new property on the site with the same economic use as the subject property, plus the developer's expected profit as compensation for development risk: time, complexity, and financing cost."
+     }
+    },
+    {
+     "ord": 18,
+     "block_type": "prose",
+     "payload": {
+      "text": "Adjustments are made where the subject property is older, requires updating, sits in a location less ideal for its current use, or where new construction is infeasible under building codes or historical protections. These adjustments may be higher or lower than annual depreciation expense."
+     }
+    },
+    {
+     "ord": 19,
+     "block_type": "worked",
+     "payload": {
+      "title": "Wallonia — cost approach",
+      "blocks": [
+       {
+        "text": "An investor obtains a EUR4,350,000 estimate for constructing an identical facility near the subject property. Land is valued at EUR750,000. The warehouse has a 30-year useful life with straight-line depreciation, and the subject property is four years old.",
+        "kind": "prose"
+       },
+       {
+        "text": "Step 1 · Depreciable base, excluding land, which has infinite life",
+        "kind": "step"
+       },
+       {
+        "expr": "4,350,000 − 750,000 = EUR3,600,000",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 2 · Annual depreciation",
+        "kind": "step"
+       },
+       {
+        "expr": "3,600,000 / 30 = EUR120,000 per year",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 3 · Accumulated over four years",
+        "kind": "step"
+       },
+       {
+        "expr": "120,000 × 4 = EUR480,000",
+        "kind": "formula"
+       }
+      ],
+      "answer": "Estimated value = 4,350,000 − 480,000 = EUR3,870,000"
+     }
+    },
+    {
+     "ord": 20,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The cost approach says an investor should not pay more than the cost of purchasing vacant land and developing a comparable property. Because construction carries time lag and economic risk, significant divergence between replacement cost and market price signals supply and demand imbalance — one would expect <strong>replacement costs to exceed market prices during the oversupply phase</strong> of the cycle."
+      ]
+     }
+    },
+    {
+     "ord": 21,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Sales comparison approach"
+     }
+    },
+    {
+     "ord": 22,
+     "block_type": "prose",
+     "payload": {
+      "text": "Considers what comparable properties transacted for in the current market. Validity hinges on finding sufficient rental or sales prices for properties with similar features. Where public equity comparison benefits from market prices and financial statements on similar dates, the illiquidity of real estate limits comparability to actual transactions at different past times."
+     }
+    },
+    {
+     "ord": 23,
+     "block_type": "prose",
+     "payload": {
+      "text": "Price per square metre or foot of leasable or total area is the most common unit of comparison; others include price per gross or net rent per square metre, and price to revenue. <strong>Recent transactions carry more weight than prior-period sales.</strong>"
+     }
+    },
+    {
+     "ord": 24,
+     "block_type": "worked",
+     "payload": {
+      "title": "Pinebranch Estates — sales comparison",
+      "blocks": [
+       {
+        "text": "A multi-family property near a major Australian city, 288,000 gross square feet, five years old. Three comparable properties of similar design, quality, and amenities transacted within the past two years.",
+        "kind": "prose"
+       },
+       {
+        "headers": [
+         "",
+         "Comparable 1",
+         "Comparable 2",
+         "Comparable 3"
+        ],
+        "rows": [
+         [
+          "Sale date",
+          "6 months ago",
+          "1 year ago",
+          "2 years ago"
+         ],
+         [
+          "Sales price (AUD)",
+          "32,500,000",
+          "25,800,000",
+          "21,300,000"
+         ],
+         [
+          "Gross square feet",
+          "375,000",
+          "250,000",
+          "220,000"
+         ],
+         [
+          "Price per ft²",
+          "86.67",
+          "103.20",
+          "96.82"
+         ],
+         [
+          "Distance further from centre",
+          "5 miles",
+          "2 miles",
+          "3 miles"
+         ],
+         [
+          "Age",
+          "3y",
+          "2y",
+          "3y"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num",
+         "num",
+         "num"
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Adjustments applied to each comparable",
+        "kind": "step"
+       },
+       {
+        "headers": [
+         "Adjustment",
+         "Comparable 1",
+         "Comparable 2",
+         "Comparable 3"
+        ],
+        "rows": [
+         [
+          "Sale date",
+          "0%",
+          "3%",
+          "5%"
+         ],
+         [
+          "Square footage",
+          "−4%",
+          "1%",
+          "2%"
+         ],
+         [
+          "Location",
+          "10%",
+          "5%",
+          "8%"
+         ],
+         [
+          "Age",
+          "−3%",
+          "−5%",
+          "−3%"
+         ],
+         [
+          "Net difference",
+          "3%",
+          "1%",
+          "7%"
+         ],
+         [
+          "Adjusted price per ft²",
+          "89.27",
+          "104.23",
+          "103.60"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num",
+         "num",
+         "num"
+        ],
+        "total_rows": [
+         4
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Comparable 1: 0% − 4% + 10% − 3% = 3%, so AUD86.67 × 1.03 = AUD89.27.",
+        "kind": "prose"
+       },
+       {
+        "text": "Average the three adjusted figures and apply to the subject",
+        "kind": "step"
+       },
+       {
+        "expr": "Estimated AUD99.03 per ft² × 288,000 ft²",
+        "kind": "formula"
+       }
+      ],
+      "answer": "Estimated value = AUD28,520,640"
+     }
+    },
+    {
+     "ord": 25,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Reading the adjustment signs"
+     }
+    },
+    {
+     "ord": 26,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>Sale date</strong> — a larger positive adjustment for sales further in the past reflects rising real estate prices over time.",
+       "<strong>Square footage</strong> — negative for the largest comparable and positive for the smaller ones implies a discount for larger multi-family properties.",
+       "<strong>Location</strong> — the greater the distance from the city centre, the larger the positive adjustment to the subject's value versus that comparable.",
+       "<strong>Age</strong> — all three comparables are newer than Pinebranch, so the negative adjustment reflects a discount to Pinebranch's value."
+      ]
+     }
+    },
+    {
+     "ord": 27,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Choosing an approach"
+     }
+    },
+    {
+     "ord": 28,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "Situation",
+       "Approach"
+      ],
+      "rows": [
+       [
+        "Stabilised income-producing property",
+        "Direct capitalization"
+       ],
+       [
+        "Irregular or transitioning NOI",
+        "Discounted cash flow"
+       ],
+       [
+        "New or special-purpose property, no comparables",
+        "Cost approach"
+       ],
+       [
+        "Active market with abundant recent sales",
+        "Sales comparison"
+       ],
+       [
+        "Assessing whether new development is viable",
+        "Cost approach against market price"
+       ]
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 7,
+   "title": "Real Estate Indexes and Appraisal Bias",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Indexes allow relative performance evaluation, manager benchmarking, and index-based investment. But the use of appraisal rather than actual sales prices introduces biases that distort asset allocation decisions."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Appraisal-based",
+       "Transaction-based"
+      ],
+      "rows": [
+       [
+        "Input",
+        "Periodic professional valuations",
+        "Actual completed sale prices"
+       ],
+       [
+        "Data availability",
+        "Broad — any property can be appraised",
+        "Limited to properties that sold"
+       ],
+       [
+        "Timeliness",
+        "Lags the market",
+        "<strong>Leads</strong> appraisal-based indexes"
+       ],
+       [
+        "Reported volatility",
+        "Understated",
+        "Higher and more realistic"
+       ],
+       [
+        "Noise",
+        "Low",
+        "Higher, from statistical estimation on small samples"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Appraisers value a property partly by reference to its previous appraisal, so the reported series is a moving average of the true series. This produces <strong>three</strong> distortions: volatility is understated, correlation with other asset classes is understated, and risk-adjusted performance such as the Sharpe ratio is overstated."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "<strong>Volatility understated</strong> — averaging successive observations mechanically reduces measured standard deviation. The property's true value moved more than the series shows.",
+       "<strong>Correlation understated</strong> — the smoothed series lags, so its movements no longer align in time with equity and bond returns, even though the underlying economic exposure is unchanged.",
+       "<strong>Sharpe ratio overstated</strong> — the ratio divides excess return by standard deviation, so understating the denominator inflates the result."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "An optimiser fed appraisal-based data will over-allocate to real estate, because the asset appears to offer both high risk-adjusted return <em>and</em> strong diversification. Both signals are measurement artefacts. This is why some frameworks explicitly unsmooth real estate returns before use, and why an appraisal-based fund index will overstate its own Sharpe ratio relative to a transaction-based alternative."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Unsmoothing returns"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Where appraisal-based index returns are assumed to depend on actual returns and one-period lagged returns, the reported series can be unsmoothed to recover an estimate of true returns."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "formula",
+     "payload": {
+      "expr": "R<sub>t</sub> = R*<sub>t</sub> / a &nbsp;+&nbsp; [(1 − a) / a] × R*<sub>t−1</sub>",
+      "label": "Unsmoothing, where R* is the reported appraisal-based return"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "worked",
+     "payload": {
+      "title": "Unsmoothing an appraisal index, a = 0.6",
+      "blocks": [
+       {
+        "headers": [
+         "Period",
+         "Appraisal-based return",
+         "Lagged return",
+         "Unsmoothed actual"
+        ],
+        "rows": [
+         [
+          "0",
+          "2.70%",
+          "—",
+          "—"
+         ],
+         [
+          "1",
+          "0.50%",
+          "2.70%",
+          "2.63%"
+         ],
+         [
+          "2",
+          "2.20%",
+          "0.50%",
+          "4.00%"
+         ],
+         [
+          "3",
+          "7.30%",
+          "2.20%",
+          "13.97%"
+         ],
+         [
+          "4",
+          "3.20%",
+          "7.30%",
+          "8.87%"
+         ],
+         [
+          "5",
+          "1.00%",
+          "3.20%",
+          "3.80%"
+         ],
+         [
+          "6",
+          "−8.70%",
+          "1.00%",
+          "−13.83%"
+         ],
+         [
+          "7",
+          "−1.10%",
+          "−8.70%",
+          "−5.63%"
+         ],
+         [
+          "8",
+          "2.40%",
+          "−1.10%",
+          "3.27%"
+         ],
+         [
+          "9",
+          "3.10%",
+          "2.40%",
+          "6.77%"
+         ],
+         [
+          "10",
+          "4.20%",
+          "3.10%",
+          "9.07%"
+         ]
+        ],
+        "aligns": [
+         "c",
+         "num",
+         "num",
+         "num"
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Period 1 worked",
+        "kind": "step"
+       },
+       {
+        "expr": "0.50 / 0.6 + (0.4 / 0.6) × 2.70 = 0.833 + 1.800 = 2.63%",
+        "kind": "formula"
+       },
+       {
+        "text": "Compare the ranges. The reported series spans −8.70% to 7.30%; the unsmoothed series spans −13.83% to 13.97%. Unsmoothing roughly doubles the apparent amplitude, which is precisely the volatility that appraisal smoothing conceals.",
+        "kind": "prose"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "prose",
+     "payload": {
+      "text": "Transaction-based indexes lead appraisal-based ones for the reasons above, but they can include random elements from the statistical techniques used to estimate them. This introduces noise in quarter-to-quarter changes even though the index captures market movements correctly over the long term. The challenge for data providers is minimising that noise through appropriate technique and maximum data collection."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 8,
+   "title": "Consolidation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Formulas"
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Concept",
+       "Formula"
+      ],
+      "rows": [
+       [
+        "Net operating income",
+        "Effective gross income − Operating expenses − Maintenance allowance"
+       ],
+       [
+        "Gross rent",
+        "Rate per unit area × Rentable area"
+       ],
+       [
+        "Loan-to-value",
+        "Mortgage debt outstanding / Current property value"
+       ],
+       [
+        "Debt service coverage",
+        "NOI / Debt service, interest plus principal"
+       ],
+       [
+        "Pre-tax cash flow",
+        "NOI − Debt service"
+       ],
+       [
+        "Equity dividend rate",
+        "Pre-tax cash flow / (Purchase price − Mortgage loan)"
+       ],
+       [
+        "Taxes",
+        "t × (NOI − Interest − Depreciation)"
+       ],
+       [
+        "Direct capitalization",
+        "Value = Expected NOI / Cap rate"
+       ],
+       [
+        "Terminal value",
+        "NOI<sub>n</sub>(1+g) / (r − g)"
+       ],
+       [
+        "Terminal cap rate",
+        "≈ r − g"
+       ],
+       [
+        "Cost approach",
+        "Replacement cost − Depreciation  (replacement cost already includes land and developer profit)"
+       ],
+       [
+        "Unsmoothing",
+        "R<sub>t</sub> = R*<sub>t</sub>/a + [(1−a)/a] R*<sub>t−1</sub>"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Directional relationships"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "If…",
+       "Then…"
+      ],
+      "rows": [
+       [
+        "Costs rise above a capped recovery",
+        "The full excess reduces NOI"
+       ],
+       [
+        "Property appreciates with debt unchanged",
+        "LTV falls, equity cushion rises"
+       ],
+       [
+        "NOI falls with debt service fixed",
+        "Equity dividend rate falls proportionally more"
+       ],
+       [
+        "Year-one NOI is temporarily depressed",
+        "Going-in cap rate sits below terminal cap rate"
+       ],
+       [
+        "Required return rises or growth falls",
+        "Cap rate rises, property value falls"
+       ],
+       [
+        "Replacement cost exceeds market price",
+        "Market is oversupplied, development stalls"
+       ],
+       [
+        "The index is appraisal-based",
+        "Volatility and correlation understated, Sharpe overstated"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Ten points for a final pass"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "NOI is the real estate analogue of EBITDA: operating income before financing and tax.",
+       "The maintenance allowance covers capex maintaining current economic use, not capex that upgrades it.",
+       "Capped expense recoveries mean cost overruns above the cap fall entirely on the owner.",
+       "Debt service in the DSC ratio includes principal amortisation, not interest alone.",
+       "The equity dividend rate is a first-year cash-on-cash return ignoring taxes and capital gains.",
+       "Cap rate equals NOI over value, conceptually a current yield excluding capital appreciation.",
+       "Terminal cap rate approximately equals the required return less perpetual growth.",
+       "A going-in cap rate below the terminal cap rate signals temporarily depressed near-term NOI.",
+       "The cost approach caps value at the cost of building an equivalent, and the gap to market price signals the cycle phase.",
+       "Appraisal smoothing understates volatility and correlation while overstating Sharpe, biasing allocation toward real estate."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Notes prepared from the CFA Program 2026 Level II curriculum, Volume 8, Learning Module 2. Wallonia Transit, Eastmain Plaza, and Pinebranch Estates are the curriculum's own worked examples; figures are as published."
+     }
+    }
+   ]
+  }
+ ]
+}

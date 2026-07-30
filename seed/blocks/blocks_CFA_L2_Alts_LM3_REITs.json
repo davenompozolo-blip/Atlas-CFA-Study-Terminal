@@ -1,0 +1,1304 @@
+{
+ "topic_id": "alt",
+ "module": "LM3",
+ "module_title": "Investments in Real Estate through Publicly Traded Securities",
+ "source_ref": "CFA 2026 L2 V8/LM3",
+ "units": [
+  {
+   "ordinal": 1,
+   "title": "The Listed Real Estate Universe",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Listed vehicles let investors hold professionally managed, diversified property portfolios in daily-liquid form. The structure was authorised in the United States in 1960 and the Netherlands in 1969; almost 40 countries now have REITs or REIT-like structures, and the S&amp;P 500 added REITs as a separate GICS sector in 2016."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "REITs were originally viewed as a type of closed-end fund and income passthrough vehicle, through which a portfolio manager would acquire attractively valued properties, occasionally sell fully valued ones, and distribute property earnings to investors."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Four instrument types"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Instrument",
+       "What it is",
+       "Exposure"
+      ],
+      "rows": [
+       [
+        "REIT",
+        "Trust directly owning and operating income-producing property, tax-exempt at entity level in exchange for high distribution requirements",
+        "Equity"
+       ],
+       [
+        "REOC",
+        "Ordinary corporation operating, developing, or servicing real estate",
+        "Equity"
+       ],
+       [
+        "RMBS",
+        "Securities backed by pools of residential mortgages",
+        "Debt"
+       ],
+       [
+        "CMBS",
+        "Securities backed by pools of commercial mortgages",
+        "Debt"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "REIT versus REOC"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "A REIT trades <strong>operating flexibility</strong> for <strong>tax efficiency</strong>. A REOC makes the opposite trade. Every other difference between them follows from this one."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "REIT",
+       "REOC"
+      ],
+      "rows": [
+       [
+        "Entity-level income tax",
+        "Exempt where distribution rules are met",
+        "Taxed as an ordinary corporation"
+       ],
+       [
+        "Distribution requirement",
+        "High, typically 90%+ of taxable income",
+        "None"
+       ],
+       [
+        "Dividend yield",
+        "Higher",
+        "Lower"
+       ],
+       [
+        "Retained cash for reinvestment",
+        "Minimal, given high income-to-payout ratios",
+        "Substantial"
+       ],
+       [
+        "Growth from reinvested cash flow",
+        "Limited",
+        "Higher"
+       ],
+       [
+        "Permitted activities",
+        "Restricted; limits on development and non-property income",
+        "Unrestricted"
+       ],
+       [
+        "Reliance on external capital",
+        "High",
+        "Lower"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "prose",
+     "payload": {
+      "text": "The consequence that matters for valuation: because REITs distribute nearly all income, they cannot fund growth internally. Expansion requires issuing equity or raising debt, which makes the share price relative to net asset value a live constraint on strategy rather than a passive market outcome. Section 4 returns to this."
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "How REITs differ from ordinary equities"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Higher-than-average dividend yields and greater stability of income and returns.",
+       "Amenable to a <strong>net asset value</strong> approach, because active private markets exist for the underlying real estate assets. This is unusual — for most companies you cannot mark the assets to a liquid market.",
+       "Historical cost accounting misrepresents economic reality badly enough that the sector uses its own adjusted earnings measures, covered in Section 3."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 2,
+   "title": "Assessing Investment Merits",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "The curriculum lists a specific set of factors. They divide into demand drivers, portfolio quality, and financial structure."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Demand drivers"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Trends in general economic activity.",
+       "Retail sales, driving retail property demand directly.",
+       "Job creation, the primary driver of office demand.",
+       "Population growth, driving residential and healthcare demand.",
+       "<strong>New supply and demand for specific types of space.</strong> Supply is the variable most often underweighted, because construction responds to prices with a multi-year lag and frequently arrives just as demand turns."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Portfolio quality"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Metric",
+       "What it reveals"
+      ],
+      "rows": [
+       [
+        "Occupancy and leasing activity",
+        "Current utilisation and forward momentum in filling space"
+       ],
+       [
+        "Rental rates",
+        "Pricing power in the submarket"
+       ],
+       [
+        "Remaining lease terms",
+        "Income visibility and the timing of repricing risk"
+       ],
+       [
+        "In-place rents versus market rents",
+        "Embedded upside if below market; embedded risk if above"
+       ],
+       [
+        "Cost to maintain and re-lease space",
+        "The capital drag sitting behind reported earnings"
+       ],
+       [
+        "Tenant financial health and concentration",
+        "Credit risk within the income stream, and single-tenant dependency"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The in-place versus market rent comparison is the single most informative portfolio metric. If in-place rents sit well below market, growth is embedded and will be realised mechanically as leases roll. If they sit above market, expiries will erode income even with full occupancy maintained."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Financial structure"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "prose",
+     "payload": {
+      "text": "Financial leverage, debt maturities and costs, and the quality of management and governance. A concentrated maturity wall in a tight credit market is a genuine solvency issue for a vehicle that by design cannot retain cash."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 3,
+   "title": "Adjusting REIT Financial Statements",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Analysts adjust the historical cost-based financial statements of REITs and REOCs to obtain better measures of current income and net worth. Three figures do the work: FFO, AFFO, and net asset value."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Why net income fails"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "Under IFRS and US GAAP, buildings are depreciated over estimated useful lives, an assumption that the asset is consuming itself. For well-maintained real estate this is frequently wrong: property often holds or appreciates in value over long horizons while the accounts record steady decline."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Investors believe real estate maintains its value to a greater extent than other business assets, often appreciating over the long term, so depreciation deductions do not represent economic reality.",
+       "A taxable REOC using moderate leverage and reinvesting most income can defer a large part of its annual tax liability, because accelerated tax depreciation is permitted in most countries and reinvesting continues to add to the depreciable base.",
+       "Gains and losses on property sales are lumpy and non-recurring, distorting any measure of sustainable performance."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Funds from operations"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "formula",
+     "payload": {
+      "expr": "FFO = Net income + Depreciation + Amortization − Net gains on sale of real estate"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "The fuller Nareit definition: net income computed under GAAP, plus losses and minus gains from sales of properties, plus depreciation and amortization related to real estate, plus real estate impairments and write-downs unrelated to depreciation. The amortization add-back includes leasing commissions, tenant improvements, and tenant allowances."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "prose",
+     "payload": {
+      "text": "FFO is an SEC-accepted non-GAAP measure, as is EBITDA, and must be reconciled with GAAP net income. Companies reporting their own adjustments to FFO are advised to reconcile those to Nareit-defined FFO."
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Despite the name, <strong>FFO is not a measure of cash flow</strong>. Like cash flow from operations, it excludes the investment and spending necessary to sustain cash flow growth, and excludes cash flow related to financing activities. It also includes FFO from unconsolidated businesses. Treat it as adjusted earnings."
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Adjusted funds from operations"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "formula",
+     "payload": {
+      "expr": "AFFO = FFO − Non-cash (straight-line) rent − Recurring maintenance capex and leasing costs"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "prose",
+     "payload": {
+      "text": "Also called funds available for distribution or cash available for distribution. AFFO refines FFO into a more accurate measure of current economic income."
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "<strong>Straight-line rent.</strong> Most long-term leases contain escalating rental rates. IFRS and US GAAP recognise the <em>average</em> contractual rent over the lease term as revenue in every period. Early in the lease, reported revenue exceeds cash received; late in the lease, cash received exceeds reported revenue. The difference is the non-cash rent adjustment, and because escalation is the norm, it can be significant."
+      ]
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "prose",
+     "payload": {
+      "text": "The capital deduction covers maintenance-type capital expenditure and the cost of leasing space, including leasing agents' commissions and tenants' improvement allowances. The analytical move parallels the property maintenance allowance in Module 2: sustaining real estate income requires real capital outlay, and it should be deducted before calling the result economic income."
+     }
+    },
+    {
+     "ord": 15,
+     "block_type": "worked",
+     "payload": {
+      "title": "FFO and AFFO from reported financials",
+      "blocks": [
+       {
+        "headers": [
+         "A. Funds from operations",
+         "USD thousands"
+        ],
+        "rows": [
+         [
+          "Net income",
+          "160,638"
+         ],
+         [
+          "Add: depreciation and amortization",
+          "76,100"
+         ],
+         [
+          "Add: (gains) / losses from sale of depreciable real estate",
+          "25,000"
+         ],
+         [
+          "Funds from operations",
+          "261,738"
+         ],
+         [
+          "FFO per share, 55,689 shares outstanding",
+          "4.70"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num"
+        ],
+        "total_rows": [
+         3
+        ],
+        "kind": "table"
+       },
+       {
+        "headers": [
+         "B. Adjusted funds from operations",
+         "USD thousands"
+        ],
+        "rows": [
+         [
+          "Funds from operations",
+          "261,738"
+         ],
+         [
+          "Less: non-cash (straight-line) rent adjustment",
+          "(21,103)"
+         ],
+         [
+          "Less: recurring maintenance capex and leasing commissions",
+          "(55,765)"
+         ],
+         [
+          "Adjusted funds from operations",
+          "184,870"
+         ],
+         [
+          "AFFO per share, 55,689 shares outstanding",
+          "3.32"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num"
+        ],
+        "total_rows": [
+         3
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Note the spread. FFO per share of $4.70 against AFFO per share of $3.32: the recurring capital requirements of the portfolio consume roughly 29% of adjusted earnings before you reach a figure that reflects distributable economics.",
+        "kind": "prose"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 16,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Working backwards"
+     }
+    },
+    {
+     "ord": 17,
+     "block_type": "formula",
+     "payload": {
+      "expr": "FFO = AFFO + Non-cash straight-line rent + Recurring maintenance capex and leasing commissions"
+     }
+    },
+    {
+     "ord": 18,
+     "block_type": "worked",
+     "payload": {
+      "title": "Reverse calculation — and its two distractors",
+      "blocks": [
+       {
+        "text": "An analyst gathers the following for a REIT:",
+        "kind": "prose"
+       },
+       {
+        "headers": [
+         "Item",
+         "EUR"
+        ],
+        "rows": [
+         [
+          "Non-cash (straight-line) rent",
+          "207,430"
+         ],
+         [
+          "Depreciation",
+          "611,900"
+         ],
+         [
+          "Recurring maintenance capex and leasing commissions",
+          "550,750"
+         ],
+         [
+          "Adjusted funds from operations",
+          "3,320,000"
+         ],
+         [
+          "AFFO per share",
+          "3.32"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num"
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Step 1 · Recover FFO",
+        "kind": "step"
+       },
+       {
+        "expr": "3,320,000 + 550,750 + 207,430 = EUR4,078,180",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 2 · Recover the share count",
+        "kind": "step"
+       },
+       {
+        "expr": "3,320,000 / 3.32 = 1,000,000 shares",
+        "kind": "formula"
+       }
+      ],
+      "answer": "FFO per share = 4,078,180 / 1,000,000 ≈ EUR4.08"
+     }
+    },
+    {
+     "ord": 19,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "The distractors in that question are instructive. Adding <em>depreciation</em> to AFFO gives EUR3.93; adding depreciation on top of the correct two adjustments gives EUR4.48. Depreciation is already inside FFO — it is what you add to <em>net income</em>, not to AFFO. Know which measure you are standing on before you add anything."
+      ]
+     }
+    },
+    {
+     "ord": 20,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The three measures compared"
+     }
+    },
+    {
+     "ord": 21,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Measure",
+       "Definition",
+       "Best used for"
+      ],
+      "rows": [
+       [
+        "Net income",
+        "GAAP earnings after depreciation",
+        "Statutory reporting; a poor guide to REIT economics"
+       ],
+       [
+        "FFO",
+        "Net income + D&amp;A − gains on sale",
+        "Comparing operating performance; the sector's earnings equivalent"
+       ],
+       [
+        "AFFO",
+        "FFO − non-cash rent − recurring capex and leasing costs",
+        "Dividend sustainability and true economic income"
+       ]
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 4,
+   "title": "Valuation: Net Asset Value per Share",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "NAVPS is the fundamental benchmark for REIT and REOC value, and a superior measure of net worth to historical book value per share. It works here, and not for most industries, because active private markets exist for the underlying assets."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "formula",
+     "payload": {
+      "expr": "NAVPS = (Market value of assets − Market value of liabilities) / Shares outstanding"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Three methods of estimating NAV"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "Applying the <strong>cap rate approach</strong> to the NOI of a property or portfolio.",
+       "Applying a <strong>value per square foot or unit</strong> to a property or portfolio.",
+       "Using <strong>appraised values</strong> disclosed in the company's financial statements, common under IFRS."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "The first two derive cap rates and values per square foot from observed market transactions. For the third, an analyst may adjust company-reported appraisals where she disagrees with the underlying assumptions and has sufficient information to do so."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Defining NOI for this purpose"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "formula",
+     "payload": {
+      "expr": "NOI = Gross rental revenue − Estimated vacancy and collection loss − Operating expenses"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "prose",
+     "payload": {
+      "text": "Operating expenses include property insurance, real estate taxes, utilities, general and administrative, and repairs and maintenance, but come before interest expense, income taxes, depreciation, and amortization. NOI is analogous to earnings before interest and taxes."
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "worked",
+     "payload": {
+      "title": "Full NAVPS calculation",
+      "blocks": [
+       {
+        "headers": [
+         "Line item",
+         "USD thousands"
+        ],
+        "rows": [
+         [
+          "Last-12-month real estate NOI",
+          "270,432"
+         ],
+         [
+          "Less: non-cash rent",
+          "(7,667)"
+         ],
+         [
+          "Plus: adjustment for full impact of acquisitions",
+          "4,534"
+         ],
+         [
+          "Pro forma cash NOI for last 12 months",
+          "267,299"
+         ],
+         [
+          "Plus: next-12-month growth in NOI at 1.5%",
+          "4,009"
+         ],
+         [
+          "Estimated next-12-month cash NOI",
+          "271,308"
+         ],
+         [
+          "Assumed cap rate",
+          "7.00%"
+         ],
+         [
+          "Estimated value of operating real estate",
+          "3,875,829"
+         ],
+         [
+          "Plus: cash and equivalents",
+          "65,554"
+         ],
+         [
+          "Plus: land held for future development",
+          "34,566"
+         ],
+         [
+          "Plus: accounts receivable",
+          "45,667"
+         ],
+         [
+          "Plus: prepaid and other assets",
+          "23,456"
+         ],
+         [
+          "Estimated gross asset value",
+          "4,045,072"
+         ],
+         [
+          "Less: total debt",
+          "(1,010,988)"
+         ],
+         [
+          "Less: other liabilities",
+          "(119,886)"
+         ],
+         [
+          "Net asset value",
+          "2,914,198"
+         ],
+         [
+          "Shares outstanding",
+          "55,689"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num"
+        ],
+        "total_rows": [
+         3,
+         5,
+         7,
+         12,
+         15
+        ],
+        "kind": "table"
+       }
+      ],
+      "answer": "NAVPS = 2,914,198 / 55,689 = $52.33 per share"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Why each adjustment is made"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "<strong>Subtract non-cash rent</strong> — removes the straight-lining effect, so the capitalised figure reflects actual cash economics.",
+       "<strong>Add the acquisition impact</strong> — properties bought mid-year contributed only partial-period income. Here an incremental 50% of expected annual return on acquisitions completed midway through the previous year.",
+       "<strong>Add expected growth</strong> — capitalisation applies to <em>forward</em> income, not trailing. Growth estimated at 1.5%.",
+       "<strong>Apply the cap rate</strong> — 271,308 ÷ 0.07 = 3,875,829. The rate comes from recent comparable transactions in the property market.",
+       "<strong>Add other tangible assets</strong> — cash, receivables, development land, prepaid items. Land is sometimes taken at market value where reliably determinable, but because it is difficult to value and illiquid, analysts tend to use book values.",
+       "<strong>Subtract liabilities</strong> — debt at market value where it differs significantly from face value, for instance after interest rate moves."
+      ]
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "What to exclude"
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "Excluded",
+       "Reason"
+      ],
+      "rows": [
+       [
+        "Goodwill",
+        "Not a hard economic asset"
+       ],
+       [
+        "Deferred financing expenses",
+        "Accounting construct with no realisable value"
+       ],
+       [
+        "Deferred tax assets",
+        "Soft asset, not economically realisable on sale"
+       ],
+       [
+        "Book value of properties",
+        "Replaced by the market-based estimate"
+       ],
+       [
+        "Capitalised leases on valued properties",
+        "Would double count the same economic asset"
+       ],
+       [
+        "Deferred tax liabilities",
+        "An accounting provision rather than an economic liability"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Premiums, discounts, and the capital constraint"
+     }
+    },
+    {
+     "ord": 15,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Shares priced at a <strong>discount</strong> to NAVPS suggest potential undervaluation.",
+       "Shares priced at a <strong>premium</strong> suggest potential overvaluation.",
+       "But the interpretation is not mechanical. Persistent premiums or discounts may reflect investors' view of management's added value, leverage, or the growth prospects and quality of the portfolio."
+      ]
+     }
+    },
+    {
+     "ord": 16,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "REITs trading below NAVPS, or carrying high leverage, have a <strong>more expensive cost of equity capital</strong>. That limits long-term growth, in contrast to REITs trading at or above NAVPS. Selling equity below NAVPS is dilutive for existing investors. For a vehicle that cannot retain cash, this converts a valuation observation into a strategic constraint."
+      ]
+     }
+    },
+    {
+     "ord": 17,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Limitations of the approach"
+     }
+    },
+    {
+     "ord": 18,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "It applies a <strong>private market</strong> valuation tool to a <strong>publicly traded</strong> security. The two markets can diverge for extended periods.",
+       "It is calculated before income or capital gains taxes payable on liquidation. Because the manner of any eventual sale is unpredictable, and the company may be kept intact in an acquisition, investors look to pre-tax asset value as the primary net worth benchmark.",
+       "A company holding assets for many years may have a very low remaining depreciable base for tax purposes, affecting valuation perspectives. Quantifying this is impeded by not knowing a prospective acquirer's tax circumstances and strategies.",
+       "Reliable estimation needs ample transactions to provide comparables, and market depth varies widely. As of 2022, publicly traded REITs held about 12% of US commercial real estate; listed companies held roughly 4% in Europe and 30% in Singapore."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 5,
+   "title": "Valuation: Relative Multiples",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "P/FFO is in essence the REIT sector equivalent of P/E. P/AFFO gives a quick cash flow multiple, since AFFO approximates cash earnings."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Multiple",
+       "Construction",
+       "Interpretation"
+      ],
+      "rows": [
+       [
+        "P/FFO",
+        "Share price / FFO per share",
+        "The sector's P/E equivalent"
+       ],
+       [
+        "P/AFFO",
+        "Share price / AFFO per share",
+        "Cash flow multiple approximating cash earnings"
+       ],
+       [
+        "EV/EBITDA",
+        "Enterprise value / EBITDA",
+        "Capital-structure neutral; its inverse approximates the cap rate"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "EBITDA/EV closely approximates the real estate capitalization rate, NOI over market value. That is why EV/EBITDA maps naturally onto how property investors already think, and why it permits like-for-like comparison across REITs carrying different leverage."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Three drivers of multiple differences"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "1. Expected growth in FFO and AFFO"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "Higher expected growth supports a higher multiple. Growth is driven by:"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>Business model</strong> — REITs and REOCs successful in development often generate above-average FFO and AFFO growth over time.",
+       "<strong>Geography</strong> — concentration in primary, supply-constrained markets such as New York City or London gives landlords more pricing power and higher cash flow growth than secondary markets.",
+       "<strong>Other factors</strong> — management skill and lease structure."
+      ]
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "2. Risk of the underlying real estate"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "Cash flow volatility related to asset type, quality, and age; market conditions; lease types; and submarket location."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Owning apartments is viewed as carrying less cash flow variability than owning hotels, so apartment-focused REITs trade at relatively high multiples compared with hotel REITs.",
+       "Companies with young, well-maintained portfolios generally trade at higher multiples than those with older or out-of-date properties carrying deferred maintenance, which will require higher capital expenditure to sustain rent growth."
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "3. Capital structure and access to capital"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "As financial leverage increases, FFO and AFFO multiples <strong>decrease</strong>, because required return rises with risk.",
+       "Higher leverage constrains incremental borrowing capacity.",
+       "It may create a <strong>stock overhang</strong>, where investors avoid the shares in anticipation of future equity offerings."
+      ]
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "prose",
+     "payload": {
+      "text": "Beyond these, valuation is affected by investor perceptions of management, whether asset types or markets are in or out of favour, complexity, quality of financial disclosure, transparency, and governance."
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Advantages and disadvantages of the multiples"
+     }
+    },
+    {
+     "ord": 15,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Advantages",
+       "Disadvantages"
+      ],
+      "rows": [
+       [
+        "Earnings multiples are widely accepted across global markets and industries",
+        "May not capture intrinsic value of non-income-producing assets: land held for development, vacant buildings, properties under development"
+       ],
+       [
+        "Portfolio managers can place REIT valuation in context with other investment alternatives",
+        "Nor of underused assets, where current use is not highest and best use, or assets with below-market rents"
+       ],
+       [
+        "FFO estimates are readily available from market data providers, easing calculation",
+        "P/FFO does not adjust for recurring capital expenditure; P/AFFO should, but wide variation exists in AFFO estimates and assumptions"
+       ],
+       [
+        "Can be used alongside expected growth and leverage to deepen relative analysis, since leverage ratios can adjust for the leverage differences FFO and AFFO ignore",
+        "Increased one-time items, accounting charges, and revenue recognition rules make both multiples harder to compute and complicate comparison between companies"
+       ]
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 6,
+   "title": "Valuation: Discounted Cash Flow",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "REITs and some REOCs return a significant portion of income to investors as required by law and consequently pay high dividends. Dividend discount and discounted cash flow models are therefore applicable, applied in the same manner as for shares in other industries."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "Investors usually apply two- or three-step dividend discount models with near-term, intermediate-term, and long-term growth rates. The multi-stage structure suits REITs because near-term dividend growth is often forecastable with unusual precision: lease expiry schedules, contractual escalations, and known development completions give visibility most industries lack."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Value = Σ D<sub>t</sub>/(1+r)<sup>t</sup> &nbsp;+&nbsp; [D<sub>n</sub>(1+g)/(r − g)] / (1+r)<sup>n</sup>"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "Two-stage dividend discount",
+      "blocks": [
+       {
+        "text": "A REIT pays $2.80 per share annually. Dividends are expected to grow 6% for three years as below-market leases roll to market rents, then 2.5% in perpetuity. Required return 8.5%.",
+        "kind": "prose"
+       },
+       {
+        "text": "Stage 1 · Explicit forecast",
+        "kind": "step"
+       },
+       {
+        "headers": [
+         "Year",
+         "Dividend",
+         "PV factor at 8.5%",
+         "Present value"
+        ],
+        "rows": [
+         [
+          "1",
+          "$2.968",
+          "0.9217",
+          "$2.735"
+         ],
+         [
+          "2",
+          "$3.146",
+          "0.8495",
+          "$2.673"
+         ],
+         [
+          "3",
+          "$3.335",
+          "0.7829",
+          "$2.611"
+         ],
+         [
+          "Sum",
+          "",
+          "",
+          "$8.019"
+         ]
+        ],
+        "aligns": [
+         "c",
+         "num",
+         "num",
+         "num"
+        ],
+        "total_rows": [
+         3
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Stage 2 · Terminal value at end of year three",
+        "kind": "step"
+       },
+       {
+        "expr": "3.335 × 1.025 / (0.085 − 0.025) = $56.97",
+        "kind": "formula"
+       },
+       {
+        "text": "Discount and sum",
+        "kind": "step"
+       },
+       {
+        "expr": "8.019 + 56.97 × 0.7829 = 8.019 + 44.60",
+        "kind": "formula"
+       }
+      ],
+      "answer": "Value = $52.62 per share"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Reconciling the approaches"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Approach",
+       "Anchored in",
+       "Strongest when"
+      ],
+      "rows": [
+       [
+        "NAVPS",
+        "Private property market values",
+        "An active transaction market provides reliable comparables"
+       ],
+       [
+        "P/FFO and P/AFFO",
+        "Peer trading multiples",
+        "Comparable listed peers exist with similar asset mix and leverage"
+       ],
+       [
+        "EV/EBITDA",
+        "Enterprise value, leverage neutral",
+        "Comparing companies with materially different capital structures"
+       ],
+       [
+        "DCF and DDM",
+        "Forecast cash flows to shareholders",
+        "Dividend forecasts are reliable, which is common for REITs"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "A well-built question supplies data for two approaches and asks you to explain a divergence. The answer chain: NAVPS reflects private market asset values, while the multiple or DCF reflects public market expectations about growth, management quality, and capital access. Neither is definitionally correct, and the gap is itself the analytical content."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 7,
+   "title": "Consolidation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Formulas"
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Concept",
+       "Formula"
+      ],
+      "rows": [
+       [
+        "Funds from operations",
+        "Net income + Depreciation + Amortization − Net gains on sale"
+       ],
+       [
+        "Adjusted funds from operations",
+        "FFO − Non-cash rent − Recurring capex and leasing costs"
+       ],
+       [
+        "FFO from AFFO",
+        "AFFO + Non-cash rent + Recurring capex and leasing commissions"
+       ],
+       [
+        "Net asset value per share",
+        "(Market value of assets − liabilities) / Shares outstanding"
+       ],
+       [
+        "NOI for NAV purposes",
+        "Gross rental revenue − Vacancy and collection loss − Operating expenses"
+       ],
+       [
+        "Value of operating real estate",
+        "Forward cash NOI / Cap rate"
+       ],
+       [
+        "Cap rate approximation",
+        "EBITDA / Enterprise value"
+       ],
+       [
+        "Two-stage DDM",
+        "Σ D<sub>t</sub>/(1+r)<sup>t</sup> + [D<sub>n</sub>(1+g)/(r−g)]/(1+r)<sup>n</sup>"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Directional relationships"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "If…",
+       "Then…"
+      ],
+      "rows": [
+       [
+        "Leases contain escalating rents",
+        "Straight-line rent creates non-cash revenue early in the lease"
+       ],
+       [
+        "Portfolio is older with deferred maintenance",
+        "Higher recurring capex, so AFFO falls further below FFO"
+       ],
+       [
+        "Financial leverage rises",
+        "FFO and AFFO multiples fall"
+       ],
+       [
+        "Shares trade below NAVPS",
+        "More expensive cost of equity, constrained growth, dilutive issuance"
+       ],
+       [
+        "Asset type has volatile cash flow",
+        "Lower multiple than stable asset types"
+       ],
+       [
+        "In-place rents sit below market rents",
+        "Embedded growth realised as leases roll"
+       ],
+       [
+        "Comparing REIT to REOC",
+        "Higher yield and tax exemption, less flexibility, lower internal growth"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Ten points for a final pass"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "REITs trade operating flexibility and retained cash for entity-level tax exemption; REOCs reverse it.",
+       "Depreciation is added back in FFO because real estate does not depreciate economically the way the accounts assume.",
+       "Gains on property sales are removed from FFO because they are not sustainable operating income.",
+       "FFO is not a cash flow measure — it ignores the spending needed to sustain cash flow growth.",
+       "AFFO subtracts straight-line rent and recurring capex and leasing costs to approximate cash economics.",
+       "Depreciation belongs to the net income to FFO step, never to the AFFO to FFO step.",
+       "NAVPS marks assets and liabilities to market, excluding goodwill, deferred financing costs, and deferred taxes on both sides.",
+       "Capitalise <em>forward</em> cash NOI, adjusting for mid-year acquisitions, not trailing NOI.",
+       "A discount to NAVPS raises the cost of equity capital and constrains growth for a vehicle that cannot retain cash.",
+       "Multiple differences are explained by expected growth, underlying real estate risk, and capital structure."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Notes prepared from the CFA Program 2026 Level II curriculum, Volume 8, Learning Module 3. FFO, AFFO, and NAVPS calculations follow the curriculum's own exhibits and end-of-reading items; figures are as published."
+     }
+    }
+   ]
+  }
+ ]
+}
