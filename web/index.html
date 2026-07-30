@@ -6,7 +6,7 @@
   <title>ATLAS Codex</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet" />
 
   <script type="importmap">
   {
@@ -1133,105 +1133,147 @@
     }
 
     /* ── typed content blocks ───────────────────────────────────────── */
-    .unit-blocks { display: flex; flex-direction: column; gap: 4px; }
+    /* Styled to the reading-mode design: serif measure for prose, centred
+       formulas, amber-led worked examples, arrowed signal tables. */
+    .unit-blocks {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 17px; line-height: 1.62;
+      max-width: 64ch;
+    }
 
     .blk-lead {
-      font-size: 17px; line-height: 1.7; color: var(--text);
-      margin-bottom: 1.1em; font-weight: 500;
+      font-size: 18.5px; color: var(--text-2);
+      border-left: 2px solid var(--cyan);
+      padding-left: 18px; margin-bottom: 28px;
     }
-    .blk-prose { font-size: 16px; line-height: 1.75; margin-bottom: 1em; }
+    .blk-prose { margin: 0 0 16px; }
+    .blk-prose strong, .blk-lead strong,
+    .blk-callout-body strong, .blk-worked strong { color: #fff; font-weight: 600; }
 
     .blk-h2 {
       font-family: var(--font-display);
-      font-size: 19px; font-weight: 700; color: var(--cyan);
-      margin: 1.7em 0 .6em;
+      font-weight: 600; font-size: 19px; color: var(--cyan);
+      margin: 38px 0 12px; letter-spacing: -.01em;
     }
     .blk-h3 {
-      font-family: var(--font-display);
-      font-size: 15px; font-weight: 600; color: var(--text-2);
-      text-transform: uppercase; letter-spacing: .06em;
-      margin: 1.4em 0 .5em;
+      font-family: var(--font-body);
+      font-weight: 700; font-size: 13px; letter-spacing: .03em;
+      color: var(--text-2); text-transform: none;
+      margin: 26px 0 8px;
     }
 
-    .blk-list { margin-bottom: 1.1em; }
+    .blk-list { margin: 0 0 18px; padding-left: 22px; display: block; }
+    .blk-list li { margin-bottom: 9px; line-height: 1.55; }
+    ul.blk-list { list-style: disc; }
+    ul.blk-list li::marker { color: var(--amber); }
+    ul.blk-list li::before { content: none; }
+    ol.blk-list li::marker { color: var(--cyan); font-family: var(--font-mono); font-size: 14px; }
 
+    /* formulas are centred and mono — they read as objects, not sentences */
     .blk-formula {
-      background: var(--navy);
-      border: 1px solid rgba(58,214,224,.25);
-      border-left: 3px solid var(--cyan);
-      border-radius: var(--radius);
-      padding: 12px 16px; margin: 0 0 1.2em;
+      font-family: var(--font-mono); font-size: 14.5px;
+      color: var(--cyan); background: var(--card);
+      border: 1px solid var(--border); border-left: 2px solid var(--cyan);
+      border-radius: 3px; padding: 16px 20px; margin: 22px 0;
+      text-align: center; line-height: 1.5;
     }
     .blk-formula-label {
-      font-size: 11px; font-weight: 700; letter-spacing: .07em;
-      text-transform: uppercase; color: var(--cyan); margin-bottom: 6px;
+      display: block; font-family: var(--font-body);
+      font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 9px;
     }
-    .blk-formula-expr {
-      font-family: var(--font-mono); font-size: 14px; line-height: 1.7;
-      color: var(--formula-text); white-space: pre-wrap;
-    }
+    .blk-formula-expr { white-space: pre-wrap; }
 
-    /* callouts: key / trap / exam are the blocks worth a human pass, so they
-       read distinctly rather than as three shades of the same box */
     .blk-callout {
-      display: flex; gap: 12px; align-items: flex-start;
-      padding: 13px 16px; margin: 0 0 1.2em;
-      border-radius: var(--radius); border-left: 3px solid var(--border);
-      background: var(--card); font-size: 15px; line-height: 1.7;
+      display: block; border-radius: 3px; padding: 18px 22px; margin: 24px 0;
+      font-size: 16px; line-height: 1.55;
+      background: var(--card); border: 1px solid var(--border);
+      border-left: 2px solid;
     }
     .blk-callout-tag {
-      flex-shrink: 0; font-family: var(--font-mono);
-      font-size: 10px; font-weight: 700; letter-spacing: .08em;
-      padding: 2px 7px; border-radius: 3px; margin-top: 3px;
+      display: block; font-family: var(--font-body);
+      font-size: 9.5px; font-weight: 700; letter-spacing: .18em;
+      text-transform: uppercase; margin-bottom: 9px; padding: 0; background: none;
     }
-    .blk-callout-body { flex: 1; }
-    .blk-callout-body > div + div { margin-top: .7em; }
+    .blk-callout-body > div { margin: 0 0 12px; }
+    .blk-callout-body > div:last-child { margin-bottom: 0; }
 
-    .blk-key  { border-left-color: var(--amber); background: var(--amber-bg); }
-    .blk-key  .blk-callout-tag { background: rgba(245,166,35,.18); color: var(--amber); }
-    .blk-trap { border-left-color: var(--red); background: rgba(224,85,85,.09); }
-    .blk-trap .blk-callout-tag { background: rgba(224,85,85,.2); color: var(--red); }
-    .blk-exam { border-left-color: var(--cyan); background: var(--navy); }
-    .blk-exam .blk-callout-tag { background: rgba(58,214,224,.16); color: var(--cyan); }
+    .blk-key  { border-left-color: var(--cyan); background: var(--card); }
+    .blk-key  .blk-callout-tag { color: var(--cyan); }
+    .blk-trap { border-left-color: #e0623a; background: var(--card); }
+    .blk-trap .blk-callout-tag { color: #e0623a; }
+    .blk-exam { border-left-color: var(--green); background: var(--card); }
+    .blk-exam .blk-callout-tag { color: var(--green); }
 
-    /* worked examples keep their nested structure: table -> step -> formula */
     .blk-worked {
-      border: 1px solid var(--border); border-left: 3px solid var(--green);
-      border-radius: var(--radius-lg);
-      padding: 16px 18px; margin: 0 0 1.4em;
-      background: var(--card);
+      background: var(--card); border: 1px solid var(--border);
+      border-top: 2px solid var(--amber); border-left: 1px solid var(--border);
+      border-radius: 3px; padding: 22px 24px; margin: 26px 0;
     }
     .blk-worked-title {
-      font-family: var(--font-display);
-      font-size: 15px; font-weight: 700; color: var(--green);
-      margin-bottom: 10px;
+      font-family: var(--font-display); font-weight: 600; font-size: 17px;
+      color: var(--text); display: block; margin-bottom: 14px;
     }
-    .blk-worked-intro { font-size: 15px; line-height: 1.7; margin-bottom: 12px; }
+    .blk-worked-title::before {
+      content: "Worked example"; display: block;
+      font-family: var(--font-body); font-size: 9.5px; font-weight: 700;
+      letter-spacing: .18em; text-transform: uppercase;
+      color: var(--amber); margin-bottom: 5px;
+    }
+    .blk-worked-intro, .blk-worked .blk-prose { font-size: 15.5px; }
     .blk-step {
-      font-family: var(--font-mono);
-      font-size: 12px; font-weight: 600; letter-spacing: .04em;
-      color: var(--text-2); margin: 14px 0 6px;
+      font-family: var(--font-body); font-size: 11px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--text-3);
+      margin: 18px 0 8px; display: flex; align-items: center; gap: 9px;
     }
-    .blk-worked .blk-formula { margin-bottom: .9em; }
+    .blk-step::before {
+      content: ""; width: 5px; height: 5px; background: var(--amber);
+      border-radius: 50%; flex: none;
+    }
+    .blk-worked .blk-formula { margin: 10px 0; font-size: 13.5px; padding: 12px 16px; }
+    /* the answer is the payoff — it reads as a result, not another paragraph */
     .blk-answer {
-      margin-top: 14px; padding-top: 12px;
-      border-top: 1px solid var(--border);
-      font-size: 15px; font-weight: 600; color: var(--green);
+      font-family: var(--font-mono); font-size: 14.5px;
+      color: var(--bg); background: var(--cyan); font-weight: 600;
+      padding: 13px 18px; border-radius: 3px; margin-top: 18px;
+      text-align: center; border: none;
     }
-    .blk-answer-label {
-      font-family: var(--font-mono); font-size: 10px;
-      letter-spacing: .08em; text-transform: uppercase; color: var(--text-3);
-    }
+    .blk-answer-label { display: none; }
 
-    /* numeric columns align right; total rows are ruled off */
+    .unit-blocks .md-table-wrap { border: none; background: none; border-radius: 0; }
+    .unit-blocks .md-table {
+      width: 100%; border-collapse: collapse; margin: 20px 0;
+      font-family: var(--font-body); font-size: 13.5px;
+    }
+    .unit-blocks .md-table th {
+      text-align: left; font-size: 10px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--text-3);
+      background: none; padding: 0 14px 9px;
+      border-bottom: 1px solid var(--border); position: static;
+    }
+    .unit-blocks .md-table td {
+      padding: 11px 14px; border-bottom: 1px solid var(--border);
+      vertical-align: top; color: var(--text-2); line-height: 1.45;
+    }
+    .unit-blocks .md-table tbody tr:nth-child(even) { background: none; }
+    .unit-blocks .md-table tbody tr:last-child td { border-bottom: none; }
+    .unit-blocks .md-table.cmp td:first-child { color: var(--text); font-weight: 500; }
+    .unit-blocks .md-table tr.total-row td {
+      color: var(--cyan); font-weight: 700; border-top: 1px solid var(--border);
+    }
     .md-table td.num, .md-table th.num {
-      text-align: right; font-family: var(--font-mono); font-size: 13px;
+      font-family: var(--font-mono); text-align: right; font-size: 13px;
       white-space: nowrap;
     }
-    .md-table tr.total-row td {
-      border-top: 1px solid var(--border);
-      font-weight: 600; color: var(--text);
+    /* signal tables read condition -> consequence */
+    .unit-blocks .md-table.tbl-signal td:first-child {
+      color: var(--text-3); font-style: italic; width: 46%;
     }
+    .unit-blocks .md-table.tbl-signal td:first-child::after {
+      content: "\2192"; color: var(--amber); float: right;
+      font-style: normal; padding-left: 10px;
+    }
+    .unit-blocks .md-table.tbl-signal td:last-child { color: var(--text); font-weight: 500; }
 
     /* ── reading card meta ──────────────────────────────────────────── */
     .reading-meta-item { white-space: nowrap; }
