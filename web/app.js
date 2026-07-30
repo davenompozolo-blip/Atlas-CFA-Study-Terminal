@@ -449,8 +449,42 @@ function safeInline(html) {
     (_m, slash, tag) => `<${slash}${tag.toLowerCase()}>`);
 }
 
-function rawHtml(cls, html) {
-  return h("div", { class: cls, dangerouslySetInnerHTML: { __html: safeInline(html) } });
+// ── heading labels and lead-ins ──────────────────────────────────────────────
+// The notes lean on short label phrases — "Tax treatment", "Asset focus",
+// "Key characteristic driving return:" — to open a section, a definition or an
+// example. PDF extraction stripped the styling that set them apart, so they
+// arrive as ordinary sentences and the page reads as one undifferentiated
+// block. These two shapes are recoverable without guessing at meaning:
+//
+//   a "Term: definition" opener, where the punctuation survived; and
+//   a short, unterminated line standing on its own, where it did not.
+//
+// Both are marked, never reworded. Nothing is inserted that was not already in
+// the text — only the emphasis the source lost.
+const LEADIN_RE = /^([^:<>]{2,60}):[ \t]+(?=\S)/;
+const LABEL_RE = /^[A-Z][A-Za-z0-9()&/'’,.\- ]{1,46}$/;
+
+function isLabelText(s) {
+  const t = String(s || "").trim();
+  // a trailing full stop means it is a sentence, however short
+  if (!LABEL_RE.test(t) || /[.,;:!?&/-]$/.test(t)) return false;
+  return t.split(/\s+/).length <= 6 && /[a-z]/.test(t);
+}
+
+// Operates on already-sanitised HTML, and only ever inserts our own markup —
+// the matched label is a run of plain text, so no tag can be split.
+function markLeadIn(html) {
+  const m = String(html || "").match(LEADIN_RE);
+  if (!m || m[1].split(/\s+/).length > 8 || /[.!?]/.test(m[1])) return html;
+  return `<span class="lead-in">${m[1]}</span> ${html.slice(m[0].length)}`;
+}
+
+function rawHtml(cls, html, leadIn) {
+  const safe = safeInline(html);
+  return h("div", {
+    class: cls,
+    dangerouslySetInnerHTML: { __html: leadIn ? markLeadIn(safe) : safe },
+  });
 }
 
 function BlockTable({ payload, cls }) {
@@ -477,13 +511,18 @@ function BlockTable({ payload, cls }) {
 function WorkedBlock({ payload }) {
   return h("div", { class: "blk-worked" },
     payload.title && h("div", { class: "blk-worked-title" }, payload.title),
-    payload.intro && rawHtml("blk-worked-intro", payload.intro),
+    // The excerpt is the vignette as it appears in the reading. It is quoted,
+    // not paraphrased, so it is set apart from the intro and from the working.
+    payload.excerpt && h("blockquote", { class: "blk-excerpt" },
+      rawHtml("", payload.excerpt),
+      payload.source_ref && h("cite", { class: "blk-excerpt-src" }, payload.source_ref)),
+    payload.intro && rawHtml("blk-worked-intro", payload.intro, true),
     (payload.blocks || []).map((b, i) => {
       if (b.kind === "table")   return h(BlockTable, { key: i, payload: b, cls: b.variant || "" });
-      if (b.kind === "step")    return rawHtml("blk-step", b.text);
+      if (b.kind === "step")    return rawHtml("blk-step", b.text, true);
       if (b.kind === "formula") return h("div", { key: i, class: "blk-formula" },
                                         h("div", { class: "blk-formula-expr" }, b.expr));
-      return rawHtml("blk-prose", b.text);
+      return rawHtml("blk-prose", b.text, true);
     }),
     payload.answer && h("div", { class: "blk-answer" },
       h("span", { class: "blk-answer-label" }, "Answer "), payload.answer),
@@ -495,16 +534,16 @@ const CALLOUT_BLOCK = { key: ["blk-key", "KEY"], trap: ["blk-trap", "EXAM TRAP"]
 function ContentBlock({ block }) {
   const p = block.payload || {};
   switch (block.block_type) {
-    case "lead":         return rawHtml("blk-lead", p.text);
-    case "prose":        return rawHtml("blk-prose", p.text);
+    case "lead":         return rawHtml("blk-lead", p.text, true);
+    case "prose":        return rawHtml("blk-prose", p.text, true);
     case "heading_2":    return h("h3", { class: "blk-h2" }, p.text);
     case "heading_3":    return h("h4", { class: "blk-h3" }, p.text);
     case "list_bullet":  return h("ul", { class: "md-list blk-list" },
                             (p.items || []).map((it, i) =>
-                              h("li", { key: i, dangerouslySetInnerHTML: { __html: safeInline(it) } })));
+                              h("li", { key: i, dangerouslySetInnerHTML: { __html: markLeadIn(safeInline(it)) } })));
     case "list_ordered": return h("ol", { class: "md-list blk-list" },
                             (p.items || []).map((it, i) =>
-                              h("li", { key: i, dangerouslySetInnerHTML: { __html: safeInline(it) } })));
+                              h("li", { key: i, dangerouslySetInnerHTML: { __html: markLeadIn(safeInline(it)) } })));
     case "formula":      return h("div", { class: "blk-formula" },
                             p.label && h("div", { class: "blk-formula-label" }, p.label),
                             h("div", { class: "blk-formula-expr" }, p.expr));
@@ -514,7 +553,7 @@ function ContentBlock({ block }) {
       return h("div", { class: `blk-callout ${cls}` },
         h("span", { class: "blk-callout-tag" }, label),
         h("div", { class: "blk-callout-body" },
-          (p.paras || []).map((t, i) => rawHtml("", t))));
+          (p.paras || []).map((t, i) => rawHtml("", t, true))));
     }
     default:             return h(BlockTable, { payload: p, cls: block.block_type.replace("table_", "tbl-") });
   }
@@ -1013,6 +1052,25 @@ function liHtml(text) {
   return mdInline(text);
 }
 
+// A flattened paragraph is a run of segments, and some of those segments are
+// really the labels that opened a section, a definition or an example before
+// the PDF export lost their styling. Marking them gives the block the shape it
+// had on the page; a label also suppresses the <br> around it, so it reads as a
+// heading rather than as one more line in the run.
+function paraHtml(segs) {
+  let html = "";
+  let prevLabel = false;
+  segs.forEach((s, i) => {
+    const label = isLabelText(s);
+    if (i && !label && !prevLabel) html += "<br>";
+    html += label
+      ? `<span class="md-label">${mdInline(s)}</span>`
+      : markLeadIn(mdInline(s));
+    prevLabel = label;
+  });
+  return `<p>${html}</p>`;
+}
+
 // The PDF extractor flattens tables to one cell per line. Where rows are
 // numbered, the structure is recoverable: after wrap-joining, a bare integer
 // marks the start of a row and the cells before the first "1" are the header.
@@ -1179,11 +1237,11 @@ function mdToHtml(md) {
       if (best) {
         // whatever preceded the table is real prose and must still be shown
         if (best.start > 0) {
-          out.push(`<p>${segs.slice(0, best.start).map(mdInline).join("<br>")}</p>`);
+          out.push(paraHtml(segs.slice(0, best.start)));
         }
         out.push(best.html);
       } else {
-        out.push(`<p>${segs.map(mdInline).join("<br>")}</p>`);
+        out.push(paraHtml(segs));
       }
     }
   }
