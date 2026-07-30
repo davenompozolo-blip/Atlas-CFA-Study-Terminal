@@ -247,11 +247,6 @@ function ReadingPane({ docId, theme, onToggleTheme }) {
         const prog = {};
         for (const p of (progRes.data || [])) prog[p.unit_id] = p;
         setProgress(prog);
-
-        // If no units yet, show legacy chunk view after a short message
-        if (unitRows.length === 0) {
-          // Fall back gracefully — handled in render
-        }
       } catch (e) { setErr(e.message); }
     })();
   }, [docId]);
