@@ -1132,6 +1132,107 @@
       padding: 1px 5px; border-radius: 3px;
     }
 
+    /* ── typed content blocks ───────────────────────────────────────── */
+    .unit-blocks { display: flex; flex-direction: column; gap: 4px; }
+
+    .blk-lead {
+      font-size: 17px; line-height: 1.7; color: var(--text);
+      margin-bottom: 1.1em; font-weight: 500;
+    }
+    .blk-prose { font-size: 16px; line-height: 1.75; margin-bottom: 1em; }
+
+    .blk-h2 {
+      font-family: var(--font-display);
+      font-size: 19px; font-weight: 700; color: var(--cyan);
+      margin: 1.7em 0 .6em;
+    }
+    .blk-h3 {
+      font-family: var(--font-display);
+      font-size: 15px; font-weight: 600; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: .06em;
+      margin: 1.4em 0 .5em;
+    }
+
+    .blk-list { margin-bottom: 1.1em; }
+
+    .blk-formula {
+      background: var(--navy);
+      border: 1px solid rgba(58,214,224,.25);
+      border-left: 3px solid var(--cyan);
+      border-radius: var(--radius);
+      padding: 12px 16px; margin: 0 0 1.2em;
+    }
+    .blk-formula-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .07em;
+      text-transform: uppercase; color: var(--cyan); margin-bottom: 6px;
+    }
+    .blk-formula-expr {
+      font-family: var(--font-mono); font-size: 14px; line-height: 1.7;
+      color: var(--formula-text); white-space: pre-wrap;
+    }
+
+    /* callouts: key / trap / exam are the blocks worth a human pass, so they
+       read distinctly rather than as three shades of the same box */
+    .blk-callout {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 13px 16px; margin: 0 0 1.2em;
+      border-radius: var(--radius); border-left: 3px solid var(--border);
+      background: var(--card); font-size: 15px; line-height: 1.7;
+    }
+    .blk-callout-tag {
+      flex-shrink: 0; font-family: var(--font-mono);
+      font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      padding: 2px 7px; border-radius: 3px; margin-top: 3px;
+    }
+    .blk-callout-body { flex: 1; }
+    .blk-callout-body > div + div { margin-top: .7em; }
+
+    .blk-key  { border-left-color: var(--amber); background: var(--amber-bg); }
+    .blk-key  .blk-callout-tag { background: rgba(245,166,35,.18); color: var(--amber); }
+    .blk-trap { border-left-color: var(--red); background: rgba(224,85,85,.09); }
+    .blk-trap .blk-callout-tag { background: rgba(224,85,85,.2); color: var(--red); }
+    .blk-exam { border-left-color: var(--cyan); background: var(--navy); }
+    .blk-exam .blk-callout-tag { background: rgba(58,214,224,.16); color: var(--cyan); }
+
+    /* worked examples keep their nested structure: table -> step -> formula */
+    .blk-worked {
+      border: 1px solid var(--border); border-left: 3px solid var(--green);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px; margin: 0 0 1.4em;
+      background: var(--card);
+    }
+    .blk-worked-title {
+      font-family: var(--font-display);
+      font-size: 15px; font-weight: 700; color: var(--green);
+      margin-bottom: 10px;
+    }
+    .blk-worked-intro { font-size: 15px; line-height: 1.7; margin-bottom: 12px; }
+    .blk-step {
+      font-family: var(--font-mono);
+      font-size: 12px; font-weight: 600; letter-spacing: .04em;
+      color: var(--text-2); margin: 14px 0 6px;
+    }
+    .blk-worked .blk-formula { margin-bottom: .9em; }
+    .blk-answer {
+      margin-top: 14px; padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 15px; font-weight: 600; color: var(--green);
+    }
+    .blk-answer-label {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: .08em; text-transform: uppercase; color: var(--text-3);
+    }
+
+    /* numeric columns align right; total rows are ruled off */
+    .md-table td.num, .md-table th.num {
+      text-align: right; font-family: var(--font-mono); font-size: 13px;
+      white-space: nowrap;
+    }
+    .md-table tr.total-row td {
+      border-top: 1px solid var(--border);
+      font-weight: 600; color: var(--text);
+    }
+
     /* ── reading card meta ──────────────────────────────────────────── */
     .reading-meta-item { white-space: nowrap; }
     .reading-meta-item + .reading-meta-item::before {

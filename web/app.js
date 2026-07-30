@@ -207,6 +207,7 @@ function TopicRow({ topic, isOpen, onToggle, docs }) {
 function ReadingPane({ docId, theme, onToggleTheme }) {
   const [doc, setDoc] = useState(null);
   const [units, setUnits] = useState(null);
+  const [blocks, setBlocks] = useState({});
   const [progress, setProgress] = useState({});  // unit_id → progress row
   const [unitIdx, setUnitIdx] = useState(() => getResume(docId));
   const [err, setErr] = useState(null);
@@ -219,10 +220,11 @@ function ReadingPane({ docId, theme, onToggleTheme }) {
     (async () => {
       try {
         const sb = await getClient();
-        const [docRes, unitsRes, progRes] = await Promise.all([
+        const [docRes, unitsRes, progRes, blockRes] = await Promise.all([
           sb.from("codex_documents").select("*, codex_topics(name,band)").eq("id", docId).single(),
           sb.from("codex_units").select("*").eq("reading_id", docId).order("ord"),
           sb.from("codex_unit_progress").select("*").eq("tenant_id", TENANT),
+          sb.from("codex_blocks").select("unit_id, ord, block_type, payload").order("ord"),
         ]);
         if (docRes.error) throw docRes.error;
         setDoc(docRes.data);
@@ -233,6 +235,10 @@ function ReadingPane({ docId, theme, onToggleTheme }) {
         const prog = {};
         for (const p of (progRes.data || [])) prog[p.unit_id] = p;
         setProgress(prog);
+
+        const byUnit = {};
+        for (const b of (blockRes.data || [])) (byUnit[b.unit_id] ||= []).push(b);
+        setBlocks(byUnit);
 
         // If no units yet, show legacy chunk view after a short message
         if (unitRows.length === 0) {
@@ -331,7 +337,7 @@ function ReadingPane({ docId, theme, onToggleTheme }) {
           ),
         )
       : unit
-        ? h(UnitShell, { unit, progress: progress[unit.id], docId,
+        ? h(UnitShell, { unit, progress: progress[unit.id], docId, blocks: blocks[unit.id],
             onMarkDone: async (unitId, conf) => {
               try {
                 const sb = await getClient();
@@ -378,7 +384,7 @@ function ReadingPane({ docId, theme, onToggleTheme }) {
 
 // ── Unit shell (stub renderer — full renderers in PR9) ────────────────────────
 
-function UnitShell({ unit, progress, docId, onMarkDone }) {
+function UnitShell({ unit, progress, docId, onMarkDone, blocks }) {
   const [conf, setConf] = useState(progress?.confidence || null);
   const isDone = progress?.status === "done";
 
@@ -395,7 +401,7 @@ function UnitShell({ unit, progress, docId, onMarkDone }) {
     ),
     unit.title && h("h2", { class: "unit-title" }, unit.title),
 
-    h(UnitRenderer, { unit }),
+    h(UnitRenderer, { unit, blocks }),
 
     // Confidence control (not on practice/recap — those have their own gates)
     unit.kind !== "practice" && unit.kind !== "recap" && unit.kind !== "los" &&
@@ -421,7 +427,105 @@ function UnitShell({ unit, progress, docId, onMarkDone }) {
 
 // ── Unit renderer (basic — full polish in PR9) ────────────────────────────────
 
-function UnitRenderer({ unit }) {
+// ── typed content blocks ─────────────────────────────────────────────────────
+// codex_blocks replaces the prose_md blob for concept units. Rendering switches
+// on block_type so each kind can be styled differently — the whole point of the
+// typing.
+//
+// SECURITY: payload text carries authored inline markup (<strong>, <em>), so it
+// cannot simply be escaped or the tags would show literally. The upstream
+// renderer passes it through raw, which is safe only while the corpus is
+// hand-authored. Rather than inherit that, this escapes everything and then
+// restores a fixed allowlist of inline tags. Attributes cannot survive the
+// round trip, so <img src=x onerror=...> and friends stay inert even if
+// user-generated content ever reaches this path.
+const INLINE_ALLOWED = "strong|em|b|i|code|sub|sup|br|u";
+
+function safeInline(html) {
+  const escaped = String(html ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return escaped.replace(
+    new RegExp(`&lt;(/?)(${INLINE_ALLOWED})\\s*/?&gt;`, "gi"),
+    (_m, slash, tag) => `<${slash}${tag.toLowerCase()}>`);
+}
+
+function rawHtml(cls, html) {
+  return h("div", { class: cls, dangerouslySetInnerHTML: { __html: safeInline(html) } });
+}
+
+function BlockTable({ payload, cls }) {
+  const headers = payload.headers || [];
+  const aligns = payload.aligns || [];
+  const rows = payload.rows || [];
+  return h("div", { class: "md-table-wrap" },
+    h("table", { class: `md-table ${cls || ""}` },
+      headers.length > 0 && h("thead", null,
+        h("tr", null, headers.map((c, i) =>
+          h("th", { key: i, class: aligns[i] === "num" ? "num" : "" }, safeInline(c) && c)))),
+      h("tbody", null,
+        rows.map((r, ri) =>
+          h("tr", { key: ri, class: payload.total_rows?.includes(ri) ? "total-row" : "" },
+            (r || []).map((c, ci) =>
+              h("td", {
+                key: ci,
+                class: aligns[ci] === "num" ? "num" : "",
+                dangerouslySetInnerHTML: { __html: safeInline(c) },
+              }))))),
+    ));
+}
+
+function WorkedBlock({ payload }) {
+  return h("div", { class: "blk-worked" },
+    payload.title && h("div", { class: "blk-worked-title" }, payload.title),
+    payload.intro && rawHtml("blk-worked-intro", payload.intro),
+    (payload.blocks || []).map((b, i) => {
+      if (b.kind === "table")   return h(BlockTable, { key: i, payload: b, cls: b.variant || "" });
+      if (b.kind === "step")    return rawHtml("blk-step", b.text);
+      if (b.kind === "formula") return h("div", { key: i, class: "blk-formula" },
+                                        h("div", { class: "blk-formula-expr" }, b.expr));
+      return rawHtml("blk-prose", b.text);
+    }),
+    payload.answer && h("div", { class: "blk-answer" },
+      h("span", { class: "blk-answer-label" }, "Answer "), payload.answer),
+  );
+}
+
+const CALLOUT_BLOCK = { key: ["blk-key", "KEY"], trap: ["blk-trap", "EXAM TRAP"], exam: ["blk-exam", "EXAM"] };
+
+function ContentBlock({ block }) {
+  const p = block.payload || {};
+  switch (block.block_type) {
+    case "lead":         return rawHtml("blk-lead", p.text);
+    case "prose":        return rawHtml("blk-prose", p.text);
+    case "heading_2":    return h("h3", { class: "blk-h2" }, p.text);
+    case "heading_3":    return h("h4", { class: "blk-h3" }, p.text);
+    case "list_bullet":  return h("ul", { class: "md-list blk-list" },
+                            (p.items || []).map((it, i) =>
+                              h("li", { key: i, dangerouslySetInnerHTML: { __html: safeInline(it) } })));
+    case "list_ordered": return h("ol", { class: "md-list blk-list" },
+                            (p.items || []).map((it, i) =>
+                              h("li", { key: i, dangerouslySetInnerHTML: { __html: safeInline(it) } })));
+    case "formula":      return h("div", { class: "blk-formula" },
+                            p.label && h("div", { class: "blk-formula-label" }, p.label),
+                            h("div", { class: "blk-formula-expr" }, p.expr));
+    case "worked":       return h(WorkedBlock, { payload: p });
+    case "key": case "trap": case "exam": {
+      const [cls, label] = CALLOUT_BLOCK[block.block_type];
+      return h("div", { class: `blk-callout ${cls}` },
+        h("span", { class: "blk-callout-tag" }, label),
+        h("div", { class: "blk-callout-body" },
+          (p.paras || []).map((t, i) => rawHtml("", t))));
+    }
+    default:             return h(BlockTable, { payload: p, cls: block.block_type.replace("table_", "tbl-") });
+  }
+}
+
+function BlockList({ blocks }) {
+  return h("div", { class: "unit-blocks" },
+    blocks.map((b, i) => h(ContentBlock, { key: b.ord ?? i, block: b })));
+}
+
+function UnitRenderer({ unit, blocks }) {
   const p = unit.payload || {};
 
   if (unit.kind === "los") {
@@ -440,6 +544,9 @@ function UnitRenderer({ unit }) {
   }
 
   if (unit.kind === "concept") {
+    // typed blocks when the unit has been migrated; prose_md otherwise, so
+    // units can move across one at a time without breaking the reader
+    if (blocks && blocks.length) return h(BlockList, { blocks });
     return h("div", { class: "unit-concept" },
       p.prose_md && h("div", { class: "unit-prose", dangerouslySetInnerHTML: { __html: mdToHtml(p.prose_md) } }),
       p.formulas?.length > 0 && h("div", { class: "unit-formulas" },
