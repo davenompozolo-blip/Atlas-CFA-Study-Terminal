@@ -229,16 +229,24 @@ function ReadingPane({ docId, theme, onToggleTheme }) {
         if (docRes.error) throw docRes.error;
         setDoc(docRes.data);
 
-        const unitRows = unitsRes.data || [];
-        setUnits(unitRows);
+        const byUnit = {};
+        for (const b of (blockRes.data || [])) (byUnit[b.unit_id] ||= []).push(b);
+        setBlocks(byUnit);
+
+        // A third of the corpus is scaffolding rather than study material —
+        // ungenerated practice items, the PDF's own table of contents, empty
+        // example prompts. Walking into one mid-reading breaks the thread and
+        // makes the whole thing feel unfinished, so they are kept out of the
+        // sequence. Nothing is deleted: the rows stay, and a unit starts
+        // appearing the moment it has content.
+        const all = unitsRes.data || [];
+        const live = all.filter(u => isStudyable(u, byUnit[u.id]));
+        // never strand a reading — if the filter would empty it, show it whole
+        setUnits(live.length ? live : all);
 
         const prog = {};
         for (const p of (progRes.data || [])) prog[p.unit_id] = p;
         setProgress(prog);
-
-        const byUnit = {};
-        for (const b of (blockRes.data || [])) (byUnit[b.unit_id] ||= []).push(b);
-        setBlocks(byUnit);
 
         // If no units yet, show legacy chunk view after a short message
         if (unitRows.length === 0) {
@@ -449,6 +457,42 @@ function safeInline(html) {
     (_m, slash, tag) => `<${slash}${tag.toLowerCase()}>`);
 }
 
+// ── dead-unit suppression ────────────────────────────────────────────────────
+// A table-of-contents entry is unmistakable: a dot leader running to a page
+// number. The PDF extractor pulled whole contents pages in as body text, so
+// these lines are stripped before anything is measured or rendered.
+const TOC_LINE = /\.{4,}\s*\d*\s*$/;
+
+function stripToc(md) {
+  return String(md || "")
+    .split("\n")
+    .filter(l => !TOC_LINE.test(l.trim()) && !/^[.\s]+$/.test(l))
+    .join("\n");
+}
+
+const PLACEHOLDER = /^placeholder\b/i;
+
+// Whether a unit is worth stepping through. Deliberately conservative: it must
+// be positively empty or positively scaffolding to be dropped, so a terse but
+// real unit still shows.
+function isStudyable(unit, blocks) {
+  const p = unit.payload || {};
+  switch (unit.kind) {
+    case "practice":
+      return Boolean(p.question) && (p.choices || []).length > 0
+             && !(p.choices || []).some(c => PLACEHOLDER.test(c.text || ""));
+    case "example":
+      return (p.prompt || "").trim().length >= 12;
+    case "concept":
+      if (blocks && blocks.length) return true;
+      return stripToc(p.prose_md).replace(/\s+/g, " ").trim().length >= 120;
+    case "los":
+      return (p.outcomes || []).length > 0;
+    default:
+      return true;   // recap and anything new: never hidden by this rule
+  }
+}
+
 // ── heading labels and lead-ins ──────────────────────────────────────────────
 // The notes lean on short label phrases — "Tax treatment", "Asset focus",
 // "Key characteristic driving return:" — to open a section, a definition or an
@@ -495,7 +539,9 @@ function BlockTable({ payload, cls }) {
     h("table", { class: `md-table ${cls || ""}` },
       headers.length > 0 && h("thead", null,
         h("tr", null, headers.map((c, i) =>
-          h("th", { key: i, class: aligns[i] === "num" ? "num" : "" }, safeInline(c) && c)))),
+          // headers are plain text, passed as a child so Preact escapes them;
+          // safeInline is for the cells, which do carry authored markup
+          h("th", { key: i, class: aligns[i] === "num" ? "num" : "" }, c)))),
       h("tbody", null,
         rows.map((r, ri) =>
           h("tr", { key: ri, class: payload.total_rows?.includes(ri) ? "total-row" : "" },
@@ -520,6 +566,13 @@ function WorkedBlock({ payload }) {
     (payload.blocks || []).map((b, i) => {
       if (b.kind === "table")   return h(BlockTable, { key: i, payload: b, cls: b.variant || "" });
       if (b.kind === "step")    return rawHtml("blk-step", b.text, true);
+      // a nested list carries `items`, not `text` — falling through to the
+      // prose branch would render it as an empty box
+      if (b.kind === "list" || b.kind === "list_ordered")
+        return h(b.kind === "list_ordered" ? "ol" : "ul",
+          { key: i, class: "md-list blk-list" },
+          (b.items || []).map((it, j) =>
+            h("li", { key: j, dangerouslySetInnerHTML: { __html: markLeadIn(safeInline(it)) } })));
       if (b.kind === "formula") return h("div", { key: i, class: "blk-formula" },
                                         h("div", { class: "blk-formula-expr" }, b.expr));
       return rawHtml("blk-prose", b.text, true);
@@ -1119,7 +1172,7 @@ function reconstructTable(segs) {
 
 function mdToHtml(md) {
   if (!md) return "";
-  const lines = String(md).replace(/\r\n?/g, "\n").split("\n");
+  const lines = stripToc(String(md).replace(/\r\n?/g, "\n")).split("\n");
   const out = [];
   let i = 0;
 
