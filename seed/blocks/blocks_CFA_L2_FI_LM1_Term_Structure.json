@@ -1,0 +1,1276 @@
+{
+ "topic_id": "fi",
+ "module": "LM1",
+ "module_title": "The Term Structure and Interest Rate Dynamics",
+ "source_ref": "CFA 2026 L2 Fixed Income/LM1",
+ "reading_id": "5502f5a566dc41b4",
+ "units": [
+  {
+   "ordinal": 1,
+   "title": "Spot Rates, Forward Rates, and the Forward Rate Model",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "The term structure is the input to almost everything else in fixed income. This module builds it from first principles, and the single relationship worth internalising before anything else is that forward rates are the marginal rates hiding inside an average."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The three building blocks"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "The price today of a risk-free single unit payment in N periods is the <strong>discount factor</strong> with maturity N. The yield-to-maturity of that payment is the <strong>spot rate</strong>."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "formula",
+     "payload": {
+      "expr": "DF<sub>N</sub> = 1 / (1 + z<sub>N</sub>)<sup>N</sup>",
+      "label": "Discount factor and spot rate"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "Across a range of maturities these form the <strong>discount function</strong> and the <strong>spot curve</strong>. Each completely identifies the other, because both carry the same information about the time value of money."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "The spot curve gives the annualised return on an option-free, default-risk-free zero-coupon bond with a single payment at maturity. Spot rates are therefore also called zero-coupon yields or zero rates.",
+       "Because there is only one cash flow, <strong>no reinvestment rate assumption is needed</strong>. The stated yield equals the realised return if held to maturity.",
+       "That is why the spot curve is treated as the most basic term structure: the yield on a zero maturing in year T is the most accurate representation of the T-year interest rate."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "A <strong>forward rate</strong> is an interest rate set today for a loan starting in a future period. Notation: f<sub>A,B−A</sub> is the rate on a loan initiated A periods from today with tenor B − A. Forward rates and forward curves are derived mathematically from the current spot curve."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The forward pricing model"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "The no-arbitrage principle — tradable securities with identical cash flows must have the same price — gives the pricing relationship directly."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "formula",
+     "payload": {
+      "expr": "DF<sub>B</sub> = DF<sub>A</sub> × F<sub>A,B−A</sub>",
+      "label": "Forward pricing model"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "worked",
+     "payload": {
+      "title": "Why the forward price is forced",
+      "blocks": [
+       {
+        "text": "Compare two ways of owning one unit at time 2. Buy a two-year zero today at DF₂ = 0.93. Or buy a one-year zero at DF₁ = 0.95 and enter a one-year forward to buy a one-year zero at time 1.",
+        "kind": "prose"
+       },
+       {
+        "text": "The payoffs in two years are identical, so the initial costs must be equal.",
+        "kind": "prose"
+       },
+       {
+        "expr": "F<sub>1,1</sub> = 0.93 / 0.95 = 0.9789",
+        "kind": "formula"
+       },
+       {
+        "text": "At any other forward price a trader sells the overvalued leg, buys the undervalued one with the proceeds, and books a risk-free profit on zero net investment.",
+        "kind": "prose"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The forward rate model"
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "prose",
+     "payload": {
+      "text": "Restating the pricing model in rates rather than prices gives the relationship that most exam questions actually use."
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "formula",
+     "payload": {
+      "expr": "(1 + z<sub>B</sub>)<sup>B</sup> = (1 + z<sub>A</sub>)<sup>A</sup> × (1 + f<sub>A,B−A</sub>)<sup>B−A</sup>",
+      "label": "Forward rate model"
+     }
+    },
+    {
+     "ord": 15,
+     "block_type": "worked",
+     "payload": {
+      "title": "Deriving forward rates from a spot curve",
+      "blocks": [
+       {
+        "text": "Given z₁ = 9%, z₂ = 10%, z₃ = 11%.",
+        "kind": "prose"
+       },
+       {
+        "text": "One-year rate, one year forward",
+        "kind": "step"
+       },
+       {
+        "expr": "(1.10)² = (1.09)¹ × (1 + f<sub>1,1</sub>)  →  f<sub>1,1</sub> = (1.10)² / 1.09 − 1 = 11.01%",
+        "kind": "formula"
+       },
+       {
+        "text": "One-year rate, two years forward",
+        "kind": "step"
+       },
+       {
+        "expr": "(1.11)³ = (1.10)² × (1 + f<sub>2,1</sub>)  →  f<sub>2,1</sub> = (1.11)³ / (1.10)² − 1 = 13.03%",
+        "kind": "formula"
+       },
+       {
+        "text": "Two-year rate, one year forward",
+        "kind": "step"
+       },
+       {
+        "expr": "(1.11)³ = (1.09)¹ × (1 + f<sub>1,2</sub>)²  →  f<sub>1,2</sub> = √[(1.11)³ / 1.09] − 1 = 12.01%",
+        "kind": "formula"
+       }
+      ],
+      "answer": "Rising spot curve → rising forward rates (13.03% > 11.01%)"
+     }
+    },
+    {
+     "ord": 16,
+     "block_type": "prose",
+     "payload": {
+      "text": "Successive substitution shows that a spot rate is the geometric mean of the one-period rate and a chain of one-period forwards."
+     }
+    },
+    {
+     "ord": 17,
+     "block_type": "formula",
+     "payload": {
+      "expr": "z<sub>T</sub> = [(1 + z<sub>1</sub>)(1 + f<sub>1,1</sub>)(1 + f<sub>2,1</sub>)…(1 + f<sub>T−1,1</sub>)]<sup>1/T</sup> − 1"
+     }
+    },
+    {
+     "ord": 18,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "This is the relationship active managers work from. Whether forward rates are unbiased estimators of consensus expectations remains debated, but implied forwards are the best available and most accessible proxy for market expectations of future spot rates."
+      ]
+     }
+    },
+    {
+     "ord": 19,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Curve shape: the average-and-marginal argument"
+     }
+    },
+    {
+     "ord": 20,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "When the spot curve slopes <strong>upward</strong>, the forward curve lies <strong>above</strong> it. When the spot curve slopes <strong>downward</strong>, the forward curve lies <strong>below</strong> it.<br><br>This is arithmetic, not economics. A spot rate is an average over a whole period; forward rates are the marginal rates between future periods. When an average is rising, the marginal data point must sit above it."
+      ]
+     }
+    },
+    {
+     "ord": 21,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Forward rates do not extend beyond the longest maturity on today's curve. If the curve reaches 30 years, a three-year forward curve extends only 27 years. Four years out, the longest available forward is f<sub>4,26</sub>."
+      ]
+     }
+    },
+    {
+     "ord": 22,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Bootstrapping the spot curve from par rates"
+     }
+    },
+    {
+     "ord": 23,
+     "block_type": "prose",
+     "payload": {
+      "text": "The <strong>par curve</strong> gives yields-to-maturity on coupon-paying government bonds priced at par. In practice recently issued (on-the-run) bonds are used, being most liquid and priced at or near par. Treating a coupon bond as a portfolio of zeros lets you solve for spot rates one at a time, shortest first — a forward substitution process called <strong>bootstrapping</strong>."
+     }
+    },
+    {
+     "ord": 24,
+     "block_type": "worked",
+     "payload": {
+      "title": "Bootstrapping, annual-coupon sovereign debt",
+      "blocks": [
+       {
+        "text": "Observed par rates: one-year 5%, two-year 5.97%, three-year 6.91%, four-year 7.81%.",
+        "kind": "prose"
+       },
+       {
+        "text": "One year",
+        "kind": "step"
+       },
+       {
+        "text": "With a single cash flow, the one-year zero rate equals the one-year par rate: z₁ = 5%.",
+        "kind": "prose"
+       },
+       {
+        "text": "Two years — solve for z₂ using z₁",
+        "kind": "step"
+       },
+       {
+        "expr": "1 = 0.0597 / (1.05) + 1.0597 / (1 + z<sub>2</sub>)²  →  z<sub>2</sub> = 6%",
+        "kind": "formula"
+       },
+       {
+        "text": "Three years — solve for z₃ using z₁ and z₂",
+        "kind": "step"
+       },
+       {
+        "expr": "1 = 0.0691/(1.05) + 0.0691/(1.06)² + 1.0691/(1 + z<sub>3</sub>)³  →  z<sub>3</sub> = 7%",
+        "kind": "formula"
+       },
+       {
+        "text": "Note how far the spot curve sits above the par curve at the long end once coupons are stripped out. The gap widens with maturity and with the steepness of the curve.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Par 5.00 / 5.97 / 6.91 / 7.81 → Spot 5 / 6 / 7 / 8%"
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 2,
+   "title": "Yield-to-Maturity in Relation to Spot and Forward Rates",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "YTM is a single number standing in for a whole curve. Knowing precisely where that approximation breaks is worth several marks."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "For a coupon bond, YTM is the internal rate of return that equates price to the present value of all cash flows. It is a weighted average of the spot rates applying to each individual payment, with the weights determined by the size and timing of those cash flows."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Why YTM is not the expected return"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "prose",
+     "payload": {
+      "text": "YTM equals the realised return only under conditions that rarely hold in practice."
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "YTM equals realised return only if…",
+       "Why it usually fails"
+      ],
+      "rows": [
+       [
+        "The bond is held to maturity",
+        "Sale before maturity introduces a capital gain or loss"
+       ],
+       [
+        "All coupons are reinvested at the YTM",
+        "Reinvestment happens at whatever rates then prevail"
+       ],
+       [
+        "No default or deferral occurs",
+        "Credit risk is not captured in the promised yield"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "A zero-coupon bond held to maturity is the one clean case: no coupons, therefore no reinvestment assumption, so YTM and realised return coincide. This is exactly why the spot curve is built from zeros rather than coupon bonds."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Expected return when the curve does not evolve as implied"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "prose",
+     "payload": {
+      "text": "If the future spot curve turns out to differ from today's forward curve, expected return diverges from YTM in a predictable direction."
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "If future spot rates are…",
+       "Then…"
+      ],
+      "rows": [
+       [
+        "Lower than today's implied forwards",
+        "Forward contract prices rise; realised return exceeds YTM"
+       ],
+       [
+        "Equal to today's implied forwards",
+        "Return over the horizon equals the one-period risk-free rate"
+       ],
+       [
+        "Higher than today's implied forwards",
+        "Bonds are overvalued at forward-implied prices; return falls short"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "worked",
+     "payload": {
+      "title": "Expected return under a forecast curve shift",
+      "blocks": [
+       {
+        "text": "A flat 6% yield curve. A three-year £100 bond is issued at par with a 6% annual coupon. The manager forecasts the curve will be flat at 7% one year from today. What is the expected return?",
+        "kind": "prose"
+       },
+       {
+        "expr": "[6 + 6/(1.07) + 106/(1.07)²] / 100 − 1",
+        "kind": "formula"
+       },
+       {
+        "text": "Expected return falls below the 6% YTM because the forecast rise in yields imposes a capital loss on the remaining two years of cash flows.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "≈ 4.19%"
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 3,
+   "title": "Riding the Yield Curve",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "The rolldown trade is the most directly examinable active strategy in the module, and it rests entirely on the average-and-marginal result from Section 1."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The benchmark case: when forwards are realised"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "Rearranging the forward rate model over a one-period horizon shows that if the spot curve one period from now turns out to be exactly today's forward curve, then the total return on a bond of <em>any</em> maturity over that period equals the one-period risk-free rate."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "Every maturity returns the one-year rate",
+      "blocks": [
+       {
+        "text": "Using z₁ = 9%, z₂ = 10%, z₃ = 11%, and therefore f₁,₁ = 11.01% and f₁,₂ = 12.01%. Assume the spot curve in one year is exactly today's forward curve. Par 100.",
+        "kind": "prose"
+       },
+       {
+        "text": "One-year zero",
+        "kind": "step"
+       },
+       {
+        "expr": "Bought at 100/1.09 = 91.74, matures at 100  →  9.00%",
+        "kind": "formula"
+       },
+       {
+        "text": "Two-year zero",
+        "kind": "step"
+       },
+       {
+        "expr": "Bought at 82.64; in one year worth 100/1.1101 = 90.08  →  9.00%",
+        "kind": "formula"
+       },
+       {
+        "text": "This is the null hypothesis of active curve management. Any strategy that beats it must rest on the curve <em>not</em> evolving as the forwards imply.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Return is 9% regardless of maturity"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The rolldown trade"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "When the yield curve is upward sloping, the forward curve always sits above the spot curve. If a manager expects the curve to stay <strong>static</strong> over the horizon, buying bonds with maturity <em>longer</em> than the investment horizon delivers a total return greater than a maturity-matching strategy.<br><br>The gain depends on the spread between the forward and spot rate, and on maturity. The longer the bond, the more sensitive its total return to that spread."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Total return decomposes the same way as any fixed-rate bond: coupon received, reinvestment of coupons, and capital gain or loss on sale prior to maturity. The rolldown gain sits in the third term — the bond is sold at a lower yield than it was bought, because it has rolled down a positively sloped curve."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "worked",
+     "payload": {
+      "title": "Rolldown against a matched maturity",
+      "blocks": [
+       {
+        "text": "Observed annual-coupon par yields: one-year 2%, three-year 4%, four-year 5%, five-year 6%, six-year 7%. An investor with a five-year horizon forgoes the matched five-year 6% bond in favour of the six-year 7% bond, expecting an unchanged curve. Compare annualised returns over two years.",
+        "kind": "prose"
+       },
+       {
+        "text": "Five-year 6% bond, held two years",
+        "kind": "step"
+       },
+       {
+        "expr": "(6 × 1.02) + 6 + 105.55 = 117.67",
+        "kind": "formula"
+       },
+       {
+        "text": "Sale price 105.55 = 6/1.04 + 6/(1.04)² + 106/(1.04)³, the bond now having three years left at an unchanged 4% three-year yield.",
+        "kind": "prose"
+       },
+       {
+        "expr": "(117.67 / 100) = (1 + r)²  →  r = 8.476%",
+        "kind": "formula"
+       },
+       {
+        "text": "Six-year 7% bond, held two years",
+        "kind": "step"
+       },
+       {
+        "expr": "(7 × 1.02) + 7 + 107.09 = 121.23",
+        "kind": "formula"
+       },
+       {
+        "text": "Sale price 107.09 = 7/1.05 + 7/(1.05)² + 7/(1.05)³ + 107/(1.05)⁴ at an unchanged 5% four-year yield.",
+        "kind": "prose"
+       },
+       {
+        "text": "The excess comes from two sources: higher coupon income than the matched-maturity bond, and a larger capital gain on sale.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "10.10% versus 8.476% — excess return of roughly 2%"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "The strategy's whole return depends on the curve staying put. It is a <strong>bet against the forwards</strong>, not a free lunch. If rates rise as the forward curve implies, the longer bond underperforms precisely because of the extra duration that generated the excess return."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 4,
+   "title": "The Swap Curve and the Swap Spread",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "A second representation of the time value of money, built from bank credit rather than government credit — and the spread between the two is a traded barometer of credit conditions."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "The swap rate curve is the term structure derived from periodic exchanges of fixed against short-term market reference rates, rather than from default-risk-free government bonds."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Why market participants use it"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Swap rates are <strong>market determined</strong>, led by major financial institutions rather than controlled by governments, so they are more comparable across countries.",
+       "The swap market offers <strong>more maturities</strong> than most government bond markets — swap rates extend to 50 years in US dollars and euro.",
+       "Historically the curve was assembled from deposit rates at the short end, interest rate futures out to about a year, and swap rates beyond that.",
+       "The Libor swap curve was historically taken to reflect the default risk of A1/A+ rated commercial banks. The transition to secured overnight rates increases the influence of government debt supply and demand on swap rates."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The swap spread"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Swap spread = Swap fixed rate − Yield on on-the-run government bond of the same maturity"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "The spread captures the yield premium required for credit relative to the benchmark government bond. Because swap rates are built from short-term risky debt, it acts as a barometer of perceived credit risk against default-risk-free rates. It typically widens <strong>countercyclically</strong> — higher in recessions, lower in expansions."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "worked",
+     "payload": {
+      "title": "Calculating a swap spread",
+      "blocks": [
+       {
+        "text": "The five-year fixed rate on a fixed-for-float MRR swap is 2.00%. The five-year Treasury yields 1.70%.",
+        "kind": "prose"
+       },
+       {
+        "expr": "2.00% − 1.70% = 0.30%",
+        "kind": "formula"
+       }
+      ],
+      "answer": "Swap spread = 30 basis points"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "Benchmarks vary by currency: Bunds for euro-denominated swaps, gilts in the United Kingdom."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Related spread measures"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Measure",
+       "Definition"
+      ],
+      "rows": [
+       [
+        "I-spread (ISPRD)",
+        "Bond yield net of the swap rate at the same maturity, usually via straight-line interpolation of the swap curve. A measure of the bond's credit and liquidity risk."
+       ],
+       [
+        "Z-spread",
+        "The constant spread that, added to each point on the spot curve, makes the present value of a bond's cash flows equal its price. Zero-volatility, so it assumes no rate variability."
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Negative swap spreads are possible and have persisted. The 30-year Treasury swap spread turned negative after the collapse of Lehman Brothers in September 2008, hitting a record −62 bps intramonth in November 2008. Strong demand for duration, tighter liquidity and greater counterparty risk were the cited causes; later Federal Reserve research points to increased regulatory capital requirements. Governments generally borrow more cheaply than private entities, so a naive reading says the spread should always be positive — the exam likes this one."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 5,
+   "title": "Spreads as Gauges of Credit and Liquidity Risk",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Two short-term spreads are named in the learning outcomes, and both compare a risky bank-funding rate against a near-risk-free rate of the same maturity."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The TED spread"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "formula",
+     "payload": {
+      "expr": "TED spread = MRR − Yield on a T-bill of the same maturity"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "prose",
+     "payload": {
+      "text": "The name is an acronym: <strong>T</strong> for the US T-bill, <strong>ED</strong> for the ticker of the MRR-based Eurodollar futures contract. An increase signals greater perceived credit and liquidity risk, as in early 2020 amid pandemic market turmoil."
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The MRR–OIS spread"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "formula",
+     "payload": {
+      "expr": "MRR–OIS spread = MRR − Overnight indexed swap rate"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "An OIS is an interest rate swap whose floating leg is the geometric average of a daily unsecured overnight rate — historically the federal funds rate for US dollars or Eonia for euros. Formerly known as the Libor–OIS spread."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The transition away from Libor"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>SOFR</strong> (secured overnight financing rate) — an overnight cash borrowing rate collateralised by US Treasuries. A daily volume-weighted index of qualified repo transactions, so it is a barometer of the Treasury repo market and is influenced by conditions in secured funding markets.",
+       "<strong>ESTR</strong> (Euro Short-Term Rate) recommended to replace Eonia.",
+       "<strong>CORRA</strong> (Canadian Overnight Repo Rate Average) proposed to replace the survey-based CDOR.",
+       "The shift is from <em>survey-based unsecured</em> benchmarks to <em>transaction-based secured</em> ones."
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "The distinction that gets tested: TED and MRR–OIS both measure bank credit and liquidity stress, but Z-spread is a bond-specific valuation measure, not an economy-wide gauge. A question asking which spread indicates economy-wide credit risk is not looking for Z-spread."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 6,
+   "title": "Traditional Theories of the Term Structure",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Four theories, each offering a qualitative account of the economic forces shaping the curve. The exam tests what each implies for forward rates and for curve shape."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Unbiased (pure) expectations theory"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "The forward rate is an <strong>unbiased predictor</strong> of the future spot rate.",
+       "Broadest interpretation: bonds of any maturity are <strong>perfect substitutes</strong>. Buying a five-year bond and holding three years has the same expected return as a three-year bond, or a series of three one-year bonds.",
+       "Consistent with <strong>risk neutrality</strong> — no risk premiums exist, every security yields the risk-free rate for its maturity.",
+       "<strong>Weakness:</strong> conflicts with the substantial evidence that investors are risk averse."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Local expectations theory"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "More rigorous. Rather than claiming every maturity strategy has equal expected return over any horizon, it holds that expected return over <strong>short periods</strong> is the risk-free rate for every bond.",
+       "Follows from an assumed no-arbitrage condition.",
+       "Crucially it <strong>extends to a world with risk</strong>: premiums must be absent only over very short holding periods, with no restriction on longer-term investments. It therefore applies to risky bonds as well as risk-free ones.",
+       "<strong>Weakness:</strong> short-holding-period returns on long-dated bonds are observed to exceed those on short-dated bonds."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Liquidity preference theory"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Liquidity premiums exist to compensate for the added interest rate risk of lending long, and <strong>increase with maturity</strong>.",
+       "Given an expectation of unchanging short-term spot rates, it predicts an <strong>upward-sloping</strong> yield curve.",
+       "The forward rate estimates the expected spot rate <strong>biased upward</strong> by the liquidity premium — which invalidates the unbiased expectations theory.",
+       "The premium for each consecutive future period should be no smaller than the prior period's."
+      ]
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Segmented markets and preferred habitat"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Segmented markets",
+       "Preferred habitat"
+      ],
+      "rows": [
+       [
+        "Core claim",
+        "Yields at each maturity are set solely by supply and demand within that maturity",
+        "Investors have preferred maturities but will leave them if compensated"
+       ],
+       [
+        "Substitution across maturities",
+        "None",
+        "Possible, at a price"
+       ],
+       [
+        "Implication for the curve",
+        "Shape reflects segment-by-segment imbalances",
+        "Shape reflects imbalances plus the premium demanded to move habitat"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "worked",
+     "payload": {
+      "title": "Preferred habitat and quantitative easing",
+      "blocks": [
+       {
+        "text": "Federal Reserve holdings on 20 September 2007 were entirely US Treasuries, about 34% in T-bills. By 29 October 2014, only about 58% of holdings were Treasuries, none were bills, and over US$1.7tn was mortgage-backed securities — 41% of all securities held.",
+        "kind": "prose"
+       },
+       {
+        "text": "MBS yields, typically 5% to 6% before QE, fell below 2% by end-2012.",
+        "kind": "prose"
+       },
+       {
+        "items": [
+         "Fed purchases reduced the supply of MBS available for private purchase.",
+         "Many MBS investors are unwilling or unable to leave that market, given their comparative expertise in managing MBS interest rate and repayment risk. They have a preferred habitat there.",
+         "Unable to meet demand without bidding more aggressively, those buyers drove MBS yields down."
+        ],
+        "kind": "list"
+       },
+       {
+        "text": "A clean illustration of preferred habitat: the yield move came from a supply shock within a segment whose investors would not readily substitute elsewhere.",
+        "kind": "prose"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Theory",
+       "Forward rate is…",
+       "Predicted curve shape"
+      ],
+      "rows": [
+       [
+        "Unbiased expectations",
+        "An unbiased predictor of future spot",
+        "Any shape, purely expectations-driven"
+       ],
+       [
+        "Local expectations",
+        "Consistent with short-horizon risk-free return",
+        "Any shape; extends to risky bonds"
+       ],
+       [
+        "Liquidity preference",
+        "Expected spot biased <strong>upward</strong> by a premium",
+        "Upward sloping, even with flat rate expectations"
+       ],
+       [
+        "Segmented markets",
+        "Not meaningful across segments",
+        "Determined by segment supply and demand"
+       ],
+       [
+        "Preferred habitat",
+        "Expected spot plus a habitat premium of either sign",
+        "Shaped by imbalances and the cost of moving habitat"
+       ]
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 7,
+   "title": "Yield Curve Factor Models",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "A yield curve can take nearly any shape. Factor models reduce the possibilities to a probabilistic combination of a few standardised movements, which is what makes curve risk manageable."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "A <strong>yield curve factor model</strong> describes curve movements in a way that is realistic against historical data. The best known is the three-factor model of Litterman and Scheinkman (1991), who found that movements are well described by three independent components."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Factor",
+       "Movement",
+       "Share of variance"
+      ],
+      "rows": [
+       [
+        "Level",
+        "Upward or downward shift of the whole curve — a parallel move with rates changing in the same direction and similar magnitude",
+        "Explains <strong>most</strong> of total change in swap and bond yields"
+       ],
+       [
+        "Steepness",
+        "Non-parallel shift: short-term rates change more than long-term, or vice versa. Short-term yields typically move more.",
+        "Less than level; changes take place over time"
+       ],
+       [
+        "Curvature",
+        "Short and long segments rise while the middle falls, or vice versa. Negative impact on intermediate yields, positive on short and long.",
+        "<strong>Smallest</strong> of the three — the 'twist' in the curve"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "These factors are extracted from the variance–covariance matrix of historical interest rate movements, and they are <strong>independent</strong>. That independence is what allows a manager to measure and hedge exposure to each separately."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "Order matters and is examinable: level explains most of the variance, then steepness, then curvature. A question asking which factor dominates yield curve changes wants level."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 8,
+   "title": "Yield Volatility and Managing Curve Risk",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Two reasons volatility matters: most fixed-income instruments and derivatives contain embedded options whose value depends on it, and interest rate volatility is itself a risk to be managed."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The maturity structure of yield volatility"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "<strong>Short-term rates are more volatile than long-term rates.</strong> But long-term bond <em>prices</em> vary more than short-term prices, because of duration. Do not conflate yield volatility with price volatility — they run in opposite directions across the curve."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_data",
+     "payload": {
+      "headers": [
+       "Maturity (years)",
+       "0.25",
+       "1",
+       "3",
+       "5",
+       "10",
+       "20",
+       "30"
+      ],
+      "rows": [
+       [
+        "σ(t,T)",
+        "0.3515",
+        "0.2964",
+        "0.2577",
+        "0.2154",
+        "0.1621",
+        "0.1332",
+        "0.1169"
+       ]
+      ],
+      "aligns": [
+       "",
+       "num",
+       "num",
+       "num",
+       "num",
+       "num",
+       "num",
+       "num"
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "<em>US Treasuries, August 2005 to December 2007. Volatility falls monotonically from 35.15% at three months to 11.69% at 30 years.</em>"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "worked",
+     "payload": {
+      "title": "Annualising a monthly volatility",
+      "blocks": [
+       {
+        "text": "The 35.15% figure for the three-month T-bill derives from a monthly standard deviation of 10.15%.",
+        "kind": "prose"
+       },
+       {
+        "expr": "0.1015 ÷ √(1/12) = 0.3515 = 35.15%",
+        "kind": "formula"
+       }
+      ],
+      "answer": "Annualised σ = 35.15%"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "What drives volatility at each end"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>Short-term volatility</strong> is most strongly linked to uncertainty about <strong>monetary policy</strong>.",
+       "<strong>Long-term volatility</strong> is most strongly linked to uncertainty about the <strong>real economy and inflation</strong>.",
+       "Most co-movement between the two ends depends on the ever-changing correlations among those three determinants."
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Effective duration versus key rate duration"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Effective duration",
+       "Key rate duration"
+      ],
+      "rows": [
+       [
+        "Measures",
+        "Sensitivity to a small <strong>parallel</strong> shift in the benchmark curve",
+        "Sensitivity to a small change at a <strong>specific maturity segment</strong>"
+       ],
+       [
+        "Captures",
+        "Level risk only",
+        "Shaping risk — sensitivity to changes in curve shape"
+       ],
+       [
+        "Use",
+        "Adequate when the concern is parallel moves",
+        "Required to identify and manage exposure to steepness and curvature"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "prose",
+     "payload": {
+      "text": "Yield curve risk is the risk to portfolio value from unanticipated changes in the curve. Managing it means changing identified exposures to desired values through trades in security or derivative markets. Effective duration alone leaves shaping risk unhedged, which is precisely the risk the three-factor model says accounts for the non-level portion of curve movement."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 9,
+   "title": "Consolidation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Formulas"
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Concept",
+       "Formula"
+      ],
+      "rows": [
+       [
+        "Discount factor",
+        "DF<sub>N</sub> = 1 / (1 + z<sub>N</sub>)<sup>N</sup>"
+       ],
+       [
+        "Forward pricing model",
+        "DF<sub>B</sub> = DF<sub>A</sub> × F<sub>A,B−A</sub>"
+       ],
+       [
+        "Forward rate model",
+        "(1 + z<sub>B</sub>)<sup>B</sup> = (1 + z<sub>A</sub>)<sup>A</sup>(1 + f<sub>A,B−A</sub>)<sup>B−A</sup>"
+       ],
+       [
+        "Spot as geometric mean",
+        "z<sub>T</sub> = [(1+z<sub>1</sub>)(1+f<sub>1,1</sub>)…(1+f<sub>T−1,1</sub>)]<sup>1/T</sup> − 1"
+       ],
+       [
+        "Swap spread",
+        "Swap fixed rate − Government yield, same maturity"
+       ],
+       [
+        "TED spread",
+        "MRR − T-bill yield, same maturity"
+       ],
+       [
+        "MRR–OIS spread",
+        "MRR − Overnight indexed swap rate"
+       ],
+       [
+        "Annualising volatility",
+        "σ<sub>annual</sub> = σ<sub>monthly</sub> ÷ √(1/12)"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Directional relationships"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "If…",
+       "Then…"
+      ],
+      "rows": [
+       [
+        "Spot curve slopes upward",
+        "Forward curve lies above the spot curve"
+       ],
+       [
+        "Spot curve slopes downward",
+        "Forward curve lies below the spot curve"
+       ],
+       [
+        "Spot rates evolve exactly as forwards imply",
+        "Every maturity returns the one-period risk-free rate"
+       ],
+       [
+        "Future spot rates come in below implied forwards",
+        "Forward contract prices rise; return beats YTM"
+       ],
+       [
+        "Curve is upward sloping and expected to stay static",
+        "Rolldown beats a maturity-matched strategy"
+       ],
+       [
+        "Liquidity preference holds",
+        "Forwards overstate expected spot; curve slopes up"
+       ],
+       [
+        "Moving from short to long maturities",
+        "Yield volatility falls, price volatility rises"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Ten points for a final pass"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "Spot rates need no reinvestment assumption, which is why the spot curve is the base term structure.",
+       "The forward rate model is the no-arbitrage condition restated in rates rather than prices.",
+       "Upward-sloping spot implies forwards above spot, because marginal exceeds average when an average rises.",
+       "Forward rates cannot extend beyond the longest maturity on today's curve.",
+       "Bootstrapping solves for spot rates one at a time from par rates, shortest maturity first.",
+       "If the curve evolves as the forwards imply, every maturity earns the one-period rate — that is the benchmark any active strategy must beat.",
+       "Rolldown is a bet that the curve stays static, and its excess return comes from coupon plus capital gain.",
+       "Swap spreads widen countercyclically and can go negative, as the 30-year did at −62 bps in November 2008.",
+       "TED and MRR–OIS gauge economy-wide credit and liquidity risk; Z-spread is bond-specific.",
+       "Level explains most curve variance, then steepness, then curvature; key rate duration is what captures the latter two."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Notes prepared from the CFA Program 2026 Level II curriculum, Volume 6, Learning Module 1. Worked examples follow the curriculum's own illustrations; exhibit figures are as published."
+     }
+    }
+   ]
+  }
+ ]
+}

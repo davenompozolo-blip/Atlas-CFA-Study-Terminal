@@ -1,0 +1,1048 @@
+{
+ "topic_id": "fi",
+ "module": "LM2",
+ "module_title": "The Arbitrage-Free Valuation Framework",
+ "source_ref": "CFA 2026 L2 Fixed Income/LM2",
+ "reading_id": "16479da7d1078497",
+ "units": [
+  {
+   "ordinal": 1,
+   "title": "What Arbitrage-Free Valuation Means",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "If both the net proceeds and the risk of an investment are zero, the return should also be zero. Everything in this module is an application of that single sentence."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "<strong>Arbitrage-free valuation</strong> determines security values consistent with the absence of an arbitrage opportunity — a trade earning riskless profit with no net investment of money. In well-functioning markets prices adjust until no such opportunity remains. The principle is itself an implication of the idea that <strong>identical assets should sell at the same price</strong>."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The three valuation steps"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "Estimate the future cash flows.",
+       "Determine the appropriate discount rate or rates.",
+       "Calculate the present value of those cash flows using those rates."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The traditional approach discounts every cash flow at the same rate, as if the yield curve were flat. But a bond is properly a <strong>portfolio of zero-coupon bonds</strong>. Each zero is valued at a discount rate depending on the shape of the curve and the timing of its single cash flow. Summing those present values gives a value that is arbitrage free."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "If the bond's price sat well below the sum of its individually valued cash flows, a trader would buy the bond, sell claims to the individual cash flows, and pocket the difference. Regardless of complexity, <strong>each component must have an arbitrage-free value</strong>. A bond with embedded options is valued in parts: the arbitrage-free option-free bond, plus the arbitrage-free value of each option."
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Stripping and reconstitution"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Process",
+       "What the dealer does"
+      ],
+      "rows": [
+       [
+        "Stripping",
+        "Separates a coupon bond into its individual cash flows and sells them as separate securities"
+       ],
+       [
+        "Reconstitution",
+        "Recombines the stripped components back into the original coupon security"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "An arbitrage-free valuation framework is precisely one that <strong>does not allow</strong> a market participant to realise arbitrage profits through stripping and reconstitution. That phrasing appears almost verbatim in exam answers — note it is the negative that is correct."
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Benchmark securities"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "prose",
+     "payload": {
+      "text": "Benchmark securities are liquid, safe securities whose yields serve as building blocks for other interest rates in a country or currency."
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>United States</strong> — on-the-run Treasuries. Par rates from the Treasury curve are bootstrapped to spot rates.",
+       "<strong>United Kingdom</strong> — gilts.",
+       "<strong>Euro area</strong> — German bunds.",
+       "Where the sovereign market is not sufficiently liquid, the <strong>swap curve</strong> is a viable alternative."
+      ]
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "prose",
+     "payload": {
+      "text": "Benchmark bonds are assumed correctly priced by the market. The valuation model is then constructed to <strong>reproduce exactly</strong> the prices of those benchmark bonds. That constraint is what the whole calibration exercise in Section 4 exists to satisfy."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 2,
+   "title": "Valuing an Option-Free Bond with Spot Rates",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Three curves — par, spot, and forward — carry the same information and must produce the same value. Confirming that is the foundation the tree is later built on."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "Spot rates are obtained from par rates by bootstrapping. Using the par rate directly rather than the coupon payment gives a convenient form."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "formula",
+     "payload": {
+      "expr": "1 = Par rate/(1+z<sub>1</sub>) + Par rate/(1+z<sub>2</sub>)² + … + (Par rate + 1)/(1+z<sub>N</sub>)<sup>N</sup>",
+      "label": "Bootstrapping from par rates"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "Par, spot, and forward from the same benchmark curve",
+      "blocks": [
+       {
+        "text": "Benchmark par rates and the curves derived from them:",
+        "kind": "prose"
+       },
+       {
+        "headers": [
+         "Maturity",
+         "Par rate",
+         "Spot rate",
+         "One-year forward"
+        ],
+        "rows": [
+         [
+          "1",
+          "1.00%",
+          "1.0000%",
+          "1.0000%  (current)"
+         ],
+         [
+          "2",
+          "1.20%",
+          "1.2012%",
+          "1.4028%  (1y fwd)"
+         ],
+         [
+          "3",
+          "1.25%",
+          "1.2515%",
+          "1.3521%  (2y fwd)"
+         ],
+         [
+          "4",
+          "1.40%",
+          "1.4045%",
+          "1.8647%  (3y fwd)"
+         ],
+         [
+          "5",
+          "1.80%",
+          "1.8194%",
+          "3.4965%  (4y fwd)"
+         ]
+        ],
+        "aligns": [
+         "c",
+         "num",
+         "num",
+         "num"
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "All three recover the market price of par for the five benchmark bonds. Par rates are the single rate applied to all cash flows. Spot rates discount each cash flow separately. Forward rates are the discount rate of a single cash flow over a single period. Discounting each cash flow with the appropriate rate for its period gives the same answer every time.",
+        "kind": "prose"
+       }
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Notice how much more the forward curve moves than the spot curve. Spot rises from 1.00% to 1.82% across five years; the implied one-year forward rises from 1.00% to 3.50%. The forward curve is the marginal series, so it amplifies whatever the spot curve is doing — the same average-and-marginal result from LM1."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "When cash flows become <strong>interest rate dependent</strong>, this static approach breaks down. We must explicitly allow rates to change, which means introducing interest rate volatility and generating an interest rate tree."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 3,
+   "title": "The Binomial Interest Rate Tree",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "An interest rate tree is a visual representation of the possible values interest rates may take, given an interest rate model and a volatility assumption. Two inputs, and everything else follows."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Why lognormal"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "The tree is built on a <strong>lognormal random walk</strong>, which secures two appealing properties."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "<strong>Non-negativity</strong> of interest rates.",
+       "<strong>Higher volatility at higher interest rates</strong> — the absolute dispersion grows with the level of rates."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "At each node there are two possible rates one period forward, assumed equally likely. Both sit either side of the implied forward rate from the benchmark curve."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "formula",
+     "payload": {
+      "expr": "i<sub>1,H</sub> = i<sub>1,L</sub> × e<sup>2σ</sup>",
+      "label": "Adjacent rates at Time 1"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Think of the implied one-year forward rate as the <em>average</em> of possible values for the one-year rate at Time 1. The lower rate i<sub>L</sub> is one standard deviation below that mean; i<sub>H</sub> is one above. The two are multiples of each other, and the multiplier is e<sup>2σ</sup>. As volatility rises, the multiplier rises, and the rates spread further apart while remaining (nearly) centred on the implied forward."
+      ]
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "worked",
+     "payload": {
+      "title": "Deriving the upper rate",
+      "blocks": [
+       {
+        "text": "Suppose i<sub>1,L</sub> is 1.194% and assumed volatility σ is 15% per year.",
+        "kind": "prose"
+       },
+       {
+        "expr": "i<sub>1,H</sub> = 1.194% × e<sup>(2 × 0.15)</sup> = 1.194% × e<sup>0.30</sup>",
+        "kind": "formula"
+       }
+      ],
+      "answer": "i<sub>1,H</sub> = 1.612%"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Extending to Time 2"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "prose",
+     "payload": {
+      "text": "At Time 2 there are three possible one-year rates, related to the lowest by the same multiplier logic. Adjacent outcomes in a given period are two standard deviations apart."
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "formula",
+     "payload": {
+      "expr": "i<sub>2,HH</sub> = i<sub>2,LL</sub> × e<sup>4σ</sup> &nbsp;&nbsp;&nbsp; i<sub>2,HL</sub> = i<sub>2,LL</sub> × e<sup>2σ</sup>"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Node",
+       "Meaning"
+      ],
+      "rows": [
+       [
+        "i<sub>2,LL</sub>",
+        "Lower rate at Time 1 followed by lower rate at Time 2"
+       ],
+       [
+        "i<sub>2,HL</sub>",
+        "Higher then lower, or equivalently lower then higher — the two paths meet"
+       ],
+       [
+        "i<sub>2,HH</sub>",
+        "Higher rate at Time 1 followed by higher rate at Time 2"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Because two paths arrive at the middle rate, this is a <strong>recombining tree</strong>. The number of possible outcomes each period therefore grows <strong>linearly rather than exponentially</strong>, which is what makes the model computationally tractable. The middle rate sits close to the implied two-year forward; the outer two are two standard deviations either side."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 4,
+   "title": "Calibrating the Tree to the Term Structure",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "A tree that does not reprice the benchmark bonds is not arbitrage free. Calibration is the step that ties the model to observed economic reality."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "We fit the tree to the current yield curve by choosing rates such that the model reproduces the benchmark bond values. Finding those rates is an <strong>iterative, numerical</strong> process."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "The constraints at each step"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "The two rates at a given time must be consistent with the <strong>volatility assumption</strong> — related by e<sup>2σ</sup>.",
+       "They must be consistent with the <strong>interest rate model</strong> — the lognormal random walk.",
+       "They must reproduce the <strong>observed market value</strong> of the benchmark bond."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "worked",
+     "payload": {
+      "title": "One iteration of calibration",
+      "blocks": [
+       {
+        "text": "Volatility σ = 15%, current one-year rate 1%. Calibrating against the two-year benchmark bond, which carries a 1.20% coupon and trades at par. The implied one-year forward one year out is 1.4028%, so the trial lower rate must sit below that.",
+        "kind": "prose"
+       },
+       {
+        "text": "Step 1 · Select a trial rate",
+        "kind": "step"
+       },
+       {
+        "text": "Try i<sub>1,L</sub> = 1.2500%. The upper rate follows from the volatility assumption:",
+        "kind": "prose"
+       },
+       {
+        "expr": "i<sub>1,H</sub> = 1.2500% × e<sup>(2 × 0.15)</sup> = 1.6873%",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 2 · Value the benchmark bond through the tree",
+        "kind": "step"
+       },
+       {
+        "expr": "101.20 / 1.016873 = 99.5208",
+        "kind": "formula"
+       },
+       {
+        "expr": "101.20 / 1.012500 = 99.9506",
+        "kind": "formula"
+       },
+       {
+        "expr": "[1.20 + (0.5 × 99.5208 + 0.5 × 99.9506)] / 1.01 = 99.9363",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 3 · Compare and iterate",
+        "kind": "step"
+       },
+       {
+        "text": "The bond is a par benchmark, so the tree must return 100. Since the computed value is too low, the trial rates are too high; select a lower rate and repeat until the tree reprices the benchmark exactly. Only then is the tree arbitrage free.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "99.9363 ≠ 100 — the trial rate is wrong"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "The examinable point is not the arithmetic but the <em>logic of the loop</em>: guess a rate consistent with volatility, value the benchmark, compare to market price, adjust. A tree calibrated this way will, by construction, produce the same value for an option-free bond as discounting with spot rates."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 5,
+   "title": "Backward Induction",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Once the tree is calibrated, valuation is mechanical: start at maturity, work leftwards, and at every node take a simple average because the lognormal model makes up and down equally likely."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Bond value at a node = [C + (0.5 × V<sub>H</sub> + 0.5 × V<sub>L</sub>)] / (1 + i)",
+      "label": "Backward induction"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>C</strong> is the coupon due at the end of the period, placed directly to the right of the node.",
+       "<strong>V<sub>H</sub></strong> and <strong>V<sub>L</sub></strong> are the bond values at the two nodes immediately to the right, for the rate going up and down respectively.",
+       "It is a <strong>simple</strong> average because the lognormal model assigns equal probability to up and down.",
+       "<strong>i</strong> is the one-year forward rate prevailing at the <em>beginning</em> of the period — the rate at the node you are valuing, not the ones to the right."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "Valuing a three-year 5% annual-pay bond",
+      "blocks": [
+       {
+        "text": "Time 2 rates on the tree are 8%, 6% and 4%. At Time 3 the cash flow is 105 — par of 100 plus the final 5 coupon — regardless of the rate level.",
+        "kind": "prose"
+       },
+       {
+        "text": "Step 1 · Discount Time 3 cash flow back to Time 2",
+        "kind": "step"
+       },
+       {
+        "expr": "105 / 1.08 = 97.2222",
+        "kind": "formula"
+       },
+       {
+        "expr": "105 / 1.06 = 99.0566",
+        "kind": "formula"
+       },
+       {
+        "expr": "105 / 1.04 = 100.9615",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 2 · Apply the node expression working back to Time 1",
+        "kind": "step"
+       },
+       {
+        "text": "At a Time 1 node with a 5.0% forward rate, using the two Time 2 values it feeds into:",
+        "kind": "prose"
+       },
+       {
+        "expr": "[5 + (0.5 × V<sub>H</sub> + 0.5 × V<sub>L</sub>)] / 1.05 = 98.2280",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 3 · Repeat to Time 0",
+        "kind": "step"
+       },
+       {
+        "text": "The same expression applied once more at the root gives the arbitrage-free value of the bond.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Value at Time 0 = 102.8105"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "For an <strong>option-free</strong> bond, the calibrated tree and the spot curve give the <strong>same value</strong>. That is not a coincidence — it is the test the calibration was built to pass. The tree only earns its keep when cash flows become interest rate dependent, which is exactly the case for bonds with embedded options in the next module."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 6,
+   "title": "Pathwise Valuation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "An alternative to backward induction that produces the same answer by a different route, and which generalises to instruments whose cash flows depend on the path taken."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "Pathwise valuation calculates the present value of a security along each possible interest rate path through the tree, then averages those present values."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Number of paths = 2<sup>n−1</sup>, for an n-period tree",
+      "label": "Path count"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "Four paths through a three-year tree",
+      "blocks": [
+       {
+        "text": "The same three-year, 5% annual coupon bond. A three-year tree has 2² = 4 paths. Discount the cash flows along each path at that path's sequence of forward rates, then average.",
+        "kind": "prose"
+       },
+       {
+        "text": "Path 1 — the all-lower path",
+        "kind": "step"
+       },
+       {
+        "expr": "5/1.02 + 5/[(1.02)(1.04646)] + 105/[(1.02)(1.04646)(1.08167)] = 100.5298",
+        "kind": "formula"
+       },
+       {
+        "text": "Path 3",
+        "kind": "step"
+       },
+       {
+        "expr": "… = 103.4794",
+        "kind": "formula"
+       },
+       {
+        "text": "Average across all four paths",
+        "kind": "step"
+       },
+       {
+        "text": "The agreement is the point. Pathwise valuation and backward induction are two computations of the same arbitrage-free value.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "102.8105 — identical to backward induction"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "Know the path count. A three-year tree has four paths, a four-year tree eight. The formula 2<sup>n−1</sup> is a quick sanity check on whether you have enumerated correctly, and questions sometimes ask for the count directly."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 7,
+   "title": "Monte Carlo Simulation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "When the number of paths becomes unmanageable, or cash flows depend on the path taken rather than just the rate level, simulation replaces enumeration."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Path dependency"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Cash flows are <strong>path dependent</strong> when the cash flow received depends on the route taken to the current level, not merely the current level itself. Mortgage-backed securities are the canonical case: prepayments rise when rates fall, because borrowers refinance. Whether rates already fell and triggered refinancing changes what is left to prepay."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Backward induction cannot handle path dependency. It assumes the value at a node depends only on that node and what lies to its right. That assumption fails the moment history matters, which is why MBS valuation reaches for Monte Carlo."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The five steps"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "For a 30-year bond with monthly coupons, such as a mortgage-backed security:"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "Simulate numerous paths — say 500 — of one-month interest rates under a volatility assumption and probability distribution.",
+       "Generate spot rates from the simulated future one-month rates.",
+       "Determine the cash flow along each interest rate path.",
+       "Calculate the present value for each path.",
+       "Calculate the average present value across all paths."
+      ]
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Drift adjustment"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "Run as described, the model reproduces benchmark bond prices only by chance. If it does not, it neither fits the current spot curve nor is arbitrage free."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "A constant is added to all interest rates on all paths so that the average present value for each benchmark bond equals its market value. That constant is the <strong>drift term</strong>, and the model is then said to be <strong>drift adjusted</strong>. This is the Monte Carlo equivalent of calibrating the binomial tree."
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Mean reversion, and the limits of more paths"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>Mean reversion</strong> starts from the observation that rates almost never get too high or too low. It is implemented by imposing upper and lower bounds on the random process, which has the effect of moving rates toward the implied forwards from the yield curve. What counts as too high or too low is left to the modeller's discretion.",
+       "<strong>More paths</strong> increase statistical accuracy of the estimate, but that does <em>not</em> mean the model is closer to the security's true fundamental value. The method is only as good as the valuation model and the accuracy of the inputs."
+      ]
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "That last point is a favourite. Increasing the number of simulated paths reduces sampling error, not model error. A question implying that more paths make the valuation more <em>correct</em> rather than more <em>precise</em> is testing exactly this distinction."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 8,
+   "title": "Term Structure Models",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Term structure models supply the assumptions that determine node values and rate dispersion in the lattices used above. The examinable split is equilibrium against arbitrage-free."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Model choice and factors"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "Modellers face a trade-off between simplicity and accuracy. The simplest class uses <strong>one factor</strong> — the short rate. That implies all rates move in the same direction over any short interval, though <em>not necessarily by the same amount</em>. Multi-factor models add factors such as the slope of the term structure, with complexity rising in the number of factors."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "prose",
+     "payload": {
+      "text": "Term structure models use stochastic processes with two components: a <strong>drift</strong> term and an uncertain or <strong>stochastic</strong> term. The processes are continuous time but can be fitted to binomial or trinomial lattices in discrete form."
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Equilibrium models"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "formula",
+     "payload": {
+      "expr": "CIR: &nbsp; dr<sub>t</sub> = k(θ − r<sub>t</sub>)dt + σ√r<sub>t</sub> dZ"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Vasicek: &nbsp; dr<sub>t</sub> = k(θ − r<sub>t</sub>)dt + σ dZ"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "prose",
+     "payload": {
+      "text": "The drift term is identical in both. θ is the long-run mean rate, so (θ − r<sub>t</sub>) is the distance of the rate from its mean and the drift is zero when the rate sits at the mean. The parameter k modulates the <strong>speed of mean reversion</strong>."
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Cox–Ingersoll–Ross",
+       "Vasicek"
+      ],
+      "rows": [
+       [
+        "Mean reversion",
+        "Yes",
+        "Yes — same drift term"
+       ],
+       [
+        "Volatility term",
+        "σ√r<sub>t</sub> — a function of the short rate",
+        "σ — <strong>constant</strong>"
+       ],
+       [
+        "Negative rates",
+        "<strong>Prevented</strong> — at low r the volatility term shrinks",
+        "<strong>Theoretically possible</strong>"
+       ],
+       [
+        "Stochastic drivers",
+        "One",
+        "One"
+       ],
+       [
+        "Derivation",
+        "From a general equilibrium of consumption and investment decisions",
+        "Not derived that way, but still classed as equilibrium"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Arbitrage-free models"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "prose",
+     "payload": {
+      "text": "Analysis begins with the <strong>current term structure</strong>, extrapolated from market prices of a reference set of instruments, assumed correctly priced. Unlike equilibrium models with only a few parameters — and therefore only a few matchable points — arbitrage-free models let parameters <strong>vary deterministically with time</strong>, giving many more parameters and many more points of match."
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "This is the examinable contrast. Equilibrium models frequently generate term structures <strong>inconsistent with current market data</strong>. Arbitrage-free models are calibrated to the current term structure, so starting prices are those actually found in the market. When a question asks which model provides the most accurate fit to the <em>observed</em> term structure, the answer is the arbitrage-free one — Ho–Lee, not CIR or Vasicek."
+      ]
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "prose",
+     "payload": {
+      "text": "The first arbitrage-free model was Ho–Lee (1986). Equilibrium models tend to use real-world probabilities, whereas arbitrage-free models use risk-neutral probabilities."
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Modern models"
+     }
+    },
+    {
+     "ord": 15,
+     "block_type": "prose",
+     "payload": {
+      "text": "The <strong>Gauss+</strong> model is a multi-factor model used extensively in valuation and hedging, incorporating short, medium and long-term rates."
+     }
+    },
+    {
+     "ord": 16,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "The <strong>long-term factor</strong> is mean reverting and reflects trends in macroeconomic variables.",
+       "The <strong>medium-term rate</strong> reverts to the long-run rate.",
+       "The <strong>short-term rate has no random component</strong>, consistent with the central bank controlling the short end of the curve.",
+       "The result is a <strong>hump-shaped volatility curve</strong> across tenors, with medium-term rates the most volatile."
+      ]
+     }
+    },
+    {
+     "ord": 17,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Note the contrast with LM1, where the empirical volatility term structure fell monotonically from short to long. Gauss+ produces a hump because it assumes away short-rate randomness on central bank control grounds. Different assumption, different shape — do not carry one result into the other module."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 9,
+   "title": "Consolidation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Formulas"
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Concept",
+       "Formula"
+      ],
+      "rows": [
+       [
+        "Bootstrapping from par rates",
+        "1 = Par/(1+z<sub>1</sub>) + … + (Par + 1)/(1+z<sub>N</sub>)<sup>N</sup>"
+       ],
+       [
+        "Adjacent tree rates",
+        "i<sub>1,H</sub> = i<sub>1,L</sub> × e<sup>2σ</sup>"
+       ],
+       [
+        "Time 2 tree rates",
+        "i<sub>2,HH</sub> = i<sub>2,LL</sub>e<sup>4σ</sup>; i<sub>2,HL</sub> = i<sub>2,LL</sub>e<sup>2σ</sup>"
+       ],
+       [
+        "Backward induction",
+        "V = [C + (0.5V<sub>H</sub> + 0.5V<sub>L</sub>)] / (1 + i)"
+       ],
+       [
+        "Path count",
+        "2<sup>n−1</sup> for an n-period tree"
+       ],
+       [
+        "CIR process",
+        "dr = k(θ − r)dt + σ√r dZ"
+       ],
+       [
+        "Vasicek process",
+        "dr = k(θ − r)dt + σ dZ"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Directional relationships"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "If…",
+       "Then…"
+      ],
+      "rows": [
+       [
+        "Volatility assumption σ rises",
+        "Tree rates spread further apart, still centred on the forward"
+       ],
+       [
+        "The tree is properly calibrated",
+        "It reprices benchmark bonds and matches spot-curve valuation"
+       ],
+       [
+        "The bond is option-free",
+        "Tree value equals spot-curve value — no advantage to the lattice"
+       ],
+       [
+        "Cash flows are path dependent",
+        "Backward induction fails; use Monte Carlo"
+       ],
+       [
+        "Monte Carlo paths are increased",
+        "Statistical precision improves; model accuracy does not"
+       ],
+       [
+        "Rates are very low under CIR",
+        "Volatility term shrinks, preventing negative rates"
+       ],
+       [
+        "Rates are very low under Vasicek",
+        "Negative rates remain theoretically possible"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Ten points for a final pass"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "Arbitrage-free valuation permits no riskless profit with no net investment, and forbids profit from stripping and reconstitution.",
+       "A bond is a portfolio of zeros; each component must carry an arbitrage-free value.",
+       "Par, spot and forward curves carry the same information and must produce the same price.",
+       "The lognormal random walk secures non-negative rates and higher volatility at higher rate levels.",
+       "Adjacent rates on the tree differ by a factor of e<sup>2σ</sup>, roughly centred on the implied forward.",
+       "The tree recombines, so outcomes grow linearly rather than exponentially.",
+       "Calibration iterates until the tree reprices the benchmark bond exactly — that is what makes it arbitrage free.",
+       "Backward induction takes a simple average of V<sub>H</sub> and V<sub>L</sub> because up and down are equally likely, discounting at the rate at that node.",
+       "Pathwise valuation averages present values across 2<sup>n−1</sup> paths and agrees with backward induction.",
+       "Equilibrium models (CIR, Vasicek) may miss the current curve; arbitrage-free models (Ho–Lee) are calibrated to it."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Notes prepared from the CFA Program 2026 Level II curriculum, Volume 6, Learning Module 2. Worked examples follow the curriculum's own illustrations; figures are as published."
+     }
+    }
+   ]
+  }
+ ]
+}
