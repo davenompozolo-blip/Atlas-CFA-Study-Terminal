@@ -1,0 +1,49 @@
+topic_id	reading_id	lm	authored	reading
+alt	9e4f73e51fc88d63	1	yes	Introduction to Commodities & Commodity Derivatives
+alt	ee918d2241cca38f	2	yes	Overview of Types of Real Estate Investment
+alt	e74131b7a8c16067	3	yes	Investments in Real Estate through Publicly Traded Securities
+alt	f74779747e1f9673	4	yes	Hedge Fund Strategies
+corp	a2529c4f50d80e04	1	no	Analysis of Dividends and Share Repurchases
+corp	747e1350b926bbc7	2	no	Environmental, Social, and Governance (ESG)
+corp	5d1a03a2a0865279	3	no	Cost of Capital: Advanced Topics
+corp	4c8633d9fe40c87d	4	no	Corporate Restructuring
+der	1d5a2a33d116c821	1	no	Forward Commitments Part 1
+der	dd24ef5d613d0f4e		no	Pricing and Valuation of Forward Commitments
+der	5d76ba69ac8cd32a		no	Valuation of Contingent Claims
+der	b2ab8ad10a6940cf		no	2026 L2 Derivatives
+eco	b9922c9b9e94d4a2	1	no	Currency Exchange Rates: Understanding Equilibrium
+eco	5afb68a37a862f12	2	no	Economic Growth
+eq	74e600d3b5c663eb	1	no	Equity Applications Processes
+eq	d611ea9d364c8555	2	no	Discounted Dividend Valuation
+eq	915103c1b926089e	3	no	Free Cash Flow Valuation
+eq	611205a2985ddb3f	4	no	Market Based Valuation
+eq	6e0bc00a4656cb71	5	no	Residual Income Valuation
+eq	635ddc459ba5d8be	6	no	Private Company Valuation
+eth	9bc1b1423af307a9	1	no	Code of Ethics & Standards of Professional Conduct
+eth	38700b1a8890dbfd	2	no	Guidance for Standards I-VII
+eth	23587eebd98952fe	2	no	7 Standards
+fsa	2b7b8e7fa0d06c16	1	no	Intercorporate Investments
+fsa	67f8810dc816bbe3	1	no	(title lost to extraction - "Page 1 of 19")
+fsa	7bc4fbfd08801c35	4	no	Financial Institutions
+fsa	5bd10c90f29ff5c5	5	no	Evaluating Quality of Financial Reports
+fsa	5f8db5b5ee9d7810	6	no	Integration FSA Final
+fsa	2de7e1be210a6545		no	Employee Compensation
+fsa	305bee752cf555a0		no	Multinational Operations
+fi	5502f5a566dc41b4	1	no	(title lost to extraction - "Page 1 of 21")
+fi	16479da7d1078497	2	no	(title lost to extraction - "Page 1 of 18")
+fi	ff7ed47990dcf243	3	no	(title lost to extraction - "Page 1 of 21")
+fi	3a42dca59fc2a452	4	no	(title lost to extraction - "Page 1 of 20")
+pm	477f5d323bb39f5c	1	no	(title lost to extraction - "Page 1 of 24")
+pm	d25462d3775b9953	2	no	(title lost to extraction - "Page 1 of 18")
+pm	0c919926dd0a3ffb	2	no	(title lost to extraction - "Page 1 of 17")
+pm	8a2c91849e854486	3	no	(title lost to extraction - "Page 1 of 18")
+pm	ea1ce79e91bca936	4	no	(title lost to extraction - "Page 1 of 16")
+pm	14c82aa289ae9a09	5	no	(title lost to extraction - "Page 1 of 21")
+pm	1c17db1574fff29b	6	no	(title lost to extraction - "Page 1 of 18")
+quant	1a5cd4c73305ffe8	1	no	LM1: Basics of Multiple Regression & Underlying Assumptions
+quant	e60e3f5937ae5a77	2	no	LM2: Evaluating Regression Model Fit & Interpreting Results
+quant	195257b5799e5253	3	no	LM3: Model Misspecification
+quant	639e46da7f955987	4	no	LM4: Extensions of Multiple Regression
+quant	76ba6258d0c141df	5	no	LM5: Time-Series Analysis
+quant	a329d628bb4685b8	6	no	(title lost to extraction - "Page 1 of 19")
+quant	9342190106e555c1	7	no	(title lost to extraction - "Page 1 of 23")
