@@ -1,0 +1,1204 @@
+{
+ "topic_id": "fi",
+ "module": "LM4",
+ "module_title": "Credit Analysis Models",
+ "source_ref": "CFA 2026 L2 Fixed Income/LM4",
+ "reading_id": "3a42dca59fc2a452",
+ "units": [
+  {
+   "ordinal": 1,
+   "title": "The Three Inputs to Credit Risk",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "The credit spread is the compensation for bearing default risk and for losses incurred if default occurs. Modelling it requires three quantities, and the module is built on them."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Default risk versus credit risk"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "<strong>Default risk</strong> is the narrower term — the likelihood of an event of default. <strong>Credit risk</strong> is broader, considering both the default probability and how much is expected to be lost if default occurs.<br><br>A collateralised loan can carry <em>high default risk but low credit risk</em>, if the collateral value is high relative to the amount owed. The two are not interchangeable."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "prose",
+     "payload": {
+      "text": "The difference between yields on a corporate bond and a government bond of the same maturity is the <strong>credit spread</strong>, known in practice as the <strong>G-spread</strong>. We assume both have the same taxation and liquidity, which is a simplification: government bonds are typically more liquid, available in greater supply, usable as repo collateral, and in the United States exempt from state-level tax on interest income. Disregarding those differences isolates default risk and expected loss as the determinants of the spread."
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Input one: expected exposure to default loss"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "The projected amount the investor could lose if default occurs, <strong>before</strong> factoring in recovery. For a one-year 4% annual payment bond priced at par, the exposure at the end of the year is simply 104 per 100 of par — the final coupon plus redemption of principal."
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Over multiple periods with interest rate volatility this becomes more involved, because the bond price varies as rates vary and the exposure varies with it."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Input two: recovery rate and loss given default"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "The <strong>recovery rate</strong> is the percentage of loss recovered from a bond in default. It varies by industry, seniority in the capital structure, total leverage, and whether the security is secured or collateralised. A <strong>40% recovery rate</strong> is a common baseline assumption."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Loss given default = Exposure × (1 − Recovery rate)"
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "worked",
+     "payload": {
+      "title": "Exposure, LGD, and recovery",
+      "blocks": [
+       {
+        "text": "A one-year, 4% annual payment corporate bond priced at par, with an assumed 40% recovery rate.",
+        "kind": "prose"
+       },
+       {
+        "text": "Exposure",
+        "kind": "step"
+       },
+       {
+        "expr": "104 per 100 of par",
+        "kind": "formula"
+       },
+       {
+        "text": "Loss given default",
+        "kind": "step"
+       },
+       {
+        "expr": "104 × (1 − 0.40) = 62.4",
+        "kind": "formula"
+       },
+       {
+        "text": "Amount received if default occurs",
+        "kind": "step"
+       },
+       {
+        "expr": "104 − 62.4 = 41.6",
+        "kind": "formula"
+       },
+       {
+        "text": "<strong>Loss severity</strong> is the complement of the recovery rate: at 40% recovery, loss severity is 60%. The example assumes instantaneous recovery and that the recovery rate applies to interest as well as principal — both simplifications, since lengthy delays between default and eventual cash recovery are common in practice.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "No default → 104 · Default → 41.6"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Input three: probability of default"
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Distinguish <strong>risk-neutral</strong> from <strong>actual (historical)</strong> default probabilities. 'Risk-neutral' follows the usage from option pricing: when expected payoffs are discounted at the risk-free rate, the probabilities used to form that expectation must be the risk-neutral ones. The same applies to valuing corporate bonds, and the two probabilities are not the same number."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 2,
+   "title": "The Credit Valuation Adjustment",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "The CVA is the present value of expected credit losses. It converts the three inputs into a number that can be subtracted from a default-free price."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Fair value = Value if default-free − CVA"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "formula",
+     "payload": {
+      "expr": "CVA = Σ (Expected loss in each period × Discount factor)"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "CVA and credit spread on a five-year zero",
+      "blocks": [
+       {
+        "text": "A five-year zero-coupon corporate bond, flat 3.00% government curve, 40% recovery, 1.25% annual default probability. The Date 5 discount factor is 0.862609 = 1/(1.03)⁵.",
+        "kind": "prose"
+       },
+       {
+        "text": "Step 1 · Present value of each period's expected loss",
+        "kind": "step"
+       },
+       {
+        "text": "For Date 5, the expected loss of 0.7132 discounts to 0.7132 × 0.862609 = 0.6152. Summing the present values of expected loss across all five dates gives the CVA.",
+        "kind": "prose"
+       },
+       {
+        "expr": "CVA = 3.1549 per 100 of par",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 2 · Value if the bond were default free",
+        "kind": "step"
+       },
+       {
+        "expr": "100 × 0.862609 = 86.2609",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 3 · Fair value",
+        "kind": "step"
+       },
+       {
+        "expr": "86.2609 − 3.1549 = 83.1060",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 4 · Yield and credit spread",
+        "kind": "step"
+       },
+       {
+        "expr": "100 / (1 + Yield)⁵ = 83.1060  →  Yield = 3.77%",
+        "kind": "formula"
+       }
+      ],
+      "answer": "Credit spread = 3.77% − 3.00% = 77 bps"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The compensation for credit risk can be expressed <strong>two equivalent ways</strong>: as the CVA of 3.1549, a present value per 100 of par on Date 0; or as a credit spread of 77 bps, an annual percentage rate for five years. They are the same economics in different units."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The practitioner's approximation"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Credit spread ≈ Annual default probability × (1 − Recovery rate)"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "prose",
+     "payload": {
+      "text": "In the example above: 1.25% × (1 − 0.40) = 0.75%, against the exact 0.77%. Close enough for quick work, and worth knowing because questions sometimes ask for the approximation explicitly."
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Rates of return conditional on default timing"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "prose",
+     "payload": {
+      "text": "The same bond produces very different annual returns depending on when default occurs, and the pattern is instructive."
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "table_data",
+     "payload": {
+      "headers": [
+       "Default date",
+       "Amount recovered",
+       "Annual rate of return"
+      ],
+      "rows": [
+       [
+        "Date 1",
+        "35.5395",
+        "−57.24%"
+       ],
+       [
+        "Date 2",
+        "36.6057",
+        "−33.63%"
+       ],
+       [
+        "Date 3",
+        "37.7038",
+        "−23.16%"
+       ],
+       [
+        "Date 4",
+        "38.8350",
+        "−17.32%"
+       ],
+       [
+        "Date 5",
+        "40.0000",
+        "−13.61%"
+       ],
+       [
+        "No default",
+        "100.0000",
+        "+3.77%"
+       ]
+      ],
+      "aligns": [
+       "",
+       "num",
+       "num"
+      ]
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "prose",
+     "payload": {
+      "text": "Bought at 83.1060, a Date 1 default recovering 35.5395 solves 83.1060 = 35.5395/(1+IRR), giving −57.24%. Later default is progressively less damaging because more of the holding period has been survived, so the loss is spread over more years. The return 'improves' to −13.61% if default occurs on the maturity date itself."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 3,
+   "title": "Credit Scores and Credit Ratings",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Scores serve the retail market, ratings the wholesale market. The examinable content is the FICO weighting and what is deliberately excluded."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Credit scores",
+       "Credit ratings"
+      ],
+      "rows": [
+       [
+        "Market",
+        "Retail — small businesses and individuals",
+        "Wholesale — corporate and government bonds, ABS"
+       ],
+       [
+        "Scope",
+        "National, because of differences in legal systems and privacy concerns",
+        "Global"
+       ],
+       [
+        "Basis",
+        "Observed factors; some countries use only negative information",
+        "Analyst judgement plus quantitative models"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The FICO algorithm"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "prose",
+     "payload": {
+      "text": "Used by about 90% of US lenders to retail customers, computed from consumer credit files collected by Experian, Equifax and TransUnion. Scores range from 300 to a perfect 850."
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "table_data",
+     "payload": {
+      "headers": [
+       "Weight",
+       "Factor",
+       "Includes"
+      ],
+      "rows": [
+       [
+        "35%",
+        "Payment history",
+        "Delinquency, bankruptcy, court judgments, repossessions, foreclosures"
+       ],
+       [
+        "30%",
+        "Debt burden",
+        "Credit card debt-to-limit ratios, number of accounts with positive balances, total amount owed"
+       ],
+       [
+        "15%",
+        "Length of credit history",
+        "Average age of accounts, age of the oldest account"
+       ],
+       [
+        "10%",
+        "Types of credit used",
+        "Installment payments, consumer finance, mortgages"
+       ],
+       [
+        "10%",
+        "Recent searches for credit",
+        "Hard inquiries when applying for new loans, but not soft inquiries such as employee verification or self-checking"
+       ]
+      ],
+      "aligns": [
+       "c",
+       "",
+       ""
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Note what is <strong>excluded</strong>: race, colour, national origin, sex, marital status, age, salary, occupation, employment history, home address, and child or family support obligations. Income is <em>not</em> in a FICO score — a common misconception and an easy distractor."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "The distribution shifts with the cycle. The percentage of weak scores rose through the global financial crisis and has since fallen back; the average FICO score moved 688 → 687 → 700 across October 2005, April 2009 and April 2017."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 4,
+   "title": "Expected Return under Credit Migration",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Rating agencies publish transition matrices. Combined with a credit spread schedule and modified duration, they give an expected return that accounts for rating migration without default."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The one-year transition matrix"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "table_data",
+     "payload": {
+      "headers": [
+       "From / To",
+       "AAA",
+       "AA",
+       "A",
+       "BBB",
+       "BB",
+       "B",
+       "CCC–C",
+       "D"
+      ],
+      "rows": [
+       [
+        "AAA",
+        "90.00",
+        "9.00",
+        "0.60",
+        "0.15",
+        "0.10",
+        "0.10",
+        "0.05",
+        "0.00"
+       ],
+       [
+        "AA",
+        "1.50",
+        "88.00",
+        "9.50",
+        "0.75",
+        "0.15",
+        "0.05",
+        "0.03",
+        "0.02"
+       ],
+       [
+        "A",
+        "0.05",
+        "2.50",
+        "<strong>87.50</strong>",
+        "8.40",
+        "0.75",
+        "0.60",
+        "0.12",
+        "0.08"
+       ],
+       [
+        "BBB",
+        "0.02",
+        "0.30",
+        "4.80",
+        "85.50",
+        "6.95",
+        "1.75",
+        "0.45",
+        "0.23"
+       ],
+       [
+        "BB",
+        "0.01",
+        "0.06",
+        "0.30",
+        "7.75",
+        "79.50",
+        "8.75",
+        "2.38",
+        "1.25"
+       ],
+       [
+        "B",
+        "0.00",
+        "0.05",
+        "0.15",
+        "1.40",
+        "9.15",
+        "76.60",
+        "8.45",
+        "4.20"
+       ],
+       [
+        "CCC–C",
+        "0.00",
+        "0.01",
+        "0.12",
+        "0.87",
+        "1.65",
+        "18.50",
+        "49.25",
+        "29.60"
+       ],
+       [
+        "<strong>Credit spread</strong>",
+        "0.60%",
+        "0.90%",
+        "1.10%",
+        "1.50%",
+        "3.40%",
+        "6.50%",
+        "9.50%",
+        "—"
+       ]
+      ],
+      "aligns": [
+       "",
+       "num",
+       "num",
+       "num",
+       "num",
+       "num",
+       "num",
+       "num",
+       "num"
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "Expected return on an A rated bond",
+      "blocks": [
+       {
+        "text": "An A rated 10-year corporate bond with modified duration of 7.2 at year end, given stable yields and spreads. Current spread 1.10%.",
+        "kind": "prose"
+       },
+       {
+        "text": "Step 1 · Price change for each possible transition",
+        "kind": "step"
+       },
+       {
+        "text": "Expected percentage price change = −Modified duration × Change in spread.",
+        "kind": "prose"
+       },
+       {
+        "headers": [
+         "Transition",
+         "Spread change",
+         "Price change"
+        ],
+        "rows": [
+         [
+          "A → AAA",
+          "0.60% − 1.10%",
+          "−7.2 × (−0.50%) = +3.60%"
+         ],
+         [
+          "A → AA",
+          "0.90% − 1.10%",
+          "+1.44%"
+         ],
+         [
+          "A → A (no change)",
+          "0",
+          "0%"
+         ],
+         [
+          "A → BBB",
+          "1.50% − 1.10%",
+          "−2.88%"
+         ],
+         [
+          "A → BB",
+          "3.40% − 1.10%",
+          "−16.56%"
+         ],
+         [
+          "A → B",
+          "6.50% − 1.10%",
+          "−38.88%"
+         ],
+         [
+          "A → CCC–C",
+          "9.50% − 1.10%",
+          "−60.48%"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num",
+         "num"
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Step 2 · Weight by transition probability and sum",
+        "kind": "step"
+       },
+       {
+        "expr": "(0.0005 × 3.60%) + (0.0250 × 1.44%) + (0.8750 × 0%) + (0.0840 × −2.88%)",
+        "kind": "formula"
+       },
+       {
+        "expr": "+ (0.0075 × −16.56%) + (0.0060 × −38.88%) + (0.0012 × −60.48%)",
+        "kind": "formula"
+       },
+       {
+        "text": "Expected return over the year is therefore the bond's yield-to-maturity <em>minus</em> 0.6342%, assuming no default. For a non-investment-grade bond the small probability of transition to default would also need including.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Expected percentage change in value = −0.6342%"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Credit spread migration <strong>typically reduces</strong> expected return, for two reasons.<br><br>First, transition probabilities are <strong>not symmetrically distributed</strong> around the current rating — they are skewed toward downgrade.<br><br>Second, the <strong>increase in spread on a downgrade is much larger</strong> than the decrease on an upgrade. Moving A → BB costs 230 bps; moving A → AA gains only 20 bps."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 5,
+   "title": "Structural and Reduced-Form Models",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Two families. Structural models explain <em>why</em> default occurs; reduced-form models model statistically <em>when</em> it occurs."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Structural models"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "Dating to the 1970s and the work of Black, Scholes and Merton. The key insight: a company defaults if the value of its assets falls below the amount of its liabilities, and the probability of that event has the features of an <strong>option</strong>."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Also called a <strong>company-value model</strong>, because the key variable is the asset value of the firm.",
+       "Called structural because it depends on the <strong>structure of the balance sheet</strong> — assets, liabilities and equity.",
+       "Default occurs when asset value dips below the <strong>default barrier</strong>, which is based on the company's liabilities."
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Reduced-form models"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "Emerging in the 1990s, these avoid a fundamental problem with structural models. Black–Scholes–Merton explicitly assumes the assets on which options are written are actively traded. That is fine for stock options, but <strong>the assets of a company typically do not trade</strong>."
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Reduced-form models sidestep this by treating default as an <strong>exogenous</strong> variable occurring randomly, rather than an endogenous one. Default time is modelled with a <strong>Poisson stochastic process</strong>, whose key parameter is the <strong>default intensity</strong> — the probability of default over the next time increment. Hence the alternative names: intensity-based models and stochastic default rate models."
+      ]
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Strengths and weaknesses"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Structural",
+       "Reduced-form"
+      ],
+      "rows": [
+       [
+        "Default is",
+        "Endogenous — arises from the firm's own balance sheet",
+        "Exogenous — occurs randomly"
+       ],
+       [
+        "Explains",
+        "<strong>Why</strong> default occurs",
+        "<strong>When</strong> default occurs, statistically"
+       ],
+       [
+        "Strength",
+        "Provides insight into the nature of credit risk",
+        "Inputs are <strong>observable variables</strong>, including historical data"
+       ],
+       [
+        "Estimation",
+        "Requires company value, its volatility, and the default barrier",
+        "Default intensity estimated by regression on company-specific variables (leverage, net income to assets, cash to assets) and macroeconomic variables (unemployment, GDP growth, equity volatility)"
+       ],
+       [
+        "Weakness",
+        "Burdensome to implement; data limitations. Companies hiding debt — Enron, Tyco, WorldCom, Parmalat, Lehman — make the default barrier hard to measure precisely when it matters most",
+        "Does <strong>not</strong> explain the economic reasons for default. Assumes default is a 'surprise' that can occur at any time, when in reality issuers are usually downgraded several times beforehand"
+       ],
+       [
+        "Business cycle",
+        "Not directly reflected",
+        "Directly reflected, through macroeconomic regressors"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "The cleanest examinable contrast: structural models assume tradable assets and explain the economics of default but are hard to implement; reduced-form models use observable inputs and capture the cycle but treat default as a random surprise with no economic story. A question citing 'assets do not trade' as a criticism is pointing at structural models."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 6,
+   "title": "Interpreting Changes in Credit Spreads",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Yields and spreads move daily. Decomposing a corporate bond yield shows which forces act on which component."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Component",
+       "Captures",
+       "Driven by"
+      ],
+      "rows": [
+       [
+        "<strong>Benchmark yield</strong>",
+        "Macroeconomic factors affecting all debt securities",
+        "Expected inflation rate, expected real rate of return, plus compensation for uncertainty about both"
+       ],
+       [
+        "<strong>Spread</strong>",
+        "Microeconomic factors specific to the issuer and issue",
+        "Expected loss due to default (the chief factor), liquidity, taxation, and a risk premium for uncertainty about all three"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "These factors are hard to separate, and they interact. Securities where it becomes harder to assess default probability and recovery rate typically become <strong>less liquid</strong>. An uncertain tax status increases the time and cost of estimating value, which also reduces liquidity. Credit uncertainty and liquidity are not independent."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "XVA"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "Valuations of derivatives are increasingly adjusted for counterparty credit risk, funding costs, liquidity and taxation. A value is first obtained using benchmark discount factors derived from <strong>overnight indexed swap</strong> rates — in the United States, the effective federal funds rate. That OIS value is then adjusted."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>CVA</strong> — credit valuation adjustment. The most developed and most used in practice.",
+       "<strong>FVA</strong> — funding valuation adjustment.",
+       "<strong>LVA</strong> — liquidity valuation adjustment.",
+       "Collectively these are known as <strong>XVA</strong>."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 7,
+   "title": "The Term Structure of Credit Spreads",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "A credit curve shows the spread over a benchmark for a single issuer across maturities, exactly as a yield curve shows one government issuer's rates across maturities."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "What it is used for"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Measuring the risk–return trade-off for a single issuer, or across ratings and sectors.",
+       "Issuers work with underwriters on the terms of a new issuance or a tender for existing debt, based on relative spreads across maturities.",
+       "A portfolio manager uses an issuer's existing credit curve to determine a bid for new primary issuance and to inform secondary trading.",
+       "Deriving prospective pricing for a new issue, or fair value spreads for outstanding securities — an extension of <strong>matrix pricing</strong>."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Determinants"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "Anything raising the implied default probability tends to <strong>steepen</strong> the credit spread curve. Greater equity volatility is the example the curriculum gives; falling equity volatility flattens it."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Two practical considerations"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Choice of benchmark"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "A frequently traded government security with the nearest maturity generally represents the lowest default risk in developed markets, so it is the logical benchmark.",
+       "But the duration and maturity of the most liquid on-the-run government bonds <strong>rarely match</strong> those of corporate bonds in the secondary market, so interpolation between the two closest government maturities is often needed.",
+       "Because interpolation may distort the analysis for less liquid maturities, the <strong>benchmark swap curve</strong> based on interbank rates is often substituted, given greater swap market liquidity at off-the-run maturities."
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Comparability of the bonds included"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Term structure analysis should include <strong>only bonds with similar credit characteristics</strong> — typically senior unsecured general obligations. Bonds with embedded options, first or second lien provisions, or other unique provisions must be <strong>excluded</strong>. Including a callable bond in a credit curve contaminates it with option value that has nothing to do with credit."
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "prose",
+     "payload": {
+      "text": "Note that such securities typically include cross-default provisions, so all securities across the maturity structure default together — which is what makes a single issuer credit curve coherent in the first place."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 8,
+   "title": "Credit Analysis for Securitized Debt",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Securitised debt finances a specific set of assets rather than an entire balance sheet, and that difference drives everything about how it is analysed."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Why issuers and investors use it"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Issuer motivation",
+       "Investor motivation"
+      ],
+      "rows": [
+       [
+        "Increase debt capacity",
+        "Greater diversification"
+       ],
+       [
+        "Reduce the originator's need to maintain regulatory capital",
+        "More stable and predictable underlying cash flows"
+       ],
+       [
+        "Avoid retaining residual risk",
+        "Return greater than securities of similar rating, rewarding the greater complexity of collateralised debt"
+       ],
+       [
+        "Isolation of assets lowers stand-alone financing cost versus general obligation financing",
+        ""
+       ],
+       [
+        "Freeing up capital allows continued income from further originations",
+        ""
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "How the analysis differs"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Credit analysis of structured finance requires a <strong>fundamentally different approach</strong> from other risky bonds, because value depends on the underlying collateral, on the parties originating and servicing the portfolio over the security's life, on the issuing entity itself, and on structural and credit enhancement features."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Dimension",
+       "Corporate debt",
+       "Securitised debt"
+      ],
+      "rows": [
+       [
+        "Claim",
+        "General obligation of the issuer",
+        "Specific pool of assets or receivables"
+       ],
+       [
+        "Primary analysis",
+        "The firm's business, financials and management",
+        "The collateral pool's composition and performance"
+       ],
+       [
+        "Counterparties",
+        "Largely the issuer alone",
+        "Originator, servicer, issuing entity — each a distinct risk"
+       ],
+       [
+        "Structure",
+        "Seniority within one balance sheet",
+        "Tranching, subordination, and credit enhancement features"
+       ],
+       [
+        "Granularity",
+        "Single obligor",
+        "Many underlying obligors, so pool statistics matter more than any one borrower"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Typical collateral types include mortgages, automobile loans and credit card receivables. Because the originator and servicer remain involved across the security's life, their financial health and operational competence are part of the credit analysis in a way that has no corporate-debt analogue."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 9,
+   "title": "Consolidation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Formulas"
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Concept",
+       "Formula"
+      ],
+      "rows": [
+       [
+        "Credit spread (G-spread)",
+        "Corporate YTM − Government YTM, same maturity"
+       ],
+       [
+        "Loss given default",
+        "Exposure × (1 − Recovery rate)"
+       ],
+       [
+        "Loss severity",
+        "1 − Recovery rate"
+       ],
+       [
+        "CVA",
+        "Σ (Expected loss × Discount factor)"
+       ],
+       [
+        "Fair value",
+        "Value if default-free − CVA"
+       ],
+       [
+        "Credit spread approximation",
+        "Annual default probability × (1 − Recovery rate)"
+       ],
+       [
+        "Price change on migration",
+        "−Modified duration × Change in credit spread"
+       ],
+       [
+        "Expected change in value",
+        "Σ (Price change × Transition probability)"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Directional relationships"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "If…",
+       "Then…"
+      ],
+      "rows": [
+       [
+        "Collateral value is high relative to debt",
+        "Default risk may be high while credit risk is low"
+       ],
+       [
+        "Recovery rate rises",
+        "LGD falls, CVA falls, credit spread narrows"
+       ],
+       [
+        "Default occurs later rather than earlier",
+        "The annual rate of return is less negative"
+       ],
+       [
+        "A bond is downgraded",
+        "Spread widens far more than an equivalent upgrade narrows it"
+       ],
+       [
+        "Equity volatility rises",
+        "Implied default probability rises; credit curve steepens"
+       ],
+       [
+        "Assessing default probability becomes harder",
+        "The security typically becomes less liquid too"
+       ],
+       [
+        "Volatility assumption or model changes",
+        "Structural models need firm value and barrier; reduced-form needs only observables"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Ten points for a final pass"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "Default risk is the probability of default; credit risk adds the magnitude of expected loss.",
+       "The three inputs are expected exposure, loss given default, and probability of default.",
+       "Loss severity is one minus the recovery rate; 40% recovery is the standard baseline.",
+       "Risk-neutral and actual default probabilities are different numbers and are not interchangeable.",
+       "CVA is the present value of expected losses; fair value is the default-free value less CVA.",
+       "Credit compensation can be stated as a CVA in present value or as a credit spread in annual rate terms.",
+       "The practitioner approximation for the spread is annual default probability times loss severity.",
+       "Migration reduces expected return because probabilities skew to downgrade and downgrades widen spreads more than upgrades narrow them.",
+       "Structural models explain why default happens but assume assets trade; reduced-form models explain when, using observables, but treat default as a surprise.",
+       "Credit curves must be built from comparable senior unsecured bonds, excluding anything with embedded options or liens."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Notes prepared from the CFA Program 2026 Level II curriculum, Volume 6, Learning Module 4. Worked examples follow the curriculum's own illustrations; exhibit figures are as published."
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,878 @@
+{
+ "topic_id": "fi",
+ "module": "LM5",
+ "module_title": "Credit Default Swaps",
+ "source_ref": "CFA 2026 L2 Fixed Income/LM5",
+ "reading_id": "bc998274c01e7dc4",
+ "units": [
+  {
+   "ordinal": 1,
+   "title": "Definitions and Contract Parameters",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "A credit derivative is one whose underlying is a measure of a borrower's credit quality. Of the four types, CDS are by far the most liquid, and they are the only one the module treats in depth."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "The four types of credit derivative are <strong>total return swaps</strong>, <strong>credit spread options</strong>, <strong>credit-linked notes</strong>, and <strong>credit default swaps</strong>."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "A <strong>credit default swap</strong> is a contract between a credit protection buyer and a credit protection seller, in which the buyer makes a series of cash payments to the seller and receives a promise of compensation for credit losses resulting from a credit event in an underlying.<br><br>The <strong>buyer is short risk</strong>. The <strong>seller is long risk</strong>. If default occurs, the buyer's periodic payments terminate."
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "prose",
+     "payload": {
+      "text": "At its most fundamental level a CDS provides compensation equal to expected recovery when a credit event occurs. But it also changes in value to reflect shifting market perception of credit quality well in advance of any default. The value rises and falls as opinions change about the likelihood and severity of a potential default — and the default might never occur at all."
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Credit events"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Category",
+       "Events"
+      ],
+      "rows": [
+       [
+        "Most common",
+        "Bankruptcy, failure to pay, restructuring"
+       ],
+       [
+        "Sovereign and municipal",
+        "Moratorium on payments due, or more drastically <strong>repudiation</strong> — the authority challenges the validity of the entire debt obligation"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "The industry has expended considerable effort on clear guidance about which events a contract covers, but no perfect contract exists and disputes occasionally arise."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Why investors use CDS beyond hedging"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "<strong>Leverage</strong> their portfolios.",
+       "Access <strong>maturity exposures not available in the cash market</strong>.",
+       "Access credit risk while <strong>limiting interest rate risk</strong>.",
+       "<strong>Improve portfolio liquidity</strong>, given the illiquidity of the corporate bond market."
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "prose",
+     "payload": {
+      "text": "The market has also increased transparency into the actual cost of credit risk. Higher relative liquidity and greater sophistication of CDS investors allow more accurate price discovery, and facilitate trading during liquidity events when the cash bond market becomes illiquid."
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Three types of CDS"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Type",
+       "Underlying",
+       "Note"
+      ],
+      "rows": [
+       [
+        "Single-name CDS",
+        "One reference entity",
+        "Diversity of entities limits trading volume"
+       ],
+       [
+        "Index CDS",
+        "A portfolio of reference entities",
+        "<strong>Typically more liquid</strong> than single-name, with average daily volume several times greater"
+       ],
+       [
+        "Tranche CDS",
+        "A defined slice of an index portfolio",
+        "Correlation among constituents is a key determinant of value"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Contract parameters"
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Contracts conform to <strong>ISDA</strong> specifications under an <strong>ISDA Master Agreement</strong>. In Europe the standard is the Standard Europe Contract; in the United States and Canada, the Standard North American Contract.",
+       "The <strong>notional</strong> is the amount of protection purchased — the size of the contract.",
+       "Maturity ranges from 1 to 10 years, with <strong>5 years the most common and actively traded</strong>. Maturity dates are typically the 20th of March, June, September or December.",
+       "<strong>March and September are the most liquid</strong> maturity dates, because those are when index CDS contracts roll."
+      ]
+     }
+    },
+    {
+     "ord": 15,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Total notional CDS outstanding on a reference entity <strong>can exceed that entity's debt outstanding</strong>. The protection buyer need not be an actual creditor holding exposure — it may simply be a party expressing a view that credit quality will change. This surprises people and is examinable."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 2,
+   "title": "Standard Coupons and the Upfront Premium",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Standardising the coupon made CDS tradable at scale, but it created a mismatch that has to be settled in cash at initiation."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "The buyer pays a periodic premium called the <strong>CDS spread</strong> — a return over a market reference rate required to protect against credit risk. Conceptually it is the same as the credit spread on a bond."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "Formerly the coupon was set <em>at</em> the credit spread: a CDS requiring 4% meant quarterly payments totalling 4% annually. Coupons are now standardised."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_data",
+     "payload": {
+      "headers": [
+       "Standard coupon",
+       "Typically used for"
+      ],
+      "rows": [
+       [
+        "1%",
+        "Investment-grade company or index"
+       ],
+       [
+        "5%",
+        "High-yield company or index"
+       ]
+      ],
+      "aligns": [
+       "c",
+       ""
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "Not all investment-grade companies carry equivalent credit risk, so the standard rate is often too high or too low. The difference between the actual credit spread and the standard coupon is converted to a <strong>present value basis</strong> and settled as the <strong>upfront premium</strong>.<br><br>Credit spread <strong>greater</strong> than the standard rate → the <strong>buyer pays the seller</strong>.<br>Credit spread <strong>less</strong> than the standard rate → the <strong>seller pays the buyer</strong>."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Upfront payment = PV(Protection leg) − PV(Premium leg)"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "If the result is greater than zero the protection buyer pays the seller; if less, the seller pays the buyer. Actual pricing models are more mathematically complex but rest on this framework."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Upfront premium % = 100 − Price of CDS in currency per 100 par"
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 3,
+   "title": "Pricing: Hazard Rates and the Credit Spread",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "The pricing intuition reduces to one approximation, and the compounding of a modest hazard rate over many periods produces a result that catches people out."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "formula",
+     "payload": {
+      "expr": "CDS spread ≈ (1 − Recovery rate) × Probability of default",
+      "label": "Ignoring time value, default only at maturity"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "worked",
+     "payload": {
+      "title": "Fair CDS spread from POD and recovery",
+      "blocks": [
+       {
+        "text": "Probability of default 2%, recovery rate 60%.",
+        "kind": "prose"
+       },
+       {
+        "expr": "(1 − 0.60) × 2% = 0.80% = 80 bps",
+        "kind": "formula"
+       }
+      ],
+      "answer": "On $100 notional over one year, fair value = PV of $0.80"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The hazard rate"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The <strong>hazard rate</strong> is the probability that an event will occur <strong>given that it has not already occurred</strong>. The probability of default in Period 2 is conditional on surviving Period 1, so cumulative default probability must be built from survival probabilities rather than added directly."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "worked",
+     "payload": {
+      "title": "Cumulative default probability over two periods",
+      "blocks": [
+       {
+        "text": "A two-year, 5%, $1,000 loan: $50 interest due in one year, $1,050 due in two. Estimated 2% chance of default on the first payment and 4% on the second.",
+        "kind": "prose"
+       },
+       {
+        "text": "Step 1 · Probability of survival through both periods",
+        "kind": "step"
+       },
+       {
+        "expr": "0.98 × 0.96 = 0.9408 = 94.08%",
+        "kind": "formula"
+       },
+       {
+        "text": "Step 2 · Probability of default over the life of the loan",
+        "kind": "step"
+       },
+       {
+        "expr": "100% − 94.08% = 5.92%",
+        "kind": "formula"
+       },
+       {
+        "text": "Note it is <em>not</em> 2% + 4% = 6%. The difference is small here but compounds.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "POD over the loan's life = 5.92%"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "worked",
+     "payload": {
+      "title": "A low hazard rate over a long horizon",
+      "blocks": [
+       {
+        "text": "A 10-year bond with a constant 2% hazard rate each year. What is the probability of default at some point over the ten years?",
+        "kind": "prose"
+       },
+       {
+        "text": "Probability of no default in 10 years",
+        "kind": "step"
+       },
+       {
+        "expr": "0.98<sup>10</sup> = 0.817",
+        "kind": "formula"
+       },
+       {
+        "text": "Probability of default",
+        "kind": "step"
+       },
+       {
+        "expr": "1 − 0.817 = 0.183",
+        "kind": "formula"
+       },
+       {
+        "text": "A 2% annual chance becomes an 18.3% cumulative chance. This is the point of the example: a low one-period probability turns into a surprisingly high probability over a longer horizon.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "18.3% probability of default over 10 years"
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 4,
+   "title": "The Credit Curve",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Credit spreads across a company's range of maturities make up its credit curve, and in a mature CDS market the curve is essentially determined by CDS rates."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "The credit curve is analogous to the term structure of interest rates, but applies to non-government borrowers and incorporates credit risk into each rate. The credit spread can be expressed roughly as probability of default multiplied by loss given default."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "What shapes it"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Curve shape",
+       "Implication"
+      ],
+      "rows": [
+       [
+        "Upward sloping",
+        "Greater likelihood of default in <strong>later</strong> years"
+       ],
+       [
+        "Downward sloping",
+        "Greater probability of default in <strong>earlier</strong> years. Less common, and often the result of severe near-term stress in financial markets"
+       ],
+       [
+        "Flatter",
+        "A <strong>constant hazard rate</strong> tends to flatten the curve"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Even with constant hazard rates the credit curve would <strong>not be completely flat</strong>, because of discounting. A company issuing 5- and 10-year zeros could have equally likely default probabilities and equal expected payoffs, but the present values of those payoffs differ, so the discount rates equating present value to expected payoff differ too."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "worked",
+     "payload": {
+      "title": "Reading a change in the credit curve",
+      "blocks": [
+       {
+        "text": "A company's 5-year CDS trades at 300 bps and its 10-year at 500 bps.",
+        "kind": "prose"
+       },
+       {
+        "text": "Case 1 · 5-year unchanged, 10-year widens by 100 bps",
+        "kind": "step"
+       },
+       {
+        "text": "The company is not riskier in the short term, but longer-term creditworthiness is less attractive. Perhaps liquidity is adequate for now, but after five years debt repayment begins and cash flow difficulties are expected.",
+        "kind": "prose"
+       },
+       {
+        "text": "Case 2 · 10-year unchanged, 5-year widens by 500 bps",
+        "kind": "step"
+       },
+       {
+        "text": "Near-term credit risk is now much greater. The probability of default will <em>decrease</em> if the company can survive the next five years — a liquidity problem rather than a solvency one.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Case 2 flattens or inverts the curve; Case 1 steepens it"
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 5,
+   "title": "Valuation Changes During the Contract's Life",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "A CDS has a value that fluctuates like any traded instrument. The valuation procedure is exactly the same as at issue, simply with new inputs."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "prose",
+     "payload": {
+      "text": "Duration shortens through time by definition. Probability of default, expected loss given default, and the shape of the credit curve all change as new information arrives."
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "worked",
+     "payload": {
+      "title": "Who gains when credit quality improves",
+      "blocks": [
+       {
+        "text": "A five-year CDS with a fixed 1% coupon on a reference entity whose credit spread is 2.5%. Promising to pay 1% for coverage on a risk justifying 2.5% means the protection leg exceeds the premium leg, so the <strong>buyer pays an upfront premium</strong> to the seller.",
+        "kind": "prose"
+       },
+       {
+        "text": "During the life of the contract, credit quality improves and the spread narrows to 2.1%.",
+        "kind": "prose"
+       },
+       {
+        "text": "A newly created CDS with the same remaining maturity and 1% coupon would still have a protection leg exceeding its premium leg, but by <em>less</em> than before, because the risk is now lower.",
+        "kind": "prose"
+       },
+       {
+        "text": "The difference between the original upfront premium and the new value is the seller's gain and the buyer's loss.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "The seller has gained; the buyer has lost"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Approximating the profit and loss"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Profit or loss for the protection buyer ≈ Change in spread (bps) × Duration × Notional"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "formula",
+     "payload": {
+      "expr": "% Change in CDS price ≈ Change in spread (bps) × Duration"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The analogy to bonds is exact. A bond's percentage price change is approximately the change in yield times modified duration. For a CDS, the <strong>change in spread</strong> is analogous to the change in yield, and the <strong>duration of the CDS</strong> is analogous to the duration of the bond on which it is written."
+      ]
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "worked",
+     "payload": {
+      "title": "Profit from a widening spread",
+      "blocks": [
+       {
+        "text": "An investor buys $10 million of five-year protection. The contract has a duration of four years. The credit spread widens from 500 bps to 800 bps.",
+        "kind": "prose"
+       },
+       {
+        "text": "Change in spread",
+        "kind": "step"
+       },
+       {
+        "expr": "800 − 500 = 300 bps = 3%",
+        "kind": "formula"
+       },
+       {
+        "text": "Profit to the protection buyer",
+        "kind": "step"
+       },
+       {
+        "expr": "3% × 4 × $10,000,000",
+        "kind": "formula"
+       },
+       {
+        "text": "The buyer is short credit risk, so a widening spread is a gain. Had the spread narrowed, the same arithmetic would give a loss.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "≈ $1,200,000 gain to the buyer"
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 6,
+   "title": "Applications",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Three families of trade: managing exposure, expressing a view on relative credit quality, and exploiting valuation disparities across markets."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Naked CDS and index hedging"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "A position taken purely to express a view, without holding the underlying exposure, is a <strong>naked credit default swap</strong>."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "Hedging a single name out of an index position",
+      "blocks": [
+       {
+        "text": "An investor sells $500 million of protection using the CDX IG index, which has 125 reference entities. Concerned about one constituent, he buys $3 million of single-name protection on Company A. Company A subsequently defaults.",
+        "kind": "prose"
+       },
+       {
+        "text": "Net notional exposure to Company A",
+        "kind": "step"
+       },
+       {
+        "expr": "Long $500m / 125 = $4m via the index; short $3m via single-name",
+        "kind": "formula"
+       },
+       {
+        "text": "Proportion hedged",
+        "kind": "step"
+       },
+       {
+        "expr": "$3m / $4m = 75%",
+        "kind": "formula"
+       },
+       {
+        "text": "Remaining notional on the index trade",
+        "kind": "step"
+       },
+       {
+        "expr": "$500m − $4m = $496m",
+        "kind": "formula"
+       },
+       {
+        "text": "Company A is no longer in the index, so its $4m share drops out of the remaining notional.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Net notional exposure = $1 million"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Long/short trades"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "Buying protection on one entity (shorting the credit) while selling protection on another (going long the credit), to express a view on relative creditworthiness. The same structure works across CDS indexes — anticipating a weakening economy, an investor could buy protection using a high-yield index and sell protection using an investment-grade index."
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "worked",
+     "payload": {
+      "title": "A relative-value long/short trade",
+      "blocks": [
+       {
+        "text": "Before an industry-wide shock, Trapp's five-year CDS traded at 250 bps and Atelier's at 150 bps, the gap reflecting Trapp's lower liquidity, smaller size and lower profitability. After the shock, Trapp widened 75 bps to 325 and Atelier widened 60 bps to 210.",
+        "kind": "prose"
+       },
+       {
+        "text": "The analyst believes the longer-term implications are more adverse for Trapp, largely because of higher ESG-related risks — weaker factory safety and weaker corporate governance. She expects Trapp to stay wider than its 250 bps pre-shock level while Atelier returns to 150 bps.",
+        "kind": "prose"
+       },
+       {
+        "text": "The trade",
+        "kind": "step"
+       },
+       {
+        "text": "Buy protection on Trapp (short the credit); sell protection on Atelier (long the credit).",
+        "kind": "prose"
+       },
+       {
+        "text": "Outcome if Atelier returns to 150 and Trapp only narrows to 300",
+        "kind": "step"
+       },
+       {
+        "expr": "Spread differential widens from (325 − 210) = 115 bps to (300 − 150) = 150 bps",
+        "kind": "formula"
+       }
+      ],
+      "answer": "35 bps of spread widening, representing profit before trading costs"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Curve trades"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "A <strong>curve trade</strong> is a long/short position in CDS of the <em>same</em> reference entity at <em>different</em> maturities, used to express a view on the shape of that entity's credit curve rather than its overall level."
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "View",
+       "Trade"
+      ],
+      "rows": [
+       [
+        "Near-term risk rising relative to long-term",
+        "Buy short-maturity protection, sell long-maturity — profits if the curve flattens or inverts"
+       ],
+       [
+        "Long-term risk rising relative to near-term",
+        "Sell short-maturity protection, buy long-maturity — profits if the curve steepens"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Basis trades"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "prose",
+     "payload": {
+      "text": "CDS can be used to exploit valuation disparities between separate markets — bonds, loans, equities and equity-linked instruments. If the credit risk implied by a bond's spread differs from that implied by the CDS spread on the same entity, a position in both captures the difference as the gap closes."
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "The direction to remember: the protection <strong>buyer</strong> is <strong>short</strong> credit risk and gains when spreads <strong>widen</strong>. Every application above is an arrangement of that one fact — across two entities for a long/short, across two maturities for a curve trade, across two markets for a basis trade."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 7,
+   "title": "Consolidation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Formulas"
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Concept",
+       "Formula"
+      ],
+      "rows": [
+       [
+        "CDS spread approximation",
+        "(1 − Recovery rate) × Probability of default"
+       ],
+       [
+        "Upfront payment",
+        "PV(Protection leg) − PV(Premium leg)"
+       ],
+       [
+        "Upfront premium %",
+        "100 − Price of CDS per 100 par"
+       ],
+       [
+        "Probability of survival",
+        "Product of (1 − hazard rate) across periods"
+       ],
+       [
+        "Cumulative POD",
+        "1 − Probability of survival"
+       ],
+       [
+        "Buyer's profit or loss",
+        "Change in spread (bps) × Duration × Notional"
+       ],
+       [
+        "% change in CDS price",
+        "Change in spread (bps) × Duration"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Directional relationships"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "If…",
+       "Then…"
+      ],
+      "rows": [
+       [
+        "Credit spread exceeds the standard coupon",
+        "Protection buyer pays the upfront premium"
+       ],
+       [
+        "Credit spread is below the standard coupon",
+        "Protection seller pays the upfront premium"
+       ],
+       [
+        "Credit spreads widen",
+        "Protection buyer gains, seller loses"
+       ],
+       [
+        "Credit quality improves during the contract",
+        "Seller gains, buyer loses"
+       ],
+       [
+        "Hazard rate is constant",
+        "Credit curve tends to flatten, but never completely"
+       ],
+       [
+        "Credit curve slopes upward",
+        "Greater default likelihood in later years"
+       ],
+       [
+        "Recovery rate assumption rises",
+        "CDS spread falls"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Ten points for a final pass"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "The protection buyer is short credit risk; the seller is long it.",
+       "Credit events are bankruptcy, failure to pay and restructuring, plus moratorium or repudiation for sovereign and municipal debt.",
+       "Index CDS are typically more liquid than single-name, with several times the daily volume.",
+       "Total notional CDS can exceed the reference entity's debt outstanding — buyers need not be creditors.",
+       "Standard coupons are 1% for investment grade and 5% for high yield; the mismatch settles as an upfront premium.",
+       "CDS spread approximates loss severity times probability of default.",
+       "The hazard rate is conditional on survival, so cumulative POD compounds rather than adds.",
+       "A 2% annual hazard rate becomes an 18.3% cumulative default probability over ten years.",
+       "Constant hazard rates flatten the credit curve but discounting keeps it from being perfectly flat.",
+       "Buyer's profit approximates change in spread times duration times notional — the bond duration analogy carried over."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Notes prepared from the CFA Program 2026 Level II curriculum, Volume 6, Learning Module 5. Worked examples follow the curriculum's own illustrations; figures are as published."
+     }
+    }
+   ]
+  }
+ ]
+}

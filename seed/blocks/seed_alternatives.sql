@@ -5,6 +5,9 @@ begin;
 
 -- ===== LM1: Introduction to Commodities and Commodity Derivatives =====
 -- 8 units, 104 blocks
+insert into codex_documents (id, topic_id, reading, lm, source_file, content_hash, ingest_method)
+values ('9e4f73e51fc88d63', 'alt', 'Introduction to Commodities and Commodity Derivatives', 1, 'CFA 2026 L2 V8/LM1', 'blocks-v1:LM1', 'blocks-v1')
+on conflict (id) do update set reading = excluded.reading, lm = excluded.lm;
 delete from codex_units where reading_id = '9e4f73e51fc88d63' and kind in ('concept', 'example');
 update codex_units set ord = ord + 1000 where reading_id = '9e4f73e51fc88d63' and kind <> 'los' and ord > 0;
 update codex_units set ord = ord - 992 where reading_id = '9e4f73e51fc88d63' and kind <> 'los' and ord > 1000;
@@ -163,6 +166,9 @@ values
 
 -- ===== LM2: Overview of Types of Real Estate Investment =====
 -- 8 units, 95 blocks
+insert into codex_documents (id, topic_id, reading, lm, source_file, content_hash, ingest_method)
+values ('ee918d2241cca38f', 'alt', 'Overview of Types of Real Estate Investment', 2, 'CFA 2026 L2 V8/LM2', 'blocks-v1:LM2', 'blocks-v1')
+on conflict (id) do update set reading = excluded.reading, lm = excluded.lm;
 delete from codex_units where reading_id = 'ee918d2241cca38f' and kind in ('concept', 'example');
 update codex_units set ord = ord + 1000 where reading_id = 'ee918d2241cca38f' and kind <> 'los' and ord > 0;
 update codex_units set ord = ord - 992 where reading_id = 'ee918d2241cca38f' and kind <> 'los' and ord > 1000;
@@ -312,6 +318,9 @@ values
 
 -- ===== LM3: Investments in Real Estate through Publicly Traded Securities =====
 -- 7 units, 86 blocks
+insert into codex_documents (id, topic_id, reading, lm, source_file, content_hash, ingest_method)
+values ('e74131b7a8c16067', 'alt', 'Investments in Real Estate through Publicly Traded Securities', 3, 'CFA 2026 L2 V8/LM3', 'blocks-v1:LM3', 'blocks-v1')
+on conflict (id) do update set reading = excluded.reading, lm = excluded.lm;
 delete from codex_units where reading_id = 'e74131b7a8c16067' and kind in ('concept', 'example');
 update codex_units set ord = ord + 1000 where reading_id = 'e74131b7a8c16067' and kind <> 'los' and ord > 0;
 update codex_units set ord = ord - 993 where reading_id = 'e74131b7a8c16067' and kind <> 'los' and ord > 1000;
@@ -446,6 +455,9 @@ values
 
 -- ===== LM4: Hedge Fund Strategies =====
 -- 10 units, 108 blocks
+insert into codex_documents (id, topic_id, reading, lm, source_file, content_hash, ingest_method)
+values ('f74779747e1f9673', 'alt', 'Hedge Fund Strategies', 4, 'CFA 2026 L2 V8/LM4', 'blocks-v1:LM4', 'blocks-v1')
+on conflict (id) do update set reading = excluded.reading, lm = excluded.lm;
 delete from codex_units where reading_id = 'f74779747e1f9673' and kind in ('concept', 'example');
 update codex_units set ord = ord + 1000 where reading_id = 'f74779747e1f9673' and kind <> 'los' and ord > 0;
 update codex_units set ord = ord - 990 where reading_id = 'f74779747e1f9673' and kind <> 'los' and ord > 1000;

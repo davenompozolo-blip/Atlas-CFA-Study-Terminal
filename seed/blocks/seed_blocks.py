@@ -49,6 +49,14 @@ def unit_id(topic, module, ordinal, kind="concept"):
     tail = "" if kind == "concept" else f":{kind}"
     return hashlib.sha256(f"{topic}:{module}:{ordinal}{tail}:blocks-v1".encode()).hexdigest()[:16]
 
+def doc_id(topic, module):
+    """
+    Reading id for a module the PDF corpus never had — Fixed Income LM5, Credit
+    Default Swaps, is the first. Deterministic, so re-running targets the same
+    row rather than minting a second copy of the reading.
+    """
+    return hashlib.sha256(f"{topic}:{module}:doc:blocks-v1".encode()).hexdigest()[:16]
+
 def q(s):
     """Quote a SQL string literal."""
     return "'" + str(s).replace("'", "''") + "'"
@@ -101,11 +109,24 @@ def emit(files):
         # repeats across topics, which it does.
         reading = d.get("reading_id") or READINGS.get(mod)
         if not reading:
-            sys.exit(f"{path}: no reading_id, and {mod} is not in READINGS")
+            sys.exit(f"{path}: no reading_id. For an existing reading, copy the id "
+                     f"from readings.tsv. For a reading the corpus does not have, "
+                     f"use {doc_id(topic, mod)} (deterministic for {topic}/{mod}).")
 
         n_units = len(d["units"])
         A(f"-- ===== {mod}: {d['module_title']} =====")
         A(f"-- {n_units} units, {sum(len(u['blocks']) for u in d['units'])} blocks")
+
+        # Make sure the reading exists and carries its real title. Fifteen
+        # readings are stored as "Page 1 of 21" because extraction took the page
+        # footer as the title, and a module the PDF corpus never had has no row
+        # at all. The authored module_title is the reliable name, so it is
+        # written on every run.
+        lm_num = "".join(ch for ch in mod if ch.isdigit()) or "null"
+        A(f"insert into codex_documents (id, topic_id, reading, lm, source_file, content_hash, ingest_method)")
+        A(f"values ({q(reading)}, {q(topic)}, {q(d['module_title'])}, {lm_num}, "
+          f"{q(d.get('source_ref', mod))}, {q('blocks-v1:' + mod)}, 'blocks-v1')")
+        A("on conflict (id) do update set reading = excluded.reading, lm = excluded.lm;")
 
         # 1. rebuild the reading.
         #
