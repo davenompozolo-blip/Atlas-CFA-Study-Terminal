@@ -5,6 +5,9 @@ begin;
 
 -- ===== LM1: The Term Structure and Interest Rate Dynamics =====
 -- 9 units, 99 blocks
+insert into codex_documents (id, topic_id, reading, lm, source_file, content_hash, ingest_method)
+values ('5502f5a566dc41b4', 'fi', 'The Term Structure and Interest Rate Dynamics', 1, 'CFA 2026 L2 Fixed Income/LM1', 'blocks-v1:LM1', 'blocks-v1')
+on conflict (id) do update set reading = excluded.reading, lm = excluded.lm;
 delete from codex_units where reading_id = '5502f5a566dc41b4' and kind in ('concept', 'example');
 update codex_units set ord = ord + 1000 where reading_id = '5502f5a566dc41b4' and kind <> 'los' and ord > 0;
 update codex_units set ord = ord - 991 where reading_id = '5502f5a566dc41b4' and kind <> 'los' and ord > 1000;
@@ -164,6 +167,9 @@ values
 
 -- ===== LM2: The Arbitrage-Free Valuation Framework =====
 -- 9 units, 85 blocks
+insert into codex_documents (id, topic_id, reading, lm, source_file, content_hash, ingest_method)
+values ('16479da7d1078497', 'fi', 'The Arbitrage-Free Valuation Framework', 2, 'CFA 2026 L2 Fixed Income/LM2', 'blocks-v1:LM2', 'blocks-v1')
+on conflict (id) do update set reading = excluded.reading, lm = excluded.lm;
 delete from codex_units where reading_id = '16479da7d1078497' and kind in ('concept', 'example');
 update codex_units set ord = ord + 1000 where reading_id = '16479da7d1078497' and kind <> 'los' and ord > 0;
 update codex_units set ord = ord - 991 where reading_id = '16479da7d1078497' and kind <> 'los' and ord > 1000;
@@ -309,6 +315,9 @@ values
 
 -- ===== LM3: Valuation and Analysis of Bonds with Embedded Options =====
 -- 8 units, 81 blocks
+insert into codex_documents (id, topic_id, reading, lm, source_file, content_hash, ingest_method)
+values ('ff7ed47990dcf243', 'fi', 'Valuation and Analysis of Bonds with Embedded Options', 3, 'CFA 2026 L2 Fixed Income/LM3', 'blocks-v1:LM3', 'blocks-v1')
+on conflict (id) do update set reading = excluded.reading, lm = excluded.lm;
 delete from codex_units where reading_id = 'ff7ed47990dcf243' and kind in ('concept', 'example');
 update codex_units set ord = ord + 1000 where reading_id = 'ff7ed47990dcf243' and kind <> 'los' and ord > 0;
 update codex_units set ord = ord - 992 where reading_id = 'ff7ed47990dcf243' and kind <> 'los' and ord > 1000;
