@@ -526,6 +526,15 @@ function rawHtml(cls, html, leadIn) {
   });
 }
 
+// Every authored string carries inline markup — subscripts and superscripts
+// especially, since a formula is unreadable without them. Passing one as a
+// child hands it to Preact, which escapes it, and "DF<sub>B</sub>" reaches the
+// page as visible tag text. Authored text goes through safeInline instead, in
+// any element.
+function inlineText(tag, cls, text) {
+  return h(tag, { class: cls, dangerouslySetInnerHTML: { __html: safeInline(text) } });
+}
+
 function BlockTable({ payload, cls }) {
   const headers = payload.headers || [];
   const aligns = payload.aligns || [];
@@ -551,7 +560,7 @@ function BlockTable({ payload, cls }) {
 
 function WorkedBlock({ payload }) {
   return h("div", { class: "blk-worked" },
-    payload.title && h("div", { class: "blk-worked-title" }, payload.title),
+    payload.title && inlineText("div", "blk-worked-title", payload.title),
     // The excerpt is the vignette as it appears in the reading. It is quoted,
     // not paraphrased, so it is set apart from the intro and from the working.
     payload.excerpt && h("blockquote", { class: "blk-excerpt" },
@@ -569,11 +578,12 @@ function WorkedBlock({ payload }) {
           (b.items || []).map((it, j) =>
             h("li", { key: j, dangerouslySetInnerHTML: { __html: markLeadIn(safeInline(it)) } })));
       if (b.kind === "formula") return h("div", { key: i, class: "blk-formula" },
-                                        h("div", { class: "blk-formula-expr" }, b.expr));
+                                        inlineText("div", "blk-formula-expr", b.expr));
       return rawHtml("blk-prose", b.text, true);
     }),
     payload.answer && h("div", { class: "blk-answer" },
-      h("span", { class: "blk-answer-label" }, "Answer "), payload.answer),
+      h("span", { class: "blk-answer-label" }, "Answer "),
+      inlineText("span", "", payload.answer)),
   );
 }
 
@@ -593,8 +603,8 @@ function ContentBlock({ block }) {
                             (p.items || []).map((it, i) =>
                               h("li", { key: i, dangerouslySetInnerHTML: { __html: markLeadIn(safeInline(it)) } })));
     case "formula":      return h("div", { class: "blk-formula" },
-                            p.label && h("div", { class: "blk-formula-label" }, p.label),
-                            h("div", { class: "blk-formula-expr" }, p.expr));
+                            p.label && inlineText("div", "blk-formula-label", p.label),
+                            inlineText("div", "blk-formula-expr", p.expr));
     case "worked":       return h(WorkedBlock, { payload: p });
     case "key": case "trap": case "exam": {
       const [cls, label] = CALLOUT_BLOCK[block.block_type];
