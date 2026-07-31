@@ -1,0 +1,1012 @@
+{
+ "topic_id": "fi",
+ "module": "LM3",
+ "module_title": "Valuation and Analysis of Bonds with Embedded Options",
+ "source_ref": "CFA 2026 L2 Fixed Income/LM3",
+ "reading_id": "ff7ed47990dcf243",
+ "units": [
+  {
+   "ordinal": 1,
+   "title": "The Decomposition Principle",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Under the arbitrage-free framework, the value of a bond with embedded options is the sum of the arbitrage-free values of its parts. Two equations follow from that, and almost everything else in the module is their consequence."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Callable bonds"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "The decision to exercise a call belongs to the <strong>issuer</strong>. The investor is therefore long the bond but <strong>short the call</strong>, so the option reduces the value of the callable bond relative to the straight bond."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Value of callable bond = Value of straight bond − Value of issuer call option"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Value of issuer call option = Value of straight bond − Value of callable bond"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Putable bonds"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "The decision to exercise a put belongs to the <strong>investor</strong>, who is long both the bond and the option. The option therefore increases the value of the putable bond."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Value of putable bond = Value of straight bond + Value of investor put option"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Value of investor put option = Value of putable bond − Value of straight bond"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The straight bond is easy — discount its cash flows at the appropriate spot rates. The hard part is valuing the option, because its value is contingent on future interest rates: the issuer's decision to call depends on the ability to refinance more cheaply. In practice the option value is often backed out as the <em>difference</em> between the straight and the callable bond, rather than valued directly."
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "Get the signs right and half this module is secure. Callable <strong>subtracts</strong> because the investor is short the option. Putable <strong>adds</strong> because the investor is long it. The party holding the option is the one who benefits from it."
+      ]
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Valuing the default-free, option-free bond"
+     }
+    },
+    {
+     "ord": 13,
+     "block_type": "prose",
+     "payload": {
+      "text": "Each cash flow is discounted at the spot rate corresponding to its payment date. Spot rates are not always directly observable but can be inferred from market prices of actively traded on-the-run sovereign bonds. Par rates, spot rates and forward rates are equivalent ways of conveying the same information — knowing any one determines the others."
+     }
+    },
+    {
+     "ord": 14,
+     "block_type": "worked",
+     "payload": {
+      "title": "Equivalent forms of a yield curve",
+      "blocks": [
+       {
+        "text": "Valuing a three-year 4.25% annual coupon bond.",
+        "kind": "prose"
+       },
+       {
+        "headers": [
+         "Maturity",
+         "Par rate",
+         "Spot rate",
+         "One-year forward"
+        ],
+        "rows": [
+         [
+          "1",
+          "2.500%",
+          "2.500%",
+          "2.500%  (0 years forward)"
+         ],
+         [
+          "2",
+          "3.000%",
+          "3.008%",
+          "3.518%  (1 year forward)"
+         ],
+         [
+          "3",
+          "3.500%",
+          "3.524%",
+          "4.564%  (2 years forward)"
+         ]
+        ],
+        "aligns": [
+         "c",
+         "num",
+         "num",
+         "num"
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Discounting the 4.25% bond's cash flows at either the spot rates or the sequence of forward rates gives the same answer — 102.114 for the default-free bond.",
+        "kind": "prose"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 2,
+   "title": "How Interest Rate Volatility Affects Value",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "One relationship governs this whole section, and it holds for both option types."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The value of <strong>any</strong> embedded option, regardless of type, <strong>increases</strong> with interest rate volatility. Greater volatility means more opportunities for the option to be exercised."
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "Volatility is represented through the dispersion of the interest rate tree. From each node rates may go up or down; the dispersion between those states is determined by the process generating rates from the yield curve and the volatility assumption. Higher volatility, wider dispersion."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The consequence differs by option type"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Callable bond",
+       "Putable bond"
+      ],
+      "rows": [
+       [
+        "Option value as σ rises",
+        "Rises",
+        "Rises"
+       ],
+       [
+        "Investor's position in the option",
+        "Short",
+        "Long"
+       ],
+       [
+        "Effect on bond value",
+        "<strong>Falls</strong> — value of straight bond less a larger option",
+        "<strong>Rises</strong> — value of straight bond plus a larger option"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "worked",
+     "payload": {
+      "title": "Volatility and the call option",
+      "blocks": [
+       {
+        "text": "A 30-year 4.50% bond callable at par in 10 years, on a 4% flat yield curve. The value of the straight bond is unaffected by volatility; only the option component moves.",
+        "kind": "prose"
+       },
+       {
+        "headers": [
+         "Interest rate volatility",
+         "Value of call option"
+        ],
+        "rows": [
+         [
+          "0%",
+          "4.60% of par"
+         ],
+         [
+          "30%",
+          "14.78% of par"
+         ]
+        ],
+        "aligns": [
+         "c",
+         "num"
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "Note that the straight bond value is the constant in this comparison. All movement in the callable bond comes from the option.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Option value more than triples; callable bond value falls accordingly"
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 3,
+   "title": "How the Yield Curve Affects Value",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Level and shape both matter, and they matter in opposite directions for calls and puts."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Level of the curve"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "As interest rates…",
+       "Call option",
+       "Put option"
+      ],
+      "rows": [
+       [
+        "Fall",
+        "Moves <strong>into</strong> the money — issuer can refinance cheaply",
+        "Moves out of the money"
+       ],
+       [
+        "Rise",
+        "Moves out of the money",
+        "Moves <strong>into</strong> the money — investor can reinvest higher"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "prose",
+     "payload": {
+      "text": "The call caps the investor's upside. As rates fall, the straight bond appreciates freely but the callable bond does not, because no investor will pay more than the price at which the bond can be immediately called. The callable bond's value therefore <strong>rises less rapidly</strong> than the straight bond's, limiting upside potential."
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The put is a <strong>hedge against rising rates</strong>. As rates rise the straight bond declines, but the decline is partially offset by the increasing put value. On a move from a 3% flat curve to a 5% flat curve, the straight bond falls 30% while the putable bond's fall is limited to 22%."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Shape of the curve"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "All else equal, the value of the <strong>call option increases as the yield curve flattens</strong>, and increases further if it inverts."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "table_data",
+     "payload": {
+      "headers": [
+       "Yield curve shape",
+       "Call option value"
+      ],
+      "rows": [
+       [
+        "Upward sloping, 2% short to 4% long",
+        "≈ 8% of par"
+       ],
+       [
+        "Flat at 4%",
+        "≈ 10% of par"
+       ],
+       [
+        "Downward sloping, 6% short to 4% long",
+        "&gt; 12% of par"
+       ]
+      ],
+      "aligns": [
+       "",
+       "num"
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "<em>30-year 4.50% bond callable at par in 10 years, 15% interest rate volatility.</em>"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The intuition: when the curve is upward sloping, one-period forward rates on the tree are <strong>high</strong>, so opportunities for the issuer to call are <strong>fewer</strong>. When the curve flattens or inverts, many nodes carry lower forward rates, which increases the opportunities to call."
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "heading_3",
+     "payload": {
+      "text": "Moneyness at issue"
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "list_bullet",
+     "payload": {
+      "items": [
+       "Assuming a normal upward-sloping curve at issue, the call embedded in a callable bond issued at par is <strong>out of the money</strong>. It would not be called if the arbitrage-free forward rates at zero volatility prevailed.",
+       "Callable bonds issued at a <strong>large premium</strong> — common in the US municipal sector — are <strong>in the money</strong>, and will be called if the arbitrage-free forwards prevail."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 4,
+   "title": "Valuing a Callable Bond from the Tree",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "The mechanics are backward induction from LM2 with one extra step at every node: check whether the option would be exercised."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The exercise rule"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Callable: value at node = min(computed value, call price)",
+      "label": "Issuer exercises to its benefit"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Putable: value at node = max(computed value, put price)",
+      "label": "Investor exercises to their benefit"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "prose",
+     "payload": {
+      "text": "At each node, first compute the value by backward induction exactly as for a straight bond. Then apply the exercise rule. For a callable bond the issuer will call whenever the computed value exceeds the call price, so the node carries the <em>lower</em> of the two. For a putable bond the investor will put whenever the computed value falls below the put price, so the node carries the <em>higher</em>."
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "The direction of the min/max is decided by <em>who holds the option</em>, not by which is bigger. The issuer holds the call and acts to reduce what it owes, hence min. The investor holds the put and acts to protect value, hence max."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Backward induction with the exercise check"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Value at node = [C + (0.5 × V<sub>H</sub> + 0.5 × V<sub>L</sub>)] / (1 + i)",
+      "label": "Compute first, then apply the exercise rule"
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "prose",
+     "payload": {
+      "text": "The value of the option itself is then recovered as the difference between the straight bond value and the callable value, which is generally easier than valuing the option directly."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 5,
+   "title": "Option-Adjusted Spread",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "For risky bonds, a spread must be added to the tree so the model reproduces the observed market price. Doing that in a way that strips out the option is what makes the spread comparable."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "The <strong>option-adjusted spread</strong> is the constant spread that, when added to all the one-period forward rates on the interest rate tree, makes the arbitrage-free value of the bond equal to its market price."
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "Note the relationship to the Z-spread from LM1: <strong>the Z-spread for an option-free bond is simply its OAS at zero volatility</strong>. Once volatility is introduced, or an option is present, the two diverge."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "Determining OAS by trial and error",
+      "blocks": [
+       {
+        "text": "A three-year 4.25% annual coupon bond callable at par in one and two years, at 10% interest rate volatility. Market price 101.000.",
+        "kind": "prose"
+       },
+       {
+        "text": "Trial 1 — add 30 bps to all forward rates",
+        "kind": "step"
+       },
+       {
+        "expr": "Computed value = 100.973  →  below the market price of 101.000",
+        "kind": "formula"
+       },
+       {
+        "text": "The value is too low, meaning the discount rates are too high. Because price and yield move inversely, try a <em>lower</em> spread.",
+        "kind": "prose"
+       },
+       {
+        "text": "Trial 2 — add 28 bps",
+        "kind": "step"
+       },
+       {
+        "expr": "Computed value = 101.010  →  slightly above the market price",
+        "kind": "formula"
+       },
+       {
+        "text": "Converge",
+        "kind": "step"
+       },
+       {
+        "text": "The spread is added <strong>to the rates in the tree</strong>, not subtracted from the coupon. That distinction is directly examinable.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "OAS = 28.55 bps"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "How volatility affects OAS"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "For a <strong>callable</strong> bond, holding the market price constant, an <strong>increase</strong> in the volatility assumption <strong>lowers</strong> the OAS."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "The mechanism: higher volatility raises the value of the call, which lowers the model value of the callable bond. To bring the model value back up to the unchanged market price, a smaller spread must be added to the tree. The option has absorbed more of the yield premium, leaving less to be attributed to credit and liquidity."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "trap",
+     "payload": {
+      "paras": [
+       "This is why OAS matters for relative value. Two analysts using different volatility assumptions will compute different OAS for the <em>same</em> bond at the <em>same</em> price. An OAS comparison across bonds is only meaningful if the volatility assumption is consistent."
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Scenario analysis"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "prose",
+     "payload": {
+      "text": "Valuing bonds with embedded options over an investment horizon requires computationally intensive use of OAS technology, because the call or put decision must be evaluated against the evolution of interest rate scenarios during the holding period."
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "prose",
+     "payload": {
+      "text": "Performance over a horizon trades off reinvestment of cash flows against change in the bond's value. For a 4.5% bond with five years to maturity over a one-year horizon: if the bond is option free, higher rates increase reinvestment income but reduce terminal principal value. Because the horizon is short, reinvestment income is relatively insignificant and performance is <strong>dominated by the change in principal value</strong> — so lower rates give superior performance."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 6,
+   "title": "Effective Duration",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Yield duration measures assume cash flows do not change when yields change. That assumption is false for bonds with embedded options, which is why only one duration measure applies."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Why modified duration fails"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "",
+       "Yield duration (e.g. modified)",
+       "Curve duration (effective)"
+      ],
+      "rows": [
+       [
+        "Measures sensitivity to",
+        "The bond's own yield-to-maturity",
+        "Benchmark interest rates — the government par curve"
+       ],
+       [
+        "Assumes",
+        "Expected cash flows <strong>do not change</strong> when yield changes",
+        "Cash flows may change with rates"
+       ],
+       [
+        "Valid for",
+        "Option-free bonds only",
+        "Straight bonds <em>and</em> bonds with embedded options"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "prose",
+     "payload": {
+      "text": "Because the values of embedded options are contingent on interest rates, the yield-duration assumption fails. For bonds with embedded options the only appropriate measure is <strong>effective duration</strong>, also called option-adjusted duration. Since it works for straight bonds too, practitioners tend to use it regardless of bond type."
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "formula",
+     "payload": {
+      "expr": "Effective duration = (PV<sub>−</sub> − PV<sub>+</sub>) / (2 × ΔCurve × PV<sub>0</sub>)"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "prose",
+     "payload": {
+      "text": "It indicates sensitivity to a <strong>100 bps parallel shift of the benchmark yield curve</strong>, specifically the government par curve."
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Comparing the three bonds"
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "<strong>Neither a callable nor a putable bond can have effective duration exceeding that of the straight bond.</strong> Both options reduce duration relative to the option-free equivalent."
+      ]
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Condition",
+       "Callable bond",
+       "Putable bond"
+      ],
+      "rows": [
+       [
+        "Rates high relative to coupon",
+        "Call out of the money; duration ≈ straight bond",
+        "Put in the money; duration <strong>reduced</strong>"
+       ],
+       [
+        "Rates low relative to coupon",
+        "Call in the money; duration <strong>reduced</strong>",
+        "Put out of the money; duration ≈ straight bond"
+       ],
+       [
+        "Option deep in the money",
+        "Duration resembles a straight bond maturing on the <strong>first exercise date</strong>",
+        "Same — bond highly likely to be put on that date"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "prose",
+     "payload": {
+      "text": "The mechanism in each case is the same. The call gives the issuer the right to retire the bond at the call price, which limits price appreciation when rates decline. The put limits price depreciation when rates rise, because the investor can put the bond and reinvest at a higher yield. Either way the option truncates one side of the price response, and a truncated response is a smaller duration."
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 7,
+   "title": "One-Sided and Key Rate Durations",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "lead",
+     "payload": {
+      "text": "Effective duration averages the up-shift and down-shift responses. When an option is near the money that average conceals more than it reveals."
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "The asymmetry problem"
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "prose",
+     "payload": {
+      "text": "Effective durations are normally calculated by averaging the price changes from shifting the benchmark curve up and down by the same amount. That works for option-free bonds. With embedded options it misleads, because price sensitivity is <strong>not symmetrical</strong> to positive and negative rate changes of equal magnitude."
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "worked",
+     "payload": {
+      "title": "Where the average breaks down",
+      "blocks": [
+       {
+        "text": "A 4.5% bond maturing in five years, immediately callable at 100, on a 4% flat yield curve at 15% volatility.",
+        "kind": "prose"
+       },
+       {
+        "headers": [
+         "",
+         "At 4% flat",
+         "Rates up 30 bps",
+         "Rates down 30 bps"
+        ],
+        "rows": [
+         [
+          "Value of the bond",
+          "99.75",
+          "99.17",
+          "100.00"
+         ]
+        ],
+        "aligns": [
+         "",
+         "num",
+         "num",
+         "num"
+        ],
+        "kind": "table"
+       },
+       {
+        "text": "No matter how far rates decline, the price cannot exceed 100 — no investor pays more than the price at which the bond can be immediately called. The downside, by contrast, has no limit.",
+        "kind": "prose"
+       },
+       {
+        "text": "Averaging a capped up-move against an uncapped down-move produces a number that describes neither scenario.",
+        "kind": "prose"
+       }
+      ],
+      "answer": "Upside is capped at 100; downside is unbounded"
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "<strong>One-sided durations</strong> — effective duration computed separately for rates up and rates down — capture this better than the two-sided measure, particularly when the embedded option is <strong>near the money</strong>.<br><br>For a callable bond, one-sided <em>down</em>-duration is much smaller than one-sided <em>up</em>-duration. For a putable bond the asymmetry runs the other way."
+      ]
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Key rate duration"
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Effective duration measures sensitivity to a <strong>parallel</strong> shift. Key rate duration measures sensitivity to a change at a <strong>specific maturity segment</strong>, holding other segments constant, which allows shaping risk to be identified and managed."
+     }
+    },
+    {
+     "ord": 8,
+     "block_type": "prose",
+     "payload": {
+      "text": "This matters more for bonds with embedded options than for straight bonds, because the exercise decision depends on rates around the exercise date rather than on the curve as a whole. A shift concentrated near the call date affects a callable bond very differently from an equivalent shift at the long end."
+     }
+    },
+    {
+     "ord": 9,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Effective convexity"
+     }
+    },
+    {
+     "ord": 10,
+     "block_type": "key",
+     "payload": {
+      "paras": [
+       "<strong>Callable bonds exhibit negative convexity when the call is near or in the money.</strong> The call truncates price appreciation, so the price–yield relationship bends the wrong way as rates fall.<br><br><strong>Putable bonds always exhibit positive convexity.</strong> The put truncates price <em>depreciation</em>, which reinforces rather than opposes the natural curvature."
+      ]
+     }
+    },
+    {
+     "ord": 11,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Bond type",
+       "Convexity",
+       "Why"
+      ],
+      "rows": [
+       [
+        "Straight",
+        "Positive throughout",
+        "Standard price–yield convexity"
+       ],
+       [
+        "Callable",
+        "<strong>Negative</strong> when rates are low and the call is in the money",
+        "Upside is capped at the call price"
+       ],
+       [
+        "Putable",
+        "Positive throughout, and greater when the put is in the money",
+        "Downside is floored at the put price"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 12,
+     "block_type": "exam",
+     "payload": {
+      "paras": [
+       "A question describing a bond whose price appreciates less than it depreciates for equal yield moves is describing negative convexity, and therefore a callable bond with the call near or in the money. This is one of the most reliably tested points in the module."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "ordinal": 8,
+   "title": "Consolidation",
+   "blocks": [
+    {
+     "ord": 1,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Formulas"
+     }
+    },
+    {
+     "ord": 2,
+     "block_type": "table_compare",
+     "payload": {
+      "headers": [
+       "Concept",
+       "Formula"
+      ],
+      "rows": [
+       [
+        "Callable bond",
+        "Straight bond − Call option"
+       ],
+       [
+        "Call option value",
+        "Straight bond − Callable bond"
+       ],
+       [
+        "Putable bond",
+        "Straight bond + Put option"
+       ],
+       [
+        "Put option value",
+        "Putable bond − Straight bond"
+       ],
+       [
+        "Node value, callable",
+        "min(computed value, call price)"
+       ],
+       [
+        "Node value, putable",
+        "max(computed value, put price)"
+       ],
+       [
+        "Backward induction",
+        "[C + (0.5V<sub>H</sub> + 0.5V<sub>L</sub>)] / (1 + i)"
+       ],
+       [
+        "Effective duration",
+        "(PV<sub>−</sub> − PV<sub>+</sub>) / (2 × ΔCurve × PV<sub>0</sub>)"
+       ],
+       [
+        "Z-spread relationship",
+        "Z-spread = OAS at zero volatility, for an option-free bond"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 3,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Directional relationships"
+     }
+    },
+    {
+     "ord": 4,
+     "block_type": "table_signal",
+     "payload": {
+      "headers": [
+       "If…",
+       "Then…"
+      ],
+      "rows": [
+       [
+        "Interest rate volatility rises",
+        "Both option values rise; callable falls, putable rises"
+       ],
+       [
+        "Volatility rises, price held constant",
+        "OAS on a callable bond falls"
+       ],
+       [
+        "The yield curve flattens or inverts",
+        "Call option value rises — more low forward rates on the tree"
+       ],
+       [
+        "Rates fall relative to the coupon",
+        "Call moves into the money; callable duration falls"
+       ],
+       [
+        "Rates rise relative to the coupon",
+        "Put moves into the money; putable duration falls"
+       ],
+       [
+        "The option is deep in the money",
+        "Duration resembles a straight bond maturing at first exercise date"
+       ],
+       [
+        "A call is near or in the money",
+        "Convexity turns negative"
+       ]
+      ]
+     }
+    },
+    {
+     "ord": 5,
+     "block_type": "heading_2",
+     "payload": {
+      "text": "Ten points for a final pass"
+     }
+    },
+    {
+     "ord": 6,
+     "block_type": "list_ordered",
+     "payload": {
+      "items": [
+       "Callable subtracts the option, putable adds it — determined by which party holds the option.",
+       "Option value rises with volatility for both types; the effect on the <em>bond</em> is opposite.",
+       "The call caps upside as rates fall; the put floors downside as rates rise.",
+       "Call option value rises as the curve flattens or inverts, because more tree nodes carry low forwards.",
+       "At the node, callable takes the minimum and putable the maximum against the exercise price.",
+       "OAS is the constant spread <em>added to the tree rates</em> that reproduces the market price.",
+       "Z-spread equals OAS at zero volatility for an option-free bond.",
+       "Higher assumed volatility lowers the OAS of a callable bond at a given price.",
+       "Neither callable nor putable duration can exceed straight-bond duration.",
+       "Callable bonds go negatively convex near the money; putable bonds stay positively convex throughout."
+      ]
+     }
+    },
+    {
+     "ord": 7,
+     "block_type": "prose",
+     "payload": {
+      "text": "Notes prepared from the CFA Program 2026 Level II curriculum, Volume 6, Learning Module 3. Worked examples follow the curriculum's own illustrations; figures are as published."
+     }
+    }
+   ]
+  }
+ ]
+}
