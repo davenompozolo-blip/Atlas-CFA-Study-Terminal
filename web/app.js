@@ -802,6 +802,11 @@ function PracticeUnit({ unit, payload: p }) {
   }
 
   return h("div", { class: "unit-practice" },
+    // Opening a practice item is the practice session. Priming cards are
+    // fetched on that event — not on an interval, not on a due date, and not
+    // when the review queue mounts. Keyed on the unit so moving between items
+    // re-fetches rather than reusing what was primed for the last one.
+    h(PrimingCards, { sessionKey: unit.id, compact: true }),
     p.vignette && h("div", { class: "practice-vignette" }, p.vignette),
     h("div", { class: "practice-question" }, p.question),
     h("div", { class: "practice-choices" },
@@ -1599,6 +1604,750 @@ function LosTracker() {
   );
 }
 
+// ── Report card + targeted review ─────────────────────────────────────────────
+// The record is the concept, not the question. Questions are evidence, and none
+// of their text is stored or shown — codex_attempts holds performance metadata
+// only.
+//
+// Every remediation tag is read from codex_concept_stats. Nothing in this file
+// computes or sets one: a client-side tag would decouple the label from the
+// attempt log and the loop would stop closing.
+
+const CODEX_TENANT = "00000000-0000-0000-0000-000000000000";
+const EXAM_DATE    = Date.UTC(2026, 10, 19);    // 19 Nov 2026
+const DAY_MS       = 86400000;
+const PIP_LIMIT    = 10;
+
+const TAG_CLASS = { RELEARN: "re", CHECKLIST: "ck", MAINTAIN: "mt" };
+
+// The tables behind this feature are the Supabase seat's and land separately.
+// Until they do, every query here fails on a missing relation. That is a known
+// state of the build, not an error to show the reader as a red box.
+function isMissingRelation(err) {
+  if (!err) return false;
+  return err.code === "42P01" || err.code === "PGRST205" ||
+         /does not exist|schema cache/i.test(err.message || "");
+}
+
+// Attempt order across rounds. attempted_at is a date, so same-day attempts fall
+// back to insertion order — which is the order they were worked in.
+function attemptSeq(a, b) {
+  return (Number(a.round || 0) - Number(b.round || 0)) ||
+         String(a.attempted_at || "").localeCompare(String(b.attempted_at || "")) ||
+         String(a.created_at || "").localeCompare(String(b.created_at || "")) ||
+         (Number(a.id || 0) - Number(b.id || 0));
+}
+
+function pipsByConcept(attempts) {
+  const out = {};
+  for (const a of [...attempts].sort(attemptSeq)) {
+    (out[a.concept_tag] ||= []).push(!!a.is_correct);
+  }
+  return out;
+}
+
+// Hit rate ascending, then attempt count descending, so 0 of 4 outranks 0 of 2 —
+// both read 0%, but one is a hardened gap and the other is barely tested.
+// Deliberately unweighted: decay and shrinkage were tried and changed no
+// decisions.
+function ladderOrder(a, b) {
+  const ra = a?.hit_rate == null ? 1 : Number(a.hit_rate);
+  const rb = b?.hit_rate == null ? 1 : Number(b.hit_rate);
+  return ra - rb || Number(b?.lt_attempts || 0) - Number(a?.lt_attempts || 0);
+}
+
+// Colour tracks the same split the tag does: below 35% is a knowledge gap, the
+// middle band is execution, above that it is holding.
+function rateClass(pct) {
+  return pct < 35 ? "z" : pct < 60 ? "mid" : "ok";
+}
+
+function pctOf(hits, attempts) {
+  return attempts ? Math.round((100 * Number(hits || 0)) / Number(attempts)) : 0;
+}
+
+// ── Review scheduling ─────────────────────────────────────────────────────────
+// The handoff spec asked for Leitner boxes on a codex_review_log table. Neither
+// exists: the schema that landed reuses codex_drill_progress, which already
+// carries SM-2 (ease, interval_days, next_due) and is what the Example Drill
+// writes today. So a review card is scheduled there under its own item_type
+// rather than in a second, parallel scheduler.
+//
+// Grading is binary, so it maps onto the SM-2 quality scale the way the practice
+// units already do: a hit is 4, a miss is 1.
+const REVIEW_ITEM_TYPE = "concept_unit";
+const GRADE_QUALITY = { got: 4, missed: 1 };
+
+// Never reviewed means due now.
+function isDue(row, now = Date.now()) {
+  if (!row) return true;
+  return (Date.parse(row.next_due) || 0) <= now;
+}
+
+// Lesson units whose payload holds a question, choices or a vignette never
+// become review cards. Codex stores performance metadata for this feature, and
+// a card is a pointer back into the lesson — not a place to restate an item.
+function isCardable(unit) {
+  return unit.kind === "concept" || unit.kind === "example" || unit.kind === "recap";
+}
+
+// A card's back is the opening of the lesson unit it came from, flattened to
+// plain text — enough to recognise the idea without reproducing the lesson.
+function excerpt(unit, limit = 220) {
+  const p = unit.payload || {};
+  const raw = p.prose_md || p.prompt || p.summary_md || "";
+  const flat = stripToc(String(raw))
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/[*`_>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return flat.length > limit ? `${flat.slice(0, limit).trimEnd()}…` : flat;
+}
+
+// ── shared pieces ─────────────────────────────────────────────────────────────
+
+function NotProvisioned({ reads }) {
+  return h("div", { class: "rc-empty" },
+    h("b", null, "Not wired up yet"),
+    h("p", null,
+      "This view reads ", h("code", null, reads),
+      ". Those relations are not in the database yet, so there is nothing to " +
+      "show. That is the Supabase side of the handoff, not a fault in the client."),
+  );
+}
+
+// One dot per lifetime attempt, in attempt order: filled is a hit, hollow is a
+// miss. This is what makes 0 of 4 legible as worse than 0 of 2 when both read
+// 0%, so it is not a bar and not a percentage — the count is the information.
+function Pips({ seq }) {
+  const shown = seq.slice(0, PIP_LIMIT);
+  const rest = seq.length - shown.length;
+  const hits = seq.filter(Boolean).length;
+  return h("div", {
+    class: "rc-pips", role: "img",
+    "aria-label": `${hits} of ${seq.length} attempts correct`,
+    title: `${hits} of ${seq.length} correct`,
+  },
+    shown.map((hit, i) => h("i", { key: i, class: `rc-pip ${hit ? "hit" : ""}` })),
+    rest > 0 && h("span", { class: "rc-pip-more" }, `+${rest}`),
+  );
+}
+
+// Current round primary, lifetime beneath. Without the round split an old
+// failure weighs on the number forever and nothing ever graduates.
+function RateCell({ stat }) {
+  const ra = Number(stat.round_attempts || 0);
+  const pct = ra ? pctOf(stat.round_hits, ra) : Math.round(100 * Number(stat.hit_rate || 0));
+  return h("div", { class: `rc-rate ${rateClass(pct)}` }, `${pct}%`,
+    h("small", null, `${Number(stat.lt_hits || 0)} of ${Number(stat.lt_attempts || 0)}`));
+}
+
+// ── Report card ───────────────────────────────────────────────────────────────
+
+function ReportCard() {
+  const [data, setData] = useState(null);
+  const [topic, setTopic] = useState(null);
+  const [pending, setPending] = useState(false);
+  const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const sb = await getClient();
+        const [statsRes, attRes] = await Promise.all([
+          sb.from("codex_concept_stats").select("*"),
+          // Ordered by id as the last key: the seeded ledger carries a null
+          // attempted_at and one identical created_at, so insertion order is
+          // the only record of the order the questions were worked in — and
+          // that order is what the pips draw.
+          sb.from("codex_attempts")
+            .select("id, concept_tag, topic_id, module, round, is_correct, is_reconstructed, attempted_at, created_at")
+            .order("round").order("id"),
+        ]);
+        const bad = statsRes.error || attRes.error;
+        if (bad) {
+          if (isMissingRelation(bad)) { setPending(true); return; }
+          throw bad;
+        }
+        // Topic names, module titles and the round's conditions all live outside
+        // this feature's tables. Each is optional — a missing one degrades a
+        // label or the caveat, it does not fail the view. codex_rounds does not
+        // exist yet, which is why the caveat has a fallback.
+        const [topicsRes, docsRes, roundsRes] = await Promise.all([
+          sb.from("codex_topics").select("id, name"),
+          sb.from("codex_documents").select("reading, lm, topic_id"),
+          sb.from("codex_rounds").select("topic_id, round, conditions"),
+        ]);
+        setData({
+          stats: statsRes.data || [],
+          attempts: attRes.data || [],
+          topics: topicsRes.error ? [] : (topicsRes.data || []),
+          docs: docsRes.error ? [] : (docsRes.data || []),
+          rounds: roundsRes.error ? [] : (roundsRes.data || []),
+        });
+      } catch (e) { setErr(e.message); }
+    })();
+  }, []);
+
+  if (err) return h(ErrorBox, { msg: err });
+  if (pending) return h(NotProvisioned, { reads: "codex_concept_stats, codex_attempts" });
+  if (!data) return h(Loader);
+
+  const areas = [...new Set([
+    ...data.attempts.map(a => a.topic_id),
+    ...data.stats.map(s => s.topic_id),
+  ])].filter(Boolean);
+  const topicName = id => data.topics.find(t => t.id === id)?.name || id;
+
+  if (!areas.length) {
+    return h("div", { class: "rc-empty" },
+      h("b", null, "No attempts logged"),
+      h("p", null, "The ladder builds itself from codex_attempts. Log a round and it appears here."));
+  }
+
+  // Deficit-first, as everywhere else in Codex: the worst topic is the default.
+  const rawScore = t => {
+    const rows = data.attempts.filter(a => a.topic_id === t);
+    return rows.length ? rows.filter(r => r.is_correct).length / rows.length : 1;
+  };
+  areas.sort((a, b) => rawScore(a) - rawScore(b) || String(a).localeCompare(String(b)));
+  const active = topic && areas.includes(topic) ? topic : areas[0];
+
+  const lifetime = data.attempts.filter(a => a.topic_id === active);
+  const round = lifetime.reduce((m, a) => Math.max(m, Number(a.round) || 1), 1);
+  const cur = lifetime.filter(a => (Number(a.round) || 1) === round);
+  const stats = data.stats.filter(s => s.topic_id === active).sort(ladderOrder);
+  const pips = pipsByConcept(lifetime);
+  // Attempts rebuilt from the written review rather than logged live. They
+  // count, but the reader should know how much of the round they are.
+  const reconstructed = cur.filter(a => a.is_reconstructed).length;
+
+  const attempted = cur.length;
+  const hits = cur.filter(a => a.is_correct).length;
+  const misses = attempted - hits;
+  const registry = new Set(stats.map(s => s.concept_tag));
+  const rootMisses = cur.filter(a => !a.is_correct && registry.has(a.concept_tag)).length;
+  const zero = stats.filter(s => Number(s.lt_hits) === 0).length;
+  const moduleCount = new Set(cur.map(a => a.module).filter(m => m != null)).size;
+
+  // Per-module bars, worst first. Deficit-first is the repo's default sort and
+  // it is what makes the row you need to act on the first one you read.
+  const byModule = new Map();
+  for (const a of cur) {
+    const key = a.module == null ? "none" : Number(a.module);
+    const m = byModule.get(key) || { module: a.module, attempts: 0, hits: 0 };
+    m.attempts++;
+    if (a.is_correct) m.hits++;
+    byModule.set(key, m);
+  }
+  const mods = [...byModule.values()]
+    .map(m => ({ ...m, pct: pctOf(m.hits, m.attempts) }))
+    .sort((a, b) => a.pct - b.pct);
+
+  const moduleLabel = (mod) => {
+    if (mod == null) return "Unassigned";
+    const doc = data.docs.find(d =>
+      String(d.topic_id).toLowerCase() === String(active).toLowerCase() &&
+      Number(d.lm) === Number(mod));
+    return doc ? `M${mod} · ${readingTitle(doc)}` : `Module ${mod}`;
+  };
+
+  const conditions = data.rounds.find(r =>
+    r.topic_id === active && Number(r.round) === round)?.conditions;
+
+  const relearn = stats.filter(s => s.remediation === "RELEARN");
+  const checklist = stats.filter(s => s.remediation === "CHECKLIST");
+
+  return h(Fragment, null,
+    h("div", { class: "page-sub" },
+      [topicName(active), `round ${round}`,
+       moduleCount ? plural(moduleCount, "module", "modules") : null]
+        .filter(Boolean).join(" · ")),
+
+    areas.length > 1 && h("div", { class: "filter-bar" },
+      areas.map(a => h("button", {
+        key: a, class: `filter-btn ${a === active ? "active" : ""}`,
+        onClick: () => setTopic(a),
+      }, topicName(a)))),
+
+    h("div", { class: "rc-strip" },
+      h("div", { class: "rc-cell" },
+        h("div", { class: "rc-cell-k" }, "Attempted"),
+        h("div", { class: "rc-cell-v" }, attempted),
+        h("div", { class: "rc-cell-n" }, `across ${plural(moduleCount, "module", "modules")}`)),
+      h("div", { class: "rc-cell" },
+        h("div", { class: "rc-cell-k" }, "Raw score"),
+        h("div", { class: "rc-cell-v am" },
+          attempted ? `${((100 * hits) / attempted).toFixed(1)}%` : "—"),
+        h("div", { class: "rc-cell-n" }, `${hits} correct`)),
+      h("div", { class: "rc-cell" },
+        h("div", { class: "rc-cell-k" }, "Concepts at zero"),
+        h("div", { class: "rc-cell-v rd" }, zero),
+        h("div", { class: "rc-cell-n" }, "never answered correctly")),
+      h("div", { class: "rc-cell" },
+        h("div", { class: "rc-cell-k" }, "Recurring roots"),
+        h("div", { class: "rc-cell-v cy" }, stats.length),
+        h("div", { class: "rc-cell-n" },
+          misses ? `${Math.round((100 * rootMisses) / misses)}% of all misses` : "no misses")),
+    ),
+
+    // Not decorative. The raw score is misleading without it, and the caveat is
+    // what stops this view producing a comfortable number.
+    conditions
+      ? h("div", { class: "rc-caveat" }, conditions)
+      : h("div", { class: "rc-caveat rc-caveat-empty" },
+          "Conditions for this round were not recorded, so the raw score has no " +
+          "context attached to it — read it as a ceiling, not a position." +
+          (reconstructed
+            ? ` ${reconstructed} of these ${attempted} attempts were reconstructed from the written review rather than logged live.`
+            : "")),
+
+    h("h3", { class: "rc-sec" }, "Concept ladder"),
+    h("p", { class: "rc-secnote" },
+      "Sorted by hit rate, not by score. Pips show every attempt — filled is a " +
+      "hit, hollow is a miss — so a concept missed four times reads differently " +
+      "from one missed twice."),
+
+    stats.length === 0
+      ? h("div", { class: "rc-empty" },
+          h("b", null, "No concepts registered for this topic"),
+          h("p", null, "A concept joins the ladder once a miss repeats. One-off " +
+            "misses stay in the attempt ledger until something recurs."))
+      : h("div", { class: "rc-ladder" },
+          h("div", { class: "rc-row head" },
+            h("div", null, "#"),
+            h("div", null, "Concept"),
+            h("div", null, "Attempts"),
+            h("div", { class: "rc-rate-h" }, "Hit rate"),
+            h("div", { class: "rc-tag-h" }, "Tag")),
+          stats.map((s, i) =>
+            h("div", { key: s.concept_tag, class: "rc-row" },
+              h("div", { class: "rc-rk" }, String(i + 1).padStart(2, "0")),
+              h("div", { class: "rc-lbl" }, s.label,
+                h("small", null, [s.root_ref, s.module != null ? `Module ${s.module}` : null]
+                  .filter(Boolean).join(" · "))),
+              h(Pips, { seq: pips[s.concept_tag] || [] }),
+              h(RateCell, { stat: s }),
+              h("div", { class: `rc-tag ${TAG_CLASS[s.remediation] || "mt"}` }, s.remediation),
+            ))),
+
+    (relearn.length > 0 || checklist.length > 0) && h("div", { class: "rc-split" },
+      h(SplitBox, {
+        cls: "re",
+        // RELEARN also catches concepts answered right once in four, so the
+        // heading only claims "never" when that is what the rows actually say.
+        title: relearn.every(s => Number(s.lt_hits) === 0)
+          ? "Never answered correctly"
+          : "Never, or almost never, answered correctly",
+        note: "Knowledge gaps. Drilling reinforces the wrong model — these need " +
+              "the concept rebuilt.",
+        rows: relearn,
+      }),
+      h(SplitBox, {
+        cls: "ck", title: "Right sometimes",
+        note: "You hold these. They break under load. A checklist fixes them; " +
+              "re-reading will not.",
+        rows: checklist,
+      }),
+    ),
+
+    mods.length > 0 && h(Fragment, null,
+      h("h3", { class: "rc-sec", style: { marginTop: "26px" } }, "By module"),
+      h("p", { class: "rc-secnote" }, "Amber line marks the 70% working threshold."),
+      h("div", { class: "rc-mods" },
+        mods.map(m =>
+          h("div", { key: String(m.module), class: "rc-mod" },
+            h("span", null, moduleLabel(m.module)),
+            h("div", { class: "rc-bar" },
+              h("div", { class: "rc-fill", style: { width: `${m.pct}%` } }),
+              h("div", { class: "rc-mps" })),
+            h("span", { class: "rc-pct" }, `${m.hits}/${m.attempts} · ${m.pct}%`),
+          ))),
+    ),
+  );
+}
+
+function SplitBox({ cls, title, note, rows }) {
+  return h("div", { class: `rc-box ${cls}` },
+    h("h4", null, title),
+    h("p", null, note),
+    rows.length === 0
+      ? h("p", { style: { marginBottom: 0 } }, "Nothing here.")
+      : h("ul", null,
+          rows.map(s =>
+            h("li", { key: s.concept_tag },
+              h("span", null, s.label),
+              h("b", null, `${Number(s.lt_hits || 0)}/${Number(s.lt_attempts || 0)}`)))),
+  );
+}
+
+// ── Review queue ──────────────────────────────────────────────────────────────
+// Two sections, two different triggers, and they must stay different. RELEARN
+// cards are spaced and fetched on mount by due date. PRIMING cards are fetched
+// when a practice session opens, because an execution failure has to be primed
+// in the seconds before the attempt, not three days earlier.
+//
+// Cards are the lesson units already in Codex, reached through the
+// codex_concept_units join. No card content is authored here — the tag is the
+// join, and the card is a pointer back into the lesson.
+
+// The join is what makes any of this render, so it is loaded the same way by
+// the queue and by the priming path.
+async function loadConceptCards(sb) {
+  const [statsRes, joinRes] = await Promise.all([
+    sb.from("codex_concept_stats").select("*"),
+    sb.from("codex_concept_units").select("concept_tag, unit_id"),
+  ]);
+  if (statsRes.error || joinRes.error) return { error: statsRes.error || joinRes.error };
+
+  const join = joinRes.data || [];
+  const ids = [...new Set(join.map(j => j.unit_id))];
+  const unitsRes = ids.length
+    ? await sb.from("codex_units").select("id, reading_id, kind, title, payload").in("id", ids)
+    : { data: [] };
+  if (unitsRes.error) return { error: unitsRes.error };
+
+  const unitById = {};
+  for (const u of (unitsRes.data || [])) unitById[u.id] = u;
+  const cards = join
+    .map(j => ({ concept_tag: j.concept_tag, unit: unitById[j.unit_id] }))
+    .filter(c => c.unit && isCardable(c.unit));
+  return { stats: statsRes.data || [], cards, mapped: join.length };
+}
+
+function ReviewQueue() {
+  const [data, setData] = useState(null);
+  const [pending, setPending] = useState(false);
+  const [err, setErr] = useState(null);
+  const [busy, setBusy] = useState(null);
+  const [session, setSession] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const sb = await getClient();
+        const loaded = await loadConceptCards(sb);
+        if (loaded.error) {
+          if (isMissingRelation(loaded.error)) { setPending(true); return; }
+          throw loaded.error;
+        }
+        const schedRes = await sb.from("codex_drill_progress")
+          .select("chunk_id, ef, interval_days, next_due")
+          .eq("item_type", REVIEW_ITEM_TYPE);
+        const sched = {};
+        for (const r of (schedRes.data || [])) sched[r.chunk_id] = r;
+        setData({ ...loaded, sched });
+      } catch (e) { setErr(e.message); }
+    })();
+  }, []);
+
+  // Grading moves the card's SM-2 schedule. Binary in, quality 4 or 1 out —
+  // the same mapping the practice units use, so one scheduler governs both.
+  const grade = useCallback(async (unitId, got) => {
+    setBusy(unitId);
+    try {
+      const sb = await getClient();
+      const prev = data.sched[unitId] || { ef: 2.5, interval_days: 0 };
+      const { ef, interval, nextDue } =
+        sm2Next(got ? GRADE_QUALITY.got : GRADE_QUALITY.missed,
+                Number(prev.ef) || 2.5, Number(prev.interval_days) || 0);
+      const row = {
+        chunk_id: unitId, item_type: REVIEW_ITEM_TYPE,
+        ef, interval_days: interval, next_due: nextDue,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await sb.from("codex_drill_progress")
+        .upsert(row, { onConflict: "chunk_id,item_type" });
+      if (error) throw error;
+      setData(d => ({ ...d, sched: { ...d.sched, [unitId]: row } }));
+    } catch (e) { setErr(e.message); }
+    finally { setBusy(null); }
+  }, [data]);
+
+  if (err) return h(ErrorBox, { msg: err });
+  if (pending) return h(NotProvisioned, { reads: "codex_concept_stats, codex_concept_units" });
+  if (!data) return h(Loader);
+
+  const statOf = {};
+  for (const s of data.stats) statOf[s.concept_tag] = s;
+
+  const now = Date.now();
+  const due = data.cards
+    .filter(c => statOf[c.concept_tag]?.remediation === "RELEARN")
+    .filter(c => isDue(data.sched[c.unit.id], now))
+    .sort((a, b) => ladderOrder(statOf[a.concept_tag], statOf[b.concept_tag]));
+
+  const primingPool = data.cards.filter(c =>
+    statOf[c.concept_tag]?.remediation === "CHECKLIST");
+
+  return h(Fragment, null,
+    h("div", { class: "rc-qhead" },
+      h("div", null,
+        h("h3", { class: "rc-sec" }, "Targeted review"),
+        h("p", { class: "rc-secnote", style: { margin: 0 } },
+          "Cards are pulled from lesson units already in Codex, filtered by " +
+          "concept tag. No new content — the tag is the join.")),
+      h("div", { class: "rc-stamp" },
+        `${due.length} RELEARN · ${primingPool.length} PRIMING`),
+    ),
+
+    due.length === 0
+      ? h("div", { class: "rc-empty" },
+          data.mapped === 0
+            ? h(Fragment, null,
+                h("b", null, "Nothing due"),
+                h("p", null, "Cards appear here once lesson units are tagged with a ",
+                  h("code", null, "concept_tag"), " in ",
+                  h("code", null, "codex_concept_units"), "."))
+            : h(Fragment, null,
+                h("b", null, "Nothing due"),
+                h("p", null, "Every RELEARN card is scheduled ahead. The next one " +
+                  "comes back on its review interval.")))
+      : due.map(c =>
+          h(ReviewCard, {
+            key: c.unit.id, unit: c.unit, conceptTag: c.concept_tag,
+            stat: statOf[c.concept_tag],
+            sched: data.sched[c.unit.id],
+            busy: busy === c.unit.id,
+            onGrade: got => grade(c.unit.id, got),
+          })),
+
+    h("div", { class: "rc-rule" }),
+    h("h3", { class: "rc-sec" }, "Priming — fires before your next attempt"),
+    h("p", { class: "rc-secnote" },
+      "Not on a spaced interval and not on a due date. These are execution " +
+      "failures, so the card has to land in the seconds before you answer. They " +
+      "are fetched when a practice session opens — the practice items inside a " +
+      "reading trigger the same fetch."),
+
+    session
+      ? h(PrimingCards, { sessionKey: session })
+      : h("button", {
+          class: "rc-btn", onClick: () => setSession(Date.now()),
+        }, "OPEN A PRACTICE SESSION"),
+  );
+}
+
+function ReviewCard({ unit, conceptTag, stat, sched, busy, onGrade }) {
+  const back = excerpt(unit);
+  const reps = sched ? `REVIEWED · ${sched.interval_days}D` : "NEW";
+  return h("div", { class: "rc-card" },
+    h("div", { class: "rc-card-meta" },
+      h("span", null, `RELEARN · ${conceptTag}`),
+      h("span", null, [
+        `${Number(stat?.lt_hits || 0)}/${Number(stat?.lt_attempts || 0)}`,
+        stat?.root_ref, reps,
+      ].filter(Boolean).join(" · ")),
+    ),
+    h("div", { class: "rc-card-body" },
+      h("div", { class: "rc-front" }, unit.title || KIND_LABEL[unit.kind] || "Lesson unit"),
+      back && h("div", { class: "rc-back" }, back),
+    ),
+    h("div", { class: "rc-acts" },
+      h("button", { class: "rc-btn", disabled: busy, onClick: () => onGrade(true) }, "GOT IT"),
+      h("button", { class: "rc-btn", disabled: busy, onClick: () => onGrade(false) }, "MISSED IT"),
+      h("button", {
+        class: "rc-btn", disabled: !unit.reading_id,
+        title: unit.reading_id ? "" : "This card has no resolvable lesson",
+        onClick: () => unit.reading_id && navigate(`#/read/${unit.reading_id}`),
+      }, "OPEN LESSON"),
+    ),
+  );
+}
+
+// Display-only by design: one line, no front, no grade control. Showing one
+// writes an exposure row and nothing else.
+function PrimingCards({ sessionKey, compact }) {
+  const [cards, setCards] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const sb = await getClient();
+        const loaded = await loadConceptCards(sb);
+        if (loaded.error) { if (alive) setCards([]); return; }
+        const statOf = {};
+        for (const s of loaded.stats) statOf[s.concept_tag] = s;
+        // No due date and no interval: everything tagged CHECKLIST primes, every
+        // time a session opens.
+        const picked = loaded.cards
+          .filter(c => statOf[c.concept_tag]?.remediation === "CHECKLIST")
+          .map(c => ({ ...c, stat: statOf[c.concept_tag] }));
+        if (!alive) return;
+        setCards(picked);
+        if (picked.length) {
+          // Exposure only — no grade and no schedule move. codex_unit_progress
+          // is the one table that records a unit having been seen; it has no
+          // column for the session type, so a priming exposure is currently
+          // indistinguishable from an ordinary view. Flagged in the handoff.
+          await sb.from("codex_unit_progress").upsert(picked.map(c => ({
+            tenant_id: CODEX_TENANT, unit_id: c.unit.id,
+            status: "viewed", last_viewed: new Date().toISOString(),
+          })), { onConflict: "tenant_id,unit_id" });
+        }
+      } catch { if (alive) setCards([]); }
+    })();
+    return () => { alive = false; };
+  }, [sessionKey]);
+
+  // Inside a practice item this is an aside, so it stays silent when it has
+  // nothing to say rather than reporting on itself mid-attempt.
+  if (compact) {
+    if (!cards || !cards.length) return null;
+    return h("div", { class: "rc-prime-strip" },
+      h("div", { class: "rc-prime-head" }, "Before you answer"),
+      cards.map(c => h(PrimingCard, { key: c.unit.id, card: c })),
+    );
+  }
+
+  if (!cards) return h(Loader);
+  if (!cards.length) {
+    return h("div", { class: "rc-empty" },
+      h("b", null, "Nothing to prime"),
+      h("p", null, "Priming lines come from concepts tagged CHECKLIST that have a " +
+        "lesson unit mapped to them. Once ", h("code", null, "codex_concept_units"),
+        " is filled, they appear here whenever a session opens."));
+  }
+  return h(Fragment, null, cards.map(c => h(PrimingCard, { key: c.unit.id, card: c })));
+}
+
+// One line, no front, no grade control.
+function PrimingCard({ card }) {
+  const s = card.stat;
+  return h("div", { class: "rc-card prime" },
+    h("div", { class: "rc-card-meta" },
+      h("span", null, `PRIMING · ${card.concept_tag}`),
+      h("span", null, [
+        s ? `${Number(s.lt_hits || 0)}/${Number(s.lt_attempts || 0)}` : null, s?.root_ref,
+      ].filter(Boolean).join(" · ")),
+    ),
+    h("div", { class: "rc-card-body" },
+      h("div", { class: "rc-back" }, excerpt(card.unit, 160) || card.unit.title)),
+  );
+}
+
+// ── The loop ──────────────────────────────────────────────────────────────────
+
+const LOOP_STEPS = [
+  ["Attempt",    "Practice questions in the LES. Each miss maps to a concept tag."],
+  ["Diagnose",   "Hit rate splits knowledge gaps from execution failures."],
+  ["Review",     "RELEARN cards spaced; CHECKLIST cards primed before the next sitting."],
+  ["Re-attempt", "Retake the module. Same concepts, new round."],
+  ["Graduate",   "Two consecutive corrects in a later round clears the tag."],
+];
+
+function LoopView() {
+  const [state, setState] = useState(null);
+  const [pending, setPending] = useState(false);
+  const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const sb = await getClient();
+        const [statsRes, attRes, unitRes] = await Promise.all([
+          sb.from("codex_concept_stats").select("remediation"),
+          sb.from("codex_attempts").select("round"),
+          sb.from("codex_concept_units").select("unit_id"),
+        ]);
+        const bad = statsRes.error || attRes.error || unitRes.error;
+        if (bad) {
+          if (isMissingRelation(bad)) { setPending(true); return; }
+          throw bad;
+        }
+        setState({
+          stats: statsRes.data || [],
+          rounds: (attRes.data || []).reduce((m, a) => Math.max(m, Number(a.round) || 1), 0),
+          units: (unitRes.data || []).length,
+        });
+      } catch (e) { setErr(e.message); }
+    })();
+  }, []);
+
+  if (err) return h(ErrorBox, { msg: err });
+  if (pending) return h(NotProvisioned, { reads: "codex_concept_stats, codex_attempts" });
+  if (!state) return h(Loader);
+
+  // Where the loop actually stands, read off the data rather than pinned to a
+  // step in a mockup.
+  const tagged = state.stats.filter(s => s.remediation !== "MAINTAIN").length;
+  const live =
+    state.rounds === 0 ? 1 :
+    state.units === 0  ? 2 :
+    state.rounds === 1 ? 3 :
+    tagged > 0         ? 4 : 5;
+
+  return h(Fragment, null,
+    h("h3", { class: "rc-sec" }, "The loop"),
+    h("p", { class: "rc-secnote" }, "One concept, one lifecycle."),
+    h("div", { class: "rc-steps" },
+      LOOP_STEPS.map(([title, note], i) =>
+        h("div", { key: title, class: `rc-step ${i + 1 === live ? "live" : ""}` },
+          h("div", { class: "rc-step-n" }, String(i + 1).padStart(2, "0")),
+          h("h5", null, title),
+          h("p", null, note, i + 1 === live ? " You are here." : ""),
+        ))),
+
+    h("div", { class: "rc-gate" },
+      h("h4", null, "Graduation rule"),
+      h("p", null,
+        "A concept clears when it is answered correctly twice in a round later " +
+        "than its last failure. Hit rate displays per round, with lifetime " +
+        "beneath it — otherwise an old miss weighs on the number forever and " +
+        "nothing ever leaves the queue."),
+      h("p", { style: { color: "var(--text-3)", fontSize: "12.5px" } },
+        h("code", null, "MAINTAIN"),
+        " concepts drop out of review but stay on the ladder. A later-round " +
+        "failure returns the tag automatically — tags derive from the log, and " +
+        "nothing in this app sets one directly."),
+    ),
+
+    state.units === 0 && h("div", { class: "rc-gate", style: { marginTop: "14px" } },
+      h("h4", null, "What is blocking review"),
+      h("p", null,
+        "No concept is mapped to a lesson unit yet — ",
+        h("code", null, "codex_concept_units"), " is empty. That mapping is the " +
+        "join between the attempt ledger and the units already in Codex, and the " +
+        "review queue stays empty until it exists. The report card does not " +
+        "depend on it."),
+    ),
+  );
+}
+
+// ── Report card shell ─────────────────────────────────────────────────────────
+
+const RC_TABS = [
+  { key: "report", label: "Report card",    hash: "#/report" },
+  { key: "review", label: "Review queue",   hash: "#/review" },
+  { key: "loop",   label: "Close the loop", hash: "#/loop"   },
+];
+
+function ReportCardShell({ tab }) {
+  const days = Math.ceil((EXAM_DATE - Date.now()) / DAY_MS);
+  return h(Fragment, null,
+    h("div", { class: "rc-head" },
+      h("div", null,
+        h("div", { class: "page-title" }, "Report Card"),
+        h("div", { class: "page-sub", style: { marginBottom: 0 } },
+          "The record is the concept. Questions are only the evidence."),
+      ),
+      h("div", { class: "rc-stamp" },
+        h("div", null, "NEXT SITTING 19 NOV"),
+        h("div", null, days > 0 ? `${days} DAYS` : "SAT"),
+      ),
+    ),
+    h("div", { class: "rc-tabs", role: "tablist" },
+      RC_TABS.map(t =>
+        h("button", {
+          key: t.key, class: `rc-tab ${tab === t.key ? "on" : ""}`,
+          role: "tab", "aria-selected": tab === t.key ? "true" : "false",
+          onClick: () => navigate(t.hash),
+        }, t.label))),
+    tab === "review" ? h(ReviewQueue) : tab === "loop" ? h(LoopView) : h(ReportCard),
+  );
+}
+
 // ── App shell ──────────────────────────────────────────────────────────────────
 
 function App() {
@@ -1619,16 +2368,19 @@ function App() {
   const isDrill    = hash === "#/drill";
   const isLos      = hash === "#/los";
   const isReading  = !!(readMatch || docMatch);
+  // Three tabs of one surface, each with its own hash so a view is linkable.
+  const rcTab      = RC_TABS.find(t => t.hash === hash)?.key || null;
 
   let page;
   if (readMatch)       page = h(ReadingPane, { docId: readMatch[1], theme, onToggleTheme: toggleTheme });
   else if (docMatch)   page = h(ReadingPane, { docId: docMatch[1],  theme, onToggleTheme: toggleTheme });
+  else if (rcTab)      page = h(ReportCardShell, { tab: rcTab });
   else if (isFormulas) page = h(FormulaSheet);
   else if (isDrill)    page = h(ExampleDrill);
   else if (isLos)      page = h(LosTracker);
   else                 page = h(Home);
 
-  const isHome = !isReading && !isFormulas && !isDrill && !isLos;
+  const isHome = !isReading && !isFormulas && !isDrill && !isLos && !rcTab;
 
   return h(Fragment, null,
     h("nav", { class: `topbar ${isReading ? "topbar-dim" : ""}` },
@@ -1638,6 +2390,7 @@ function App() {
       ),
       h("div", { class: "topbar-nav" },
         h("button", { class: `nav-btn ${isHome ? "active" : ""}`, onClick: () => navigate("#/") }, "Home"),
+        h("button", { class: `nav-btn ${rcTab ? "active" : ""}`, onClick: () => navigate("#/report") }, "Report"),
         h("button", { class: `nav-btn ${isFormulas ? "active" : ""}`, onClick: () => navigate("#/formulas") }, "Formulas"),
         h("button", { class: `nav-btn ${isDrill ? "active" : ""}`, onClick: () => navigate("#/drill") }, "Drill"),
         h("button", { class: `nav-btn ${isLos ? "active" : ""}`, onClick: () => navigate("#/los") }, "LOS"),

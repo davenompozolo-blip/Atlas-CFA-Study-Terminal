@@ -1315,6 +1315,274 @@
     }
     .unit-blocks .md-table.tbl-signal td:last-child { color: var(--text); font-weight: 500; }
 
+    /* ══ report card / targeted review ═══════════════════════════════ */
+    /* Ported from codex_report_card_mockup.html onto the ATLAS tokens.
+       Everything is rc-prefixed: the mockup's class names (.row, .cell,
+       .card, .tag, .box, .step) would collide with the reader's. */
+
+    .rc-head {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 24px; flex-wrap: wrap;
+    }
+    .rc-stamp {
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--text-3); text-align: right; line-height: 1.7;
+    }
+
+    /* ── tabs ───────────────────────────────────────────────────────── */
+    .rc-tabs {
+      display: flex; gap: 2px; margin: 18px 0 22px;
+      border-bottom: 1px solid var(--border);
+    }
+    .rc-tab {
+      color: var(--text-2);
+      font-family: var(--font-display); font-weight: 600; font-size: 13px;
+      padding: 9px 16px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color .15s;
+    }
+    .rc-tab:hover { color: var(--text); }
+    .rc-tab.on { color: var(--cyan); border-bottom-color: var(--cyan); }
+    .rc-tab:focus-visible, .rc-btn:focus-visible, .rc-seg:focus-visible {
+      outline: 2px solid var(--cyan); outline-offset: 2px;
+    }
+
+    /* ── headline strip ─────────────────────────────────────────────── */
+    /* 1px gaps over a border-coloured backing: cell separators without
+       eight separate border declarations. */
+    .rc-strip {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1px; background: var(--border); border: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+    .rc-cell { background: var(--card); padding: 14px 16px; }
+    .rc-cell-k {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: .09em;
+      color: var(--text-3); text-transform: uppercase;
+    }
+    .rc-cell-v {
+      font-family: var(--font-display); font-weight: 700; font-size: 26px;
+      letter-spacing: -.02em; margin-top: 5px;
+    }
+    .rc-cell-n { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+    .rc-cell-v.cy { color: var(--cyan); }
+    .rc-cell-v.am { color: var(--amber); }
+    .rc-cell-v.rd { color: var(--red); }
+
+    .rc-caveat {
+      border-left: 2px solid var(--amber); background: var(--amber-bg);
+      padding: 10px 14px; font-size: 12.5px; color: var(--amber);
+      margin-bottom: 26px;
+    }
+    /* No conditions row for this round: the slot still shows, because the
+       raw score is misleading without it — but it says so rather than
+       inventing the wording. */
+    .rc-caveat.rc-caveat-empty {
+      border-left-color: var(--border); background: var(--card);
+      color: var(--text-3);
+    }
+
+    /* ── section heads ──────────────────────────────────────────────── */
+    .rc-sec {
+      font-family: var(--font-display); font-weight: 700; font-size: 12px;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--text-2);
+      margin: 0 0 4px;
+    }
+    .rc-secnote {
+      font-size: 12.5px; color: var(--text-3); margin-bottom: 14px; max-width: 640px;
+    }
+
+    /* ── concept ladder ─────────────────────────────────────────────── */
+    .rc-ladder { border: 1px solid var(--border); background: var(--card); }
+    .rc-row {
+      display: grid; grid-template-columns: 26px 1fr 118px 96px 84px;
+      align-items: center; gap: 14px; padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .rc-row:last-child { border-bottom: none; }
+    .rc-row.head {
+      padding: 8px 16px; background: var(--card2);
+      font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--text-3);
+    }
+    .rc-rk { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+    .rc-lbl { font-weight: 500; min-width: 0; }
+    .rc-lbl small {
+      display: block; color: var(--text-3); font-size: 11px;
+      font-weight: 400; margin-top: 1px;
+    }
+
+    /* Attempt pips: one per lifetime attempt, in order. Filled is a hit,
+       hollow is a miss. The count is the information — 0 of 4 has to read
+       as worse than 0 of 2 when both say 0%. */
+    .rc-pips { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+    .rc-pip {
+      width: 11px; height: 11px; border-radius: 50%;
+      border: 1.5px solid var(--red); flex: none;
+    }
+    .rc-pip.hit { background: var(--green); border-color: var(--green); }
+    .rc-pip-more {
+      font-family: var(--font-mono); font-size: 10px; color: var(--text-3);
+    }
+
+    .rc-rate {
+      font-family: var(--font-mono); font-size: 14px; font-weight: 500;
+      text-align: right;
+    }
+    .rc-rate.z { color: var(--red); }
+    .rc-rate.mid { color: var(--amber); }
+    .rc-rate.ok { color: var(--green); }
+    .rc-rate small {
+      display: block; font-size: 10px; color: var(--text-3); font-weight: 400;
+    }
+
+    .rc-tag {
+      font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .06em;
+      padding: 3px 7px; border: 1px solid; text-align: center;
+    }
+    .rc-tag.re { color: var(--red);   border-color: rgba(224,85,85,.4);  background: rgba(224,85,85,.07); }
+    .rc-tag.ck { color: var(--amber); border-color: rgba(245,166,35,.4); background: rgba(245,166,35,.07); }
+    .rc-tag.mt { color: var(--text-3); border-color: var(--border); }
+
+    /* ── relearn / checklist split ──────────────────────────────────── */
+    .rc-split { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 26px; }
+    .rc-box { border: 1px solid var(--border); background: var(--card); padding: 16px; }
+    .rc-box h4 {
+      font-family: var(--font-display); font-size: 12px; letter-spacing: .08em;
+      text-transform: uppercase; margin-bottom: 3px;
+    }
+    .rc-box.re h4 { color: var(--red); }
+    .rc-box.ck h4 { color: var(--amber); }
+    .rc-box p { font-size: 12px; color: var(--text-3); margin-bottom: 11px; }
+    .rc-box ul { list-style: none; font-size: 13px; }
+    .rc-box li {
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 5px 0; border-bottom: 1px solid var(--border);
+    }
+    .rc-box li:last-child { border-bottom: none; }
+    .rc-box li b {
+      font-family: var(--font-mono); font-size: 11px; color: var(--text-2);
+      font-weight: 400; white-space: nowrap;
+    }
+
+    /* ── module bars ────────────────────────────────────────────────── */
+    .rc-mods { display: grid; gap: 9px; margin-top: 8px; }
+    .rc-mod {
+      display: grid; grid-template-columns: 1fr 190px 84px;
+      align-items: center; gap: 14px; font-size: 13px;
+    }
+    .rc-bar {
+      height: 7px; background: var(--card2);
+      border: 1px solid var(--border); position: relative;
+    }
+    .rc-fill { position: absolute; inset: 0 auto 0 0; background: var(--cyan); opacity: .75; }
+    /* the 70% working threshold */
+    .rc-mps { position: absolute; top: -3px; bottom: -3px; left: 70%; width: 1px; background: var(--amber); }
+    .rc-pct {
+      font-family: var(--font-mono); font-size: 12px;
+      text-align: right; color: var(--text-2);
+    }
+
+    /* ── review cards ───────────────────────────────────────────────── */
+    .rc-qhead {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+    }
+    .rc-card { border: 1px solid var(--border); background: var(--card); margin-bottom: 12px; }
+    .rc-card-meta {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--card2);
+      font-family: var(--font-mono); font-size: 10px; color: var(--text-3);
+      letter-spacing: .05em; flex-wrap: wrap;
+    }
+    .rc-card-body { padding: 15px 16px; }
+    .rc-front { font-size: 14.5px; font-weight: 500; margin-bottom: 9px; }
+    .rc-back {
+      font-size: 13px; color: var(--text-2);
+      border-left: 2px solid var(--cyan); padding-left: 12px;
+    }
+    .rc-card.prime { border-color: rgba(245,166,35,.35); }
+    .rc-card.prime .rc-back { border-left-color: var(--amber); }
+    .rc-acts { display: flex; gap: 8px; padding: 0 16px 14px; flex-wrap: wrap; }
+    .rc-btn {
+      font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .05em;
+      padding: 6px 13px; background: none; border: 1px solid var(--border);
+      color: var(--text-2); transition: color .15s, border-color .15s;
+    }
+    .rc-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+    .rc-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    .rc-rule { height: 1px; background: var(--border); margin: 22px 0 16px; }
+
+    .rc-empty {
+      border: 1px solid var(--border); background: var(--card);
+      padding: 20px; font-size: 13px; color: var(--text-2);
+    }
+    .rc-empty b { display: block; color: var(--text); font-weight: 600; margin-bottom: 4px; }
+    .rc-empty code {
+      font-family: var(--font-mono); font-size: 12px; color: var(--cyan);
+    }
+
+    /* ── loop ───────────────────────────────────────────────────────── */
+    .rc-steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px; background: var(--border); border: 1px solid var(--border);
+      margin-bottom: 22px;
+    }
+    .rc-step { background: var(--card); padding: 15px 16px; }
+    .rc-step-n { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+    .rc-step h5 { font-family: var(--font-display); font-size: 14px; margin: 5px 0; }
+    .rc-step p { font-size: 12px; color: var(--text-3); line-height: 1.45; }
+    .rc-step.live { background: var(--card2); box-shadow: inset 2px 0 0 var(--cyan); }
+    .rc-step.live h5 { color: var(--cyan); }
+    .rc-gate { border: 1px solid var(--border); background: var(--card); padding: 16px; }
+    .rc-gate h4 {
+      font-family: var(--font-display); font-size: 12px; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--cyan); margin-bottom: 9px;
+    }
+    .rc-gate p { font-size: 13px; color: var(--text-2); margin-bottom: 9px; max-width: 660px; }
+    .rc-gate p:last-child { margin-bottom: 0; }
+    .rc-gate code { font-family: var(--font-mono); color: var(--amber); font-size: 12.5px; }
+
+    /* ── priming strip (inside a practice unit) ─────────────────────── */
+    .rc-prime-strip { margin-bottom: 20px; }
+    .rc-prime-head {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--amber); margin-bottom: 8px;
+    }
+
+    /* ── responsive ─────────────────────────────────────────────────── */
+    /* Below 760 the ladder keeps concept and pips and drops the rate and
+       tag: the pips still carry the count, which is the point of the row. */
+    @media (max-width: 760px) {
+      .rc-split { grid-template-columns: 1fr; }
+      .rc-row { grid-template-columns: 22px 1fr minmax(0, 108px); gap: 10px; }
+      .rc-rate, .rc-tag, .rc-row.head .rc-rate-h, .rc-row.head .rc-tag-h { display: none; }
+      .rc-pip { width: 9px; height: 9px; }
+      .rc-pips { gap: 4px; }
+    }
+    @media (max-width: 620px) {
+      .rc-mod { grid-template-columns: 1fr auto; }
+      .rc-bar { grid-column: 1 / -1; order: 3; }
+    }
+
+    /* A fifth nav item takes the topbar past a 380px viewport, which would
+       scroll the whole page sideways. The nav wraps to its own line and scrolls
+       within itself instead. */
+    @media (max-width: 640px) {
+      .topbar { flex-wrap: wrap; gap: 8px; padding: 12px 16px; }
+      .topbar-nav { width: 100%; overflow-x: auto; scrollbar-width: none; }
+      .topbar-nav::-webkit-scrollbar { display: none; }
+      .nav-btn { flex: none; }
+      .main { padding: 24px 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important; scroll-behavior: auto !important;
+      }
+    }
+
     /* ── reading card meta ──────────────────────────────────────────── */
     .reading-meta-item { white-space: nowrap; }
     .reading-meta-item + .reading-meta-item::before {
