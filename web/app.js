@@ -204,7 +204,7 @@ function TopicRow({ topic, isOpen, onToggle, docs }) {
 
 // ── Reading pane shell ─────────────────────────────────────────────────────────
 
-function ReadingPane({ docId, theme, onToggleTheme }) {
+function ReadingPane({ docId, unitId, theme, onToggleTheme }) {
   const [doc, setDoc] = useState(null);
   const [units, setUnits] = useState(null);
   const [blocks, setBlocks] = useState({});
@@ -242,14 +242,22 @@ function ReadingPane({ docId, theme, onToggleTheme }) {
         const all = unitsRes.data || [];
         const live = all.filter(u => isStudyable(u, byUnit[u.id]));
         // never strand a reading — if the filter would empty it, show it whole
-        setUnits(live.length ? live : all);
+        const list = live.length ? live : all;
+        setUnits(list);
+
+        // A deep link names the unit, not a position: the index only exists
+        // after the studyable filter has run, and it shifts as units are
+        // generated. An id that no longer resolves falls back to the resume
+        // point rather than stranding the reader at the top.
+        const target = unitId ? list.findIndex(u => u.id === unitId) : -1;
+        setUnitIdx(target >= 0 ? target : getResume(docId));
 
         const prog = {};
         for (const p of (progRes.data || [])) prog[p.unit_id] = p;
         setProgress(prog);
       } catch (e) { setErr(e.message); }
     })();
-  }, [docId]);
+  }, [docId, unitId]);
 
   const markViewed = useCallback(async (unit) => {
     if (!unit || progress[unit.id]?.status === "done") return;
@@ -1802,7 +1810,7 @@ function EvidenceChip({ attempt, showModule }) {
 
 // The row is the claim; the expansion is the evidence for it. Position and error
 // class only — a chip never carries question or vignette text.
-function LadderRow({ stat, concept, attempts, spans, isOpen, onToggle, readingId }) {
+function LadderRow({ stat, concept, attempts, spans, isOpen, onToggle, readingId, lesson }) {
   const ra = Number(stat.round_attempts || 0);
   const shown = ra ? pctOf(stat.round_hits, ra) : Math.round(100 * Number(stat.hit_rate || 0));
   // A concept that graduated and came back reads as a different thing from one
@@ -1836,10 +1844,19 @@ function LadderRow({ stat, concept, attempts, spans, isOpen, onToggle, readingId
       // Editorial, not derivable here. Omitted rather than invented while null.
       concept?.pattern_note && h("p", { class: "rc-evnote" }, concept.pattern_note),
       h("div", { class: "rc-acts" },
+        // Two different promises, so they carry two different labels: one lands
+        // on the lesson unit for this concept, the other only on the reading.
         h("button", {
-          class: "rc-btn", disabled: !readingId,
-          onClick: e => { e.stopPropagation(); readingId && navigate(`#/read/${readingId}`); },
-        }, "OPEN READING"),
+          class: "rc-btn", disabled: !lesson && !readingId,
+          title: lesson
+            ? "Opens the lesson unit mapped to this concept"
+            : "No lesson unit is mapped to this concept yet — opens the reading",
+          onClick: e => {
+            e.stopPropagation();
+            if (lesson) navigate(`#/read/${lesson.readingId}/${lesson.unitId}`);
+            else if (readingId) navigate(`#/read/${readingId}`);
+          },
+        }, lesson ? "OPEN LESSON" : "OPEN READING"),
         h("button", {
           class: "rc-btn", disabled: true,
           title: "Enabled once the concept-to-unit mapping lands",
@@ -1904,7 +1921,27 @@ function ReportCard({ topicId, module }) {
         }
         const byTag = {};
         for (const c of (conceptRes.data || [])) byTag[c.concept_tag] = c;
+
+        // A concept knows which reading it was missed in, but not where inside
+        // it the idea lives — that is what codex_concept_units carries. With a
+        // mapping the row opens the lesson unit itself; without one it can only
+        // open the reading, which is the state until the mapping pass lands.
+        const joinRes = await sb.from("codex_concept_units").select("concept_tag, unit_id");
+        const ids = [...new Set((joinRes.data || []).map(j => j.unit_id))];
+        const unitRes = ids.length
+          ? await sb.from("codex_units").select("id, reading_id").in("id", ids)
+          : { data: [] };
+        const readingOfUnit = {};
+        for (const u of (unitRes.data || [])) readingOfUnit[u.id] = u.reading_id;
+        const lessons = {};
+        for (const j of (joinRes.data || [])) {
+          if (!lessons[j.concept_tag] && readingOfUnit[j.unit_id]) {
+            lessons[j.concept_tag] = { unitId: j.unit_id, readingId: readingOfUnit[j.unit_id] };
+          }
+        }
+
         setData({
+          lessons,
           stats: statsRes.data || [],
           concepts: byTag,
           attempts: attRes.data || [],
@@ -2070,6 +2107,7 @@ function ReportCard({ topicId, module }) {
                 attempts: attemptsByTag[s.concept_tag] || [],
                 spans: spansNote(s, attemptsByTag[s.concept_tag] || [], scope),
                 readingId: readingFor(s, attemptsByTag[s.concept_tag] || []),
+                lesson: data.lessons[s.concept_tag],
                 isOpen: !!open[s.concept_tag],
                 onToggle: () => setOpen(o => ({ ...o, [s.concept_tag]: !o[s.concept_tag] })),
               })))),
@@ -2602,7 +2640,9 @@ function App() {
     setStoredTheme(next);
   };
 
-  const readMatch  = hash.match(/^#\/read\/(.+)$/);
+  // Optional second segment deep-links to a unit inside the reading:
+  // #/read/{docId}/{unitId}. Both ids are hex, so the split is unambiguous.
+  const readMatch  = hash.match(/^#\/read\/([^/]+)(?:\/([^/]+))?$/);
   const docMatch   = hash.match(/^#\/doc\/(.+)$/);   // legacy compat
   const isFormulas = hash === "#/formulas";
   const isDrill    = hash === "#/drill";
@@ -2614,7 +2654,7 @@ function App() {
   const rcTab      = scopeMatch ? "report" : (RC_TABS.find(t => t.hash === hash)?.key || null);
 
   let page;
-  if (readMatch)       page = h(ReadingPane, { docId: readMatch[1], theme, onToggleTheme: toggleTheme });
+  if (readMatch)       page = h(ReadingPane, { docId: readMatch[1], unitId: readMatch[2] || null, theme, onToggleTheme: toggleTheme });
   else if (docMatch)   page = h(ReadingPane, { docId: docMatch[1],  theme, onToggleTheme: toggleTheme });
   else if (scopeMatch) page = h(ReportCardShell, {
                          tab: "report",
