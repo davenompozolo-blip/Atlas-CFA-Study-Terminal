@@ -1629,23 +1629,6 @@ function isMissingRelation(err) {
          /does not exist|schema cache/i.test(err.message || "");
 }
 
-// Attempt order across rounds. attempted_at is a date, so same-day attempts fall
-// back to insertion order — which is the order they were worked in.
-function attemptSeq(a, b) {
-  return (Number(a.round || 0) - Number(b.round || 0)) ||
-         String(a.attempted_at || "").localeCompare(String(b.attempted_at || "")) ||
-         String(a.created_at || "").localeCompare(String(b.created_at || "")) ||
-         (Number(a.id || 0) - Number(b.id || 0));
-}
-
-function pipsByConcept(attempts) {
-  const out = {};
-  for (const a of [...attempts].sort(attemptSeq)) {
-    (out[a.concept_tag] ||= []).push(!!a.is_correct);
-  }
-  return out;
-}
-
 // Hit rate ascending, then attempt count descending, so 0 of 4 outranks 0 of 2 —
 // both read 0%, but one is a hardened gap and the other is barely tested.
 // Deliberately unweighted: decay and shrinkage were tried and changed no
@@ -1733,252 +1716,507 @@ function Pips({ seq }) {
   );
 }
 
-// Current round primary, lifetime beneath. Without the round split an old
-// failure weighs on the number forever and nothing ever graduates.
-function RateCell({ stat }) {
-  const ra = Number(stat.round_attempts || 0);
-  const pct = ra ? pctOf(stat.round_hits, ra) : Math.round(100 * Number(stat.hit_rate || 0));
-  return h("div", { class: `rc-rate ${rateClass(pct)}` }, `${pct}%`,
-    h("small", null, `${Number(stat.lt_hits || 0)} of ${Number(stat.lt_attempts || 0)}`));
+// ── Report card ───────────────────────────────────────────────────────────────
+// One view, three scopes: overall → topic → module. The same three sections
+// render at every level — headline, ladder, bars — and only the grouping key and
+// the filter change. A module report card is the topic card filtered to one
+// module, not a second component.
+//
+// Everything is fetched once on mount and scoped client-side, so moving between
+// scopes never reloads.
+
+const RC_SCOPE_RE = /^#\/report(?:\/([^/]+))?(?:\/(\d+))?$/;
+
+function reportHash(topicId, module) {
+  if (!topicId) return "#/report";
+  return module == null ? `#/report/${topicId}` : `#/report/${topicId}/${module}`;
 }
 
-// ── Report card ───────────────────────────────────────────────────────────────
+// error_class is stored snake_case. Underscores become spaces and nothing else:
+// shortening "calculation_formula_recall" to "formula recall" would be editing
+// the record rather than displaying it.
+function humanClass(s) {
+  return String(s || "").replace(/_/g, " ");
+}
 
-function ReportCard() {
+const pct1 = x => `${(100 * Number(x || 0)).toFixed(1)}%`;
+const pct0 = x => `${Math.round(100 * Number(x || 0))}%`;
+const BELOW_THRESHOLD = 0.70;
+
+// ── scope switcher ────────────────────────────────────────────────────────────
+// Two tiers, deliberately different. Ancestors are a path — unboxed text, cyan
+// only as a colour. Siblings are the tab pattern used everywhere else in Codex.
+// One control for both would make the hierarchy it expresses invisible.
+
+function ScopePath({ topicId, topicName }) {
+  const crumbs = [{ key: "all", label: "Overall", hash: "#/report", here: !topicId }];
+  // At module scope the topic stays current: the module is a tab, not a crumb.
+  if (topicId) {
+    crumbs.push({ key: topicId, label: topicName || topicId, hash: reportHash(topicId), here: true });
+  }
+  return h("nav", { class: "rc-path", "aria-label": "Scope" },
+    crumbs.map((c, i) =>
+      h(Fragment, { key: c.key },
+        i > 0 && h("span", { class: "rc-sep" }, "›"),
+        h("button", {
+          class: `rc-crumb ${c.here ? "here" : ""}`,
+          "aria-current": c.here ? "true" : null,
+          onClick: () => navigate(c.hash),
+        }, c.label))));
+}
+
+// Each tab carries its own count and score, so the switcher summarises as well
+// as navigates — the weak module is visible before you click into it.
+function ScopeTabs({ items, active }) {
+  return h("div", { class: "rc-tabs", role: "tablist" },
+    items.map(it =>
+      h("button", {
+        key: String(it.key),
+        class: `rc-tab ${it.key === active ? "on" : ""}`,
+        role: "tab", "aria-selected": it.key === active ? "true" : "false",
+        onClick: () => navigate(it.hash),
+      },
+        h("span", { class: "t" }, it.title),
+        // Below 600px the full reading name is swapped for the module code.
+        // Five full names cannot fit 380px — even the mockup's hand-shortened
+        // ones overflow — and acceptance asks for no scroll at that width.
+        h("span", { class: "t-short" }, it.short || it.title),
+        it.note && h("span", { class: `n ${it.warn ? "warn" : ""}` }, it.note),
+      )));
+}
+
+// ── ladder ────────────────────────────────────────────────────────────────────
+
+function EvidenceChip({ attempt, showModule }) {
+  const where = [
+    showModule && attempt.module != null ? `M${attempt.module}` : null,
+    attempt.vignette != null ? `V${attempt.vignette}` : null,
+    attempt.q != null ? `Q${attempt.q}` : null,
+  ].filter(Boolean).join(" ");
+  return h("span", { class: `rc-q ${attempt.is_correct ? "hit" : "miss"}` },
+    where || (attempt.is_correct ? "hit" : "miss"),
+    !attempt.is_correct && attempt.error_class &&
+      h("em", null, humanClass(attempt.error_class)),
+  );
+}
+
+// The row is the claim; the expansion is the evidence for it. Position and error
+// class only — a chip never carries question or vignette text.
+function LadderRow({ stat, concept, attempts, spans, isOpen, onToggle, readingId }) {
+  const ra = Number(stat.round_attempts || 0);
+  const shown = ra ? pctOf(stat.round_hits, ra) : Math.round(100 * Number(stat.hit_rate || 0));
+  // A concept that graduated and came back reads as a different thing from one
+  // that never left.
+  const returned = Number(stat.last_fail_round || 0) > 1;
+  const sub = [stat.root_ref, spans].filter(Boolean).join(" · ");
+
+  return h(Fragment, null,
+    h("div", {
+      class: `rc-row ${isOpen ? "open" : ""}`,
+      role: "button", tabIndex: 0, "aria-expanded": isOpen ? "true" : "false",
+      onClick: onToggle,
+      onKeyDown: e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(); }
+      },
+    },
+      h("div", { class: "rc-lbl" }, stat.label, sub && h("small", null, sub)),
+      h(Pips, { seq: attempts.map(a => !!a.is_correct) }),
+      h("div", { class: `rc-rate ${rateClass(shown)}` }, `${shown}%`,
+        h("small", null, `${Number(stat.lt_hits || 0)} of ${Number(stat.lt_attempts || 0)}`)),
+      h("div", { class: "rc-tagwrap" },
+        h("div", { class: `rc-tag ${TAG_CLASS[stat.remediation] || "mt"}` }, stat.remediation),
+        returned && h("div", { class: "rc-tag rt" }, "RETURNED")),
+      h("div", { class: "rc-chev" }, "›"),
+    ),
+    isOpen && h("div", { class: "rc-det open" },
+      concept?.correction && h("div", { class: "rc-fix" },
+        h("b", null, "The fix"), concept.correction),
+      attempts.length > 0 && h("div", { class: "rc-ev" },
+        attempts.map(a => h(EvidenceChip, { key: a.id, attempt: a, showModule: !!spans }))),
+      // Editorial, not derivable here. Omitted rather than invented while null.
+      concept?.pattern_note && h("p", { class: "rc-evnote" }, concept.pattern_note),
+      h("div", { class: "rc-acts" },
+        h("button", {
+          class: "rc-btn", disabled: !readingId,
+          onClick: e => { e.stopPropagation(); readingId && navigate(`#/read/${readingId}`); },
+        }, "OPEN READING"),
+        h("button", {
+          class: "rc-btn", disabled: true,
+          title: "Enabled once the concept-to-unit mapping lands",
+        }, "ADD TO REVIEW"),
+      ),
+    ),
+  );
+}
+
+function LadderGroup({ title, tag, meta, children, dimmed, note }) {
+  return h("div", { class: `rc-grp ${dimmed ? "dim" : ""}` },
+    h("div", { class: "rc-ghead" },
+      h("div", { class: "rc-gtitle" }, tag && h("b", null, tag), title),
+      meta && h("div", { class: "rc-gmeta" }, meta),
+    ),
+    note ? h("div", { class: "rc-gnote" }, note) : children,
+  );
+}
+
+function Bars({ items }) {
+  return h("div", { class: "rc-mods" },
+    items.map(m =>
+      h("div", { key: String(m.key), class: "rc-mod" },
+        h("span", null, m.label),
+        h("span", { class: "rc-attempts" },
+          m.rounds != null ? h(Fragment, null,
+            plural(m.rounds, "attempt", "attempts"), " · ",
+            h("b", null, `${m.attempted} q`)) : `${m.attempted} q`),
+        h("div", { class: "rc-bar" },
+          h("div", { class: "rc-fill", style: { width: pct0(m.score) } }),
+          h("div", { class: "rc-mps" })),
+        h("span", { class: "rc-pct" }, `${m.correct}/${m.attempted} · ${pct0(m.score)}`),
+      )));
+}
+
+// ── the view ──────────────────────────────────────────────────────────────────
+
+function ReportCard({ topicId, module }) {
   const [data, setData] = useState(null);
-  const [topic, setTopic] = useState(null);
   const [pending, setPending] = useState(false);
   const [err, setErr] = useState(null);
+  const [open, setOpen] = useState({});
 
   useEffect(() => {
     (async () => {
       try {
         const sb = await getClient();
-        const [statsRes, attRes] = await Promise.all([
+        const [statsRes, conceptRes, attRes, topicRes, modRes, roundRes] = await Promise.all([
           sb.from("codex_concept_stats").select("*"),
-          // Ordered by id as the last key: the seeded ledger carries a null
-          // attempted_at and one identical created_at, so insertion order is
-          // the only record of the order the questions were worked in — and
-          // that order is what the pips draw.
-          sb.from("codex_attempts")
-            .select("id, concept_tag, topic_id, module, round, is_correct, is_reconstructed, attempted_at, created_at")
+          sb.from("codex_concepts").select("concept_tag, correction, pattern_note"),
+          sb.from("codex_attempt_scope")
+            .select("id, concept_tag, topic_id, topic_name, module, vignette, q, round, is_correct, error_class, is_reconstructed, reading_id, reading")
             .order("round").order("id"),
+          sb.from("codex_topic_stats").select("*"),
+          sb.from("codex_module_stats").select("*").order("module"),
+          sb.from("codex_rounds").select("topic_id, round, conditions"),
         ]);
-        const bad = statsRes.error || attRes.error;
+        const bad = statsRes.error || attRes.error || topicRes.error || modRes.error;
         if (bad) {
           if (isMissingRelation(bad)) { setPending(true); return; }
           throw bad;
         }
-        // Topic names, module titles and the round's conditions all live outside
-        // this feature's tables. Each is optional — a missing one degrades a
-        // label or the caveat, it does not fail the view. codex_rounds does not
-        // exist yet, which is why the caveat has a fallback.
-        const [topicsRes, docsRes, roundsRes] = await Promise.all([
-          sb.from("codex_topics").select("id, name"),
-          sb.from("codex_documents").select("reading, lm, topic_id"),
-          sb.from("codex_rounds").select("topic_id, round, conditions"),
-        ]);
+        const byTag = {};
+        for (const c of (conceptRes.data || [])) byTag[c.concept_tag] = c;
         setData({
           stats: statsRes.data || [],
+          concepts: byTag,
           attempts: attRes.data || [],
-          topics: topicsRes.error ? [] : (topicsRes.data || []),
-          docs: docsRes.error ? [] : (docsRes.data || []),
-          rounds: roundsRes.error ? [] : (roundsRes.data || []),
+          topics: topicRes.data || [],
+          modules: modRes.data || [],
+          rounds: roundRes.error ? [] : (roundRes.data || []),
         });
       } catch (e) { setErr(e.message); }
     })();
   }, []);
 
   if (err) return h(ErrorBox, { msg: err });
-  if (pending) return h(NotProvisioned, { reads: "codex_concept_stats, codex_attempts" });
+  if (pending) return h(NotProvisioned, { reads: "codex_concept_stats, codex_attempt_scope, codex_topic_stats" });
   if (!data) return h(Loader);
-
-  const areas = [...new Set([
-    ...data.attempts.map(a => a.topic_id),
-    ...data.stats.map(s => s.topic_id),
-  ])].filter(Boolean);
-  const topicName = id => data.topics.find(t => t.id === id)?.name || id;
-
-  if (!areas.length) {
+  if (!data.topics.length) {
     return h("div", { class: "rc-empty" },
       h("b", null, "No attempts logged"),
-      h("p", null, "The ladder builds itself from codex_attempts. Log a round and it appears here."));
+      h("p", null, "The ladder builds itself from the attempt ledger. Log a round and it appears here."));
   }
 
-  // Deficit-first, as everywhere else in Codex: the worst topic is the default.
-  const rawScore = t => {
-    const rows = data.attempts.filter(a => a.topic_id === t);
-    return rows.length ? rows.filter(r => r.is_correct).length / rows.length : 1;
-  };
-  areas.sort((a, b) => rawScore(a) - rawScore(b) || String(a).localeCompare(String(b)));
-  const active = topic && areas.includes(topic) ? topic : areas[0];
+  // Deficit-first everywhere a list is ranked.
+  const topics = [...data.topics].sort((a, b) => Number(a.score) - Number(b.score));
+  const activeTopic = topicId && topics.find(t => t.topic_id === topicId) ? topicId : null;
+  const scope = activeTopic ? (module != null ? "module" : "topic") : "overall";
+  const topicRow = topics.find(t => t.topic_id === activeTopic);
+  const mods = data.modules
+    .filter(m => !activeTopic || m.topic_id === activeTopic)
+    .sort((a, b) => Number(a.score) - Number(b.score));
+  const modRow = module != null ? mods.find(m => Number(m.module) === module) : null;
 
-  const lifetime = data.attempts.filter(a => a.topic_id === active);
-  const round = lifetime.reduce((m, a) => Math.max(m, Number(a.round) || 1), 1);
-  const cur = lifetime.filter(a => (Number(a.round) || 1) === round);
-  const stats = data.stats.filter(s => s.topic_id === active).sort(ladderOrder);
-  const pips = pipsByConcept(lifetime);
-  // Attempts rebuilt from the written review rather than logged live. They
-  // count, but the reader should know how much of the round they are.
-  const reconstructed = cur.filter(a => a.is_reconstructed).length;
+  const inScope = data.attempts.filter(a =>
+    (!activeTopic || a.topic_id === activeTopic) &&
+    (module == null || Number(a.module) === module));
 
-  const attempted = cur.length;
-  const hits = cur.filter(a => a.is_correct).length;
-  const misses = attempted - hits;
-  const registry = new Set(stats.map(s => s.concept_tag));
-  const rootMisses = cur.filter(a => !a.is_correct && registry.has(a.concept_tag)).length;
-  const zero = stats.filter(s => Number(s.lt_hits) === 0).length;
-  const moduleCount = new Set(cur.map(a => a.module).filter(m => m != null)).size;
-
-  // Per-module bars, worst first. Deficit-first is the repo's default sort and
-  // it is what makes the row you need to act on the first one you read.
-  const byModule = new Map();
-  for (const a of cur) {
-    const key = a.module == null ? "none" : Number(a.module);
-    const m = byModule.get(key) || { module: a.module, attempts: 0, hits: 0 };
-    m.attempts++;
-    if (a.is_correct) m.hits++;
-    byModule.set(key, m);
+  const attemptsByTag = {};
+  for (const a of data.attempts) {
+    if (a.concept_tag) (attemptsByTag[a.concept_tag] ||= []).push(a);
   }
-  const mods = [...byModule.values()]
-    .map(m => ({ ...m, pct: pctOf(m.hits, m.attempts) }))
-    .sort((a, b) => a.pct - b.pct);
+  const tagsInScope = new Set(inScope.map(a => a.concept_tag).filter(Boolean));
+  const stats = data.stats.filter(s =>
+    (!activeTopic || s.topic_id === activeTopic) &&
+    (module == null || tagsInScope.has(s.concept_tag)));
 
-  const moduleLabel = (mod) => {
-    if (mod == null) return "Unassigned";
-    const doc = data.docs.find(d =>
-      String(d.topic_id).toLowerCase() === String(active).toLowerCase() &&
-      Number(d.lm) === Number(mod));
-    return doc ? `M${mod} · ${readingTitle(doc)}` : `Module ${mod}`;
-  };
+  // ── switcher ────────────────────────────────────────────────────────────────
+  const tabs = scope === "overall"
+    ? [{ key: "all", title: "All topics", short: "All", hash: "#/report",
+         note: `${sum(topics, t => t.attempted)} q · ${pct0(weightedScore(topics))}` },
+       ...topics.map(t => ({
+         key: t.topic_id, title: t.topic_name, short: String(t.topic_id).toUpperCase(),
+         hash: reportHash(t.topic_id),
+         note: `${t.attempted} q · ${pct0(t.score)}`, warn: Number(t.score) < BELOW_THRESHOLD }))]
+    : [{ key: "all", title: "All modules", short: "All", hash: reportHash(activeTopic),
+         note: `${topicRow?.attempted ?? 0} q · ${pct1(topicRow?.score)}` },
+       ...mods.map(m => ({
+         key: m.module, title: `M${m.module} ${shortReading(m.reading)}`, short: `M${m.module}`,
+         hash: reportHash(activeTopic, m.module),
+         note: `${m.attempted} q · ${pct0(m.score)}`, warn: Number(m.score) < BELOW_THRESHOLD }))];
+  const activeTab = scope === "overall" ? "all" : (module != null ? module : "all");
 
-  const conditions = data.rounds.find(r =>
-    r.topic_id === active && Number(r.round) === round)?.conditions;
+  // ── headline ────────────────────────────────────────────────────────────────
+  const relearn = stats.filter(s => s.remediation === "RELEARN").length;
+  const checklist = stats.filter(s => s.remediation === "CHECKLIST").length;
+  const attempted = scope === "module" ? Number(modRow?.attempted || 0)
+    : scope === "topic" ? Number(topicRow?.attempted || 0)
+    : sum(topics, t => t.attempted);
+  const correct = scope === "module" ? Number(modRow?.correct || 0)
+    : scope === "topic" ? Number(topicRow?.correct || 0)
+    : sum(topics, t => t.correct);
+  const rounds = scope === "module" ? Number(modRow?.rounds_taken || 0)
+    : scope === "topic" ? Number(topicRow?.rounds_taken || 0) : null;
 
-  const relearn = stats.filter(s => s.remediation === "RELEARN");
-  const checklist = stats.filter(s => s.remediation === "CHECKLIST");
+  const cells = [
+    { k: "Attempted", v: attempted, n: scope === "module"
+        ? `${plural(Number(modRow?.vignettes || 0), "vignette", "vignettes")} · ${plural(rounds, "attempt", "attempts")}`
+        : scope === "topic"
+          ? `${plural(Number(topicRow?.modules || 0), "module", "modules")} · ${plural(rounds, "attempt", "attempts")}`
+          : plural(topics.length, "topic", "topics") },
+  ];
+  if (scope === "overall") {
+    // A raw mean across topics lets a strong Alternatives round mask an FSA
+    // hole, which is the exact failure this view exists to prevent.
+    cells.push({ k: "Weighted score", v: pct1(weightedScore(topics)), cls: "am",
+                 n: `${pct1(attempted ? correct / attempted : 0)} raw · ${correct} correct` });
+  } else {
+    cells.push({ k: "Score", v: pct1(scope === "module" ? modRow?.score : topicRow?.score),
+                 cls: "am", n: `${correct} correct` });
+  }
+  cells.push({ k: "Relearn", v: relearn, cls: "rd", n: "concepts" });
+  cells.push({ k: "Checklist", v: checklist, cls: "am", n: "concepts" });
+  if (scope === "overall") {
+    cells.push({ k: "Topics worked", v: topics.length, cls: "cy", n: "with attempts" });
+  } else if (scope === "topic") {
+    cells.push({ k: "Exam weight", v: `${num(topicRow?.weight_low)}–${num(topicRow?.weight_high)}%`,
+                 cls: "cy", n: "of Level II" });
+  } else {
+    cells.push({ k: "Reconstructed", v: Number(modRow?.reconstructed || 0), cls: "cy", n: "of these attempts" });
+  }
+
+  // The caveat belongs to a topic's round, so it shows wherever the scope
+  // resolves to a single topic.
+  const caveatTopic = activeTopic || (topics.length === 1 ? topics[0].topic_id : null);
+  const caveatRound = caveatTopic
+    ? Math.max(1, ...inScope.filter(a => a.topic_id === caveatTopic).map(a => Number(a.round) || 1))
+    : null;
+  const conditions = caveatTopic
+    ? data.rounds.find(r => r.topic_id === caveatTopic && Number(r.round) === caveatRound)?.conditions
+    : null;
+
+  // ── groups ──────────────────────────────────────────────────────────────────
+  const groups = buildGroups({ scope, topics, mods, stats, inScope, attemptsByTag, activeTopic, module });
+
+  const bars = scope === "overall"
+    ? topics.map(t => ({ key: t.topic_id, label: t.topic_name, attempted: t.attempted,
+                         correct: t.correct, score: t.score, rounds: t.rounds_taken }))
+    : scope === "topic"
+      ? mods.map(m => ({ key: m.module, label: `M${m.module} · ${m.reading || `Module ${m.module}`}`,
+                         attempted: m.attempted, correct: m.correct, score: m.score, rounds: m.rounds_taken }))
+      : vignetteRollup(inScope).map(v => ({ key: v.vignette, label: `Vignette ${v.vignette}`,
+                         attempted: v.attempted, correct: v.correct, score: v.score, rounds: null }));
+
 
   return h(Fragment, null,
-    h("div", { class: "page-sub" },
-      [topicName(active), `round ${round}`,
-       moduleCount ? plural(moduleCount, "module", "modules") : null]
-        .filter(Boolean).join(" · ")),
-
-    areas.length > 1 && h("div", { class: "filter-bar" },
-      areas.map(a => h("button", {
-        key: a, class: `filter-btn ${a === active ? "active" : ""}`,
-        onClick: () => setTopic(a),
-      }, topicName(a)))),
+    h(ScopePath, { topicId: activeTopic, topicName: topicRow?.topic_name }),
+    h(ScopeTabs, { items: tabs, active: activeTab }),
 
     h("div", { class: "rc-strip" },
-      h("div", { class: "rc-cell" },
-        h("div", { class: "rc-cell-k" }, "Attempted"),
-        h("div", { class: "rc-cell-v" }, attempted),
-        h("div", { class: "rc-cell-n" }, `across ${plural(moduleCount, "module", "modules")}`)),
-      h("div", { class: "rc-cell" },
-        h("div", { class: "rc-cell-k" }, "Raw score"),
-        h("div", { class: "rc-cell-v am" },
-          attempted ? `${((100 * hits) / attempted).toFixed(1)}%` : "—"),
-        h("div", { class: "rc-cell-n" }, `${hits} correct`)),
-      h("div", { class: "rc-cell" },
-        h("div", { class: "rc-cell-k" }, "Concepts at zero"),
-        h("div", { class: "rc-cell-v rd" }, zero),
-        h("div", { class: "rc-cell-n" }, "never answered correctly")),
-      h("div", { class: "rc-cell" },
-        h("div", { class: "rc-cell-k" }, "Recurring roots"),
-        h("div", { class: "rc-cell-v cy" }, stats.length),
-        h("div", { class: "rc-cell-n" },
-          misses ? `${Math.round((100 * rootMisses) / misses)}% of all misses` : "no misses")),
-    ),
+      cells.map(c =>
+        h("div", { key: c.k, class: "rc-cell" },
+          h("div", { class: "rc-cell-k" }, c.k),
+          h("div", { class: `rc-cell-v ${c.cls || ""}` }, c.v),
+          h("div", { class: "rc-cell-n" }, c.n),
+        ))),
 
-    // Not decorative. The raw score is misleading without it, and the caveat is
-    // what stops this view producing a comfortable number.
     conditions
       ? h("div", { class: "rc-caveat" }, conditions)
       : h("div", { class: "rc-caveat rc-caveat-empty" },
-          "Conditions for this round were not recorded, so the raw score has no " +
-          "context attached to it — read it as a ceiling, not a position." +
-          (reconstructed
-            ? ` ${reconstructed} of these ${attempted} attempts were reconstructed from the written review rather than logged live.`
-            : "")),
+          "Conditions for this round were not recorded, so the score has no " +
+          "context attached to it — read it as a ceiling, not a position."),
 
-    h("h3", { class: "rc-sec" }, "Concept ladder"),
+    h("h3", { class: "rc-sec" },
+      scope === "module" ? "Concept ladder — by vignette"
+        : scope === "overall" ? "Concept ladder — by topic" : "Concept ladder — by reading"),
     h("p", { class: "rc-secnote" },
-      "Sorted by hit rate, not by score. Pips show every attempt — filled is a " +
-      "hit, hollow is a miss — so a concept missed four times reads differently " +
-      "from one missed twice."),
+      scope === "topic"
+        ? "Grouped the way the material is packaged, so a reading you open lines " +
+          "up with the concepts you owe it. Click any row for the evidence and the fix."
+        : "Sorted by hit rate within each group. Click any row for the evidence and the fix."),
 
-    stats.length === 0
+    groups.length === 0
       ? h("div", { class: "rc-empty" },
-          h("b", null, "No concepts registered for this topic"),
+          h("b", null, "No concepts registered in this scope"),
           h("p", null, "A concept joins the ladder once a miss repeats. One-off " +
             "misses stay in the attempt ledger until something recurs."))
-      : h("div", { class: "rc-ladder" },
-          h("div", { class: "rc-row head" },
-            h("div", null, "#"),
-            h("div", null, "Concept"),
-            h("div", null, "Attempts"),
-            h("div", { class: "rc-rate-h" }, "Hit rate"),
-            h("div", { class: "rc-tag-h" }, "Tag")),
-          stats.map((s, i) =>
-            h("div", { key: s.concept_tag, class: "rc-row" },
-              h("div", { class: "rc-rk" }, String(i + 1).padStart(2, "0")),
-              h("div", { class: "rc-lbl" }, s.label,
-                h("small", null, [s.root_ref, s.module != null ? `Module ${s.module}` : null]
-                  .filter(Boolean).join(" · "))),
-              h(Pips, { seq: pips[s.concept_tag] || [] }),
-              h(RateCell, { stat: s }),
-              h("div", { class: `rc-tag ${TAG_CLASS[s.remediation] || "mt"}` }, s.remediation),
-            ))),
+      : groups.map(g =>
+          h(LadderGroup, {
+            key: String(g.key), title: g.title, tag: g.tag, meta: g.meta,
+            dimmed: g.rows.length === 0, note: g.rows.length === 0 ? g.note : null,
+          },
+            g.rows.map(s =>
+              h(LadderRow, {
+                key: s.concept_tag, stat: s,
+                concept: data.concepts[s.concept_tag],
+                attempts: attemptsByTag[s.concept_tag] || [],
+                spans: spansNote(s, attemptsByTag[s.concept_tag] || [], scope),
+                readingId: readingFor(s, attemptsByTag[s.concept_tag] || []),
+                isOpen: !!open[s.concept_tag],
+                onToggle: () => setOpen(o => ({ ...o, [s.concept_tag]: !o[s.concept_tag] })),
+              })))),
 
-    (relearn.length > 0 || checklist.length > 0) && h("div", { class: "rc-split" },
-      h(SplitBox, {
-        cls: "re",
-        // RELEARN also catches concepts answered right once in four, so the
-        // heading only claims "never" when that is what the rows actually say.
-        title: relearn.every(s => Number(s.lt_hits) === 0)
-          ? "Never answered correctly"
-          : "Never, or almost never, answered correctly",
-        note: "Knowledge gaps. Drilling reinforces the wrong model — these need " +
-              "the concept rebuilt.",
-        rows: relearn,
-      }),
-      h(SplitBox, {
-        cls: "ck", title: "Right sometimes",
-        note: "You hold these. They break under load. A checklist fixes them; " +
-              "re-reading will not.",
-        rows: checklist,
-      }),
-    ),
-
-    mods.length > 0 && h(Fragment, null,
-      h("h3", { class: "rc-sec", style: { marginTop: "26px" } }, "By module"),
-      h("p", { class: "rc-secnote" }, "Amber line marks the 70% working threshold."),
-      h("div", { class: "rc-mods" },
-        mods.map(m =>
-          h("div", { key: String(m.module), class: "rc-mod" },
-            h("span", null, moduleLabel(m.module)),
-            h("div", { class: "rc-bar" },
-              h("div", { class: "rc-fill", style: { width: `${m.pct}%` } }),
-              h("div", { class: "rc-mps" })),
-            h("span", { class: "rc-pct" }, `${m.hits}/${m.attempts} · ${m.pct}%`),
-          ))),
+    bars.length > 0 && h(Fragment, null,
+      h("h3", { class: "rc-sec", style: { marginTop: "26px" } },
+        scope === "module" ? "By vignette" : scope === "overall" ? "By topic" : "By module"),
+      h("p", { class: "rc-secnote" },
+        "Amber line marks the 70% working threshold. " +
+        (scope === "module" ? "" : "The attempts column matters: 50% on one attempt is a different claim from 50% on three.")),
+      h(Bars, { items: bars }),
     ),
   );
 }
 
-function SplitBox({ cls, title, note, rows }) {
-  return h("div", { class: `rc-box ${cls}` },
-    h("h4", null, title),
-    h("p", null, note),
-    rows.length === 0
-      ? h("p", { style: { marginBottom: 0 } }, "Nothing here.")
-      : h("ul", null,
-          rows.map(s =>
-            h("li", { key: s.concept_tag },
-              h("span", null, s.label),
-              h("b", null, `${Number(s.lt_hits || 0)}/${Number(s.lt_attempts || 0)}`)))),
-  );
+// ── scope helpers ─────────────────────────────────────────────────────────────
+
+function sum(rows, pick) {
+  return rows.reduce((n, r) => n + Number(pick(r) || 0), 0);
+}
+function num(x) {
+  return x == null ? "—" : String(Number(x));
+}
+
+// Exam-weighted mean across topics: Σ(score × midpoint) / Σ(midpoint).
+function weightedScore(topics) {
+  let top = 0, bot = 0;
+  for (const t of topics) {
+    const mid = (Number(t.weight_low || 0) + Number(t.weight_high || 0)) / 2;
+    if (!mid) continue;
+    top += Number(t.score || 0) * mid;
+    bot += mid;
+  }
+  return bot ? top / bot : 0;
+}
+
+// The reading title in a tab has to survive a narrow tab strip: drop the
+// throat-clearing opener, keep two words, and never end on a connector.
+const TAB_FILLER = /^(introduction to|overview of|investments in|an? )\s*/i;
+const TAB_TRAILING = /[\s&]+(of|in|to|the|and|through|a|an)?$/i;
+
+function shortReading(reading) {
+  const s = String(reading || "").replace(TAB_FILLER, "");
+  return s.split(/\s+/).slice(0, 2).join(" ").replace(TAB_TRAILING, "").trim();
+}
+
+function vignetteRollup(attempts) {
+  const by = new Map();
+  for (const a of attempts) {
+    if (a.vignette == null) continue;
+    const v = by.get(a.vignette) || { vignette: a.vignette, attempted: 0, correct: 0 };
+    v.attempted++;
+    if (a.is_correct) v.correct++;
+    by.set(a.vignette, v);
+  }
+  return [...by.values()]
+    .map(v => ({ ...v, score: v.attempted ? v.correct / v.attempted : 0 }))
+    .sort((a, b) => a.score - b.score);
+}
+
+// A concept is homed once and annotated elsewhere, never duplicated.
+function spansNote(stat, attempts, scope) {
+  if (scope === "overall") return null;
+  const home = scope === "module" ? firstVignette(attempts) : stat.module;
+  const others = [...new Set(attempts.map(a => scope === "module" ? a.vignette : a.module))]
+    .filter(k => k != null && Number(k) !== Number(home));
+  if (!others.length) return null;
+  const prefix = scope === "module" ? "V" : "M";
+  return `also appears in ${others.map(o => prefix + o).join(", ")}`;
+}
+
+function firstVignette(attempts) {
+  return attempts.length ? attempts[0].vignette : null;
+}
+
+function readingFor(stat, attempts) {
+  const own = attempts.find(a => Number(a.module) === Number(stat.module) && a.reading_id);
+  return own?.reading_id || attempts.find(a => a.reading_id)?.reading_id || null;
+}
+
+// Builds the ladder's groups for a scope. A group with no recurring concepts
+// still renders — suppressing it would hide a reading that has been worked.
+function buildGroups({ scope, topics, mods, stats, inScope, attemptsByTag, module }) {
+  const homeOf = s => scope === "overall" ? s.topic_id
+    : scope === "topic" ? (s.module == null ? null : Number(s.module))
+    : firstVignette(attemptsByTag[s.concept_tag] || []);
+
+  const rowsFor = key => stats
+    .filter(s => {
+      const home = homeOf(s);
+      return String(home) === String(key);
+    })
+    .sort(ladderOrder);
+
+  const oneOffNote = (rows, attempts) => {
+    if (rows.length) return null;
+    const misses = attempts.filter(a => !a.is_correct);
+    const oneOffs = misses.filter(a => !a.concept_tag).length;
+    const carried = misses.length - oneOffs;
+    if (!misses.length) return "No misses. Nothing owed here.";
+    return `No recurring concepts. ${plural(misses.length, "miss", "misses")}` +
+      (oneOffs === misses.length
+        ? ", all one-offs."
+        : `, ${oneOffs} one-off and ${carried} carried under another group.`);
+  };
+
+  if (scope === "overall") {
+    return topics.map(t => {
+      const rows = rowsFor(t.topic_id);
+      const att = inScope.filter(a => a.topic_id === t.topic_id);
+      return {
+        key: t.topic_id, tag: null, title: t.topic_name,
+        meta: h(Fragment, null,
+          h("em", null, `${t.correct}/${t.attempted} · ${pct0(t.score)}`),
+          ` · ${plural(Number(t.modules || 0), "module", "modules")}` +
+          ` · ${plural(Number(t.rounds_taken || 0), "attempt", "attempts")}`),
+        rows, note: oneOffNote(rows, att),
+      };
+    });
+  }
+
+  if (scope === "topic") {
+    return mods.map(m => {
+      const rows = rowsFor(Number(m.module));
+      const att = inScope.filter(a => Number(a.module) === Number(m.module));
+      const recon = Number(m.reconstructed || 0);
+      return {
+        key: m.module, tag: `M${m.module}`, title: m.reading || `Module ${m.module}`,
+        meta: h(Fragment, null,
+          h("em", null, `${m.correct}/${m.attempted} · ${pct0(m.score)}`),
+          ` · ${plural(Number(m.vignettes || 0), "vignette", "vignettes")}` +
+          ` · ${plural(Number(m.rounds_taken || 0), "attempt", "attempts")}` +
+          (recon ? ` · ${recon} reconstructed` : "")),
+        rows, note: oneOffNote(rows, att),
+      };
+    });
+  }
+
+  return vignetteRollup(inScope).map(v => {
+    const rows = rowsFor(v.vignette);
+    const att = inScope.filter(a => Number(a.vignette) === Number(v.vignette));
+    return {
+      key: v.vignette, tag: `V${v.vignette}`, title: `Vignette ${v.vignette}`,
+      meta: h("em", null, `${v.correct}/${v.attempted} · ${pct0(v.score)}`),
+      rows, note: oneOffNote(rows, att),
+    };
+  });
 }
 
 // ── Review queue ──────────────────────────────────────────────────────────────
@@ -2177,13 +2415,13 @@ function PrimingCards({ sessionKey, compact }) {
         if (!alive) return;
         setCards(picked);
         if (picked.length) {
-          // Exposure only — no grade and no schedule move. codex_unit_progress
-          // is the one table that records a unit having been seen; it has no
-          // column for the session type, so a priming exposure is currently
-          // indistinguishable from an ordinary view. Flagged in the handoff.
+          // Exposure only — no grade and no schedule move. session_type is what
+          // separates a priming exposure from an ordinary view of the same unit,
+          // which is the whole point of the second trigger.
           await sb.from("codex_unit_progress").upsert(picked.map(c => ({
             tenant_id: CODEX_TENANT, unit_id: c.unit.id,
-            status: "viewed", last_viewed: new Date().toISOString(),
+            status: "viewed", session_type: "PRIMING",
+            last_viewed: new Date().toISOString(),
           })), { onConflict: "tenant_id,unit_id" });
         }
       } catch { if (alive) setCards([]); }
@@ -2323,7 +2561,7 @@ const RC_TABS = [
   { key: "loop",   label: "Close the loop", hash: "#/loop"   },
 ];
 
-function ReportCardShell({ tab }) {
+function ReportCardShell({ tab, topicId, module }) {
   const days = Math.ceil((EXAM_DATE - Date.now()) / DAY_MS);
   return h(Fragment, null,
     h("div", { class: "rc-head" },
@@ -2337,14 +2575,16 @@ function ReportCardShell({ tab }) {
         h("div", null, days > 0 ? `${days} DAYS` : "SAT"),
       ),
     ),
-    h("div", { class: "rc-tabs", role: "tablist" },
+    h("div", { class: "rc-tabs views", role: "tablist" },
       RC_TABS.map(t =>
         h("button", {
           key: t.key, class: `rc-tab ${tab === t.key ? "on" : ""}`,
           role: "tab", "aria-selected": tab === t.key ? "true" : "false",
           onClick: () => navigate(t.hash),
-        }, t.label))),
-    tab === "review" ? h(ReviewQueue) : tab === "loop" ? h(LoopView) : h(ReportCard),
+        }, h("span", { class: "t" }, t.label)))),
+    tab === "review" ? h(ReviewQueue)
+      : tab === "loop" ? h(LoopView)
+      : h(ReportCard, { topicId, module }),
   );
 }
 
@@ -2369,11 +2609,18 @@ function App() {
   const isLos      = hash === "#/los";
   const isReading  = !!(readMatch || docMatch);
   // Three tabs of one surface, each with its own hash so a view is linkable.
-  const rcTab      = RC_TABS.find(t => t.hash === hash)?.key || null;
+  // The report tab takes a scope path on top of that: #/report/alt/1.
+  const scopeMatch = hash.match(RC_SCOPE_RE);
+  const rcTab      = scopeMatch ? "report" : (RC_TABS.find(t => t.hash === hash)?.key || null);
 
   let page;
   if (readMatch)       page = h(ReadingPane, { docId: readMatch[1], theme, onToggleTheme: toggleTheme });
   else if (docMatch)   page = h(ReadingPane, { docId: docMatch[1],  theme, onToggleTheme: toggleTheme });
+  else if (scopeMatch) page = h(ReportCardShell, {
+                         tab: "report",
+                         topicId: scopeMatch[1] || null,
+                         module: scopeMatch[2] != null ? Number(scopeMatch[2]) : null,
+                       });
   else if (rcTab)      page = h(ReportCardShell, { tab: rcTab });
   else if (isFormulas) page = h(FormulaSheet);
   else if (isDrill)    page = h(ExampleDrill);
