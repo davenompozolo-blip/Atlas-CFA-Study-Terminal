@@ -1329,22 +1329,61 @@
       color: var(--text-3); text-align: right; line-height: 1.7;
     }
 
-    /* ── tabs ───────────────────────────────────────────────────────── */
-    .rc-tabs {
-      display: flex; gap: 2px; margin: 18px 0 22px;
-      border-bottom: 1px solid var(--border);
+    /* ── scope switcher, tier one: the path ─────────────────────────── */
+    /* Ancestors only, and no boxes. Cyan is a text and rule colour in Codex —
+       a solid fill would read as pasted in from another product. */
+    .rc-path {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      font-family: var(--font-mono); font-size: 10.5px;
+      letter-spacing: .1em; text-transform: uppercase;
     }
+    .rc-crumb {
+      background: none; border: none; padding: 2px 0; cursor: pointer;
+      color: var(--text-2); font: inherit;
+      letter-spacing: inherit; text-transform: inherit;
+      border-bottom: 1px solid transparent;
+      transition: color .12s, border-color .12s;
+    }
+    .rc-crumb:hover { color: var(--text); border-bottom-color: var(--text-3); }
+    .rc-crumb.here { color: var(--cyan); border-bottom-color: var(--cyan); }
+    .rc-crumb:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    .rc-sep { color: var(--text-3); font-size: 10px; }
+
+    /* ── scope switcher, tier two: sibling tabs ─────────────────────── */
+    /* Scrollbar fully hidden here — the fade at the trailing edge is the
+       affordance, so a grey bar never cuts through the layout. */
+    .rc-tabs {
+      display: flex; margin: 14px 0 6px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
+      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+      mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    }
+    .rc-tabs::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    .rc-tabs.views { margin: 16px 0 20px; }
     .rc-tab {
-      color: var(--text-2);
-      font-family: var(--font-display); font-weight: 600; font-size: 13px;
-      padding: 9px 16px; border-bottom: 2px solid transparent; margin-bottom: -1px;
-      transition: color .15s;
+      background: none; border: none; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; padding: 9px 15px 8px; cursor: pointer;
+      white-space: nowrap; text-align: left; color: var(--text-2);
+      transition: color .12s, border-color .12s;
     }
     .rc-tab:hover { color: var(--text); }
     .rc-tab.on { color: var(--cyan); border-bottom-color: var(--cyan); }
-    .rc-tab:focus-visible, .rc-btn:focus-visible, .rc-seg:focus-visible {
-      outline: 2px solid var(--cyan); outline-offset: 2px;
+    /* Negative offset is deliberate: a positive one is clipped by the
+       overflow-x on the tab row. */
+    .rc-tab:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+    .rc-tab .t {
+      font-family: var(--font-display); font-weight: 600; font-size: 12.5px; display: block;
     }
+    .rc-tab .t-short { display: none; }
+    .rc-tab .n {
+      font-family: var(--font-mono); font-size: 9.5px;
+      color: var(--text-3); display: block; margin-top: 2px;
+    }
+    .rc-tab.on .n { color: var(--text-2); }
+    .rc-tab .n.warn { color: var(--red); }
+
+    .rc-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 
     /* ── headline strip ─────────────────────────────────────────────── */
     /* 1px gaps over a border-coloured backing: cell separators without
@@ -1391,25 +1430,68 @@
       font-size: 12.5px; color: var(--text-3); margin-bottom: 14px; max-width: 640px;
     }
 
-    /* ── concept ladder ─────────────────────────────────────────────── */
-    .rc-ladder { border: 1px solid var(--border); background: var(--card); }
+    /* ── concept ladder, grouped by reading ─────────────────────────── */
+    /* Grouped the way the material is packaged: a reading you open lines up
+       with the concepts you owe it. */
+    .rc-grp { border: 1px solid var(--border); margin-bottom: 10px; background: var(--card); }
+    .rc-grp.dim { opacity: .6; }
+    .rc-ghead {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 9px 14px; background: var(--card2); border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .rc-gtitle { font-family: var(--font-display); font-weight: 600; font-size: 13px; }
+    .rc-gtitle b {
+      color: var(--text-3); font-family: var(--font-mono);
+      font-size: 10px; font-weight: 400; margin-right: 7px;
+    }
+    .rc-gmeta { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); }
+    .rc-gmeta em { font-style: normal; color: var(--text-2); }
+    .rc-gnote { padding: 12px 14px; font-size: 12.5px; color: var(--text-3); }
+
     .rc-row {
-      display: grid; grid-template-columns: 26px 1fr 118px 96px 84px;
-      align-items: center; gap: 14px; padding: 11px 16px;
-      border-bottom: 1px solid var(--border);
+      display: grid; grid-template-columns: 1fr 108px 78px 76px 22px;
+      align-items: center; gap: 12px; padding: 10px 14px;
+      border-bottom: 1px solid var(--border); cursor: pointer;
     }
-    .rc-row:last-child { border-bottom: none; }
-    .rc-row.head {
-      padding: 8px 16px; background: var(--card2);
-      font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .08em;
-      text-transform: uppercase; color: var(--text-3);
-    }
-    .rc-rk { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
-    .rc-lbl { font-weight: 500; min-width: 0; }
+    .rc-grp > .rc-row:last-child { border-bottom: none; }
+    .rc-row:hover { background: var(--card2); }
+    .rc-row:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+    .rc-lbl { font-weight: 500; font-size: 13.5px; min-width: 0; }
     .rc-lbl small {
-      display: block; color: var(--text-3); font-size: 11px;
-      font-weight: 400; margin-top: 1px;
+      display: block; color: var(--text-3); font-size: 10.5px;
+      font-weight: 400; margin-top: 1px; font-family: var(--font-mono);
     }
+    .rc-chev {
+      color: var(--text-3); font-size: 11px; text-align: center;
+      transition: transform .15s;
+    }
+    .rc-row.open .rc-chev { transform: rotate(90deg); color: var(--cyan); }
+    .rc-tagwrap { display: flex; flex-direction: column; gap: 3px; }
+
+    /* ── row expansion: the fix, then the evidence ──────────────────── */
+    .rc-det {
+      padding: 0 14px 14px; border-bottom: 1px solid var(--border);
+      background: var(--card2);
+    }
+    .rc-fix {
+      border-left: 2px solid var(--cyan); padding: 9px 12px; margin-bottom: 11px;
+      font-size: 13px; color: var(--text); background: rgba(58,214,224,.05);
+    }
+    .rc-fix b {
+      font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .08em;
+      color: var(--cyan); display: block; margin-bottom: 4px; text-transform: uppercase;
+    }
+    .rc-ev { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    /* Position and error class only. A chip never carries question text. */
+    .rc-q {
+      font-family: var(--font-mono); font-size: 10.5px; padding: 4px 8px;
+      border: 1px solid var(--border); background: var(--card);
+    }
+    .rc-q.miss { border-color: rgba(224,85,85,.35); color: #e89a9a; }
+    .rc-q.hit { border-color: rgba(61,224,138,.3); color: #8fd9b2; }
+    .rc-q em { font-style: normal; color: var(--text-3); margin-left: 5px; }
+    .rc-evnote { font-size: 11.5px; color: var(--text-3); }
 
     /* Attempt pips: one per lifetime attempt, in order. Filled is a hit,
        hollow is a miss. The count is the information — 0 of 4 has to read
@@ -1442,34 +1524,22 @@
     .rc-tag.re { color: var(--red);   border-color: rgba(224,85,85,.4);  background: rgba(224,85,85,.07); }
     .rc-tag.ck { color: var(--amber); border-color: rgba(245,166,35,.4); background: rgba(245,166,35,.07); }
     .rc-tag.mt { color: var(--text-3); border-color: var(--border); }
-
-    /* ── relearn / checklist split ──────────────────────────────────── */
-    .rc-split { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 26px; }
-    .rc-box { border: 1px solid var(--border); background: var(--card); padding: 16px; }
-    .rc-box h4 {
-      font-family: var(--font-display); font-size: 12px; letter-spacing: .08em;
-      text-transform: uppercase; margin-bottom: 3px;
-    }
-    .rc-box.re h4 { color: var(--red); }
-    .rc-box.ck h4 { color: var(--amber); }
-    .rc-box p { font-size: 12px; color: var(--text-3); margin-bottom: 11px; }
-    .rc-box ul { list-style: none; font-size: 13px; }
-    .rc-box li {
-      display: flex; justify-content: space-between; gap: 12px;
-      padding: 5px 0; border-bottom: 1px solid var(--border);
-    }
-    .rc-box li:last-child { border-bottom: none; }
-    .rc-box li b {
-      font-family: var(--font-mono); font-size: 11px; color: var(--text-2);
-      font-weight: 400; white-space: nowrap;
-    }
+    /* A concept that graduated and came back is not the same as one that
+       never left, even when the tag it returns with is softer. */
+    .rc-tag.rt { color: var(--cyan); border-color: rgba(58,214,224,.35); background: rgba(58,214,224,.06); }
 
     /* ── module bars ────────────────────────────────────────────────── */
-    .rc-mods { display: grid; gap: 9px; margin-top: 8px; }
+    .rc-mods { display: grid; margin-top: 8px; }
     .rc-mod {
-      display: grid; grid-template-columns: 1fr 190px 84px;
-      align-items: center; gap: 14px; font-size: 13px;
+      display: grid; grid-template-columns: 1fr 120px 170px 96px;
+      align-items: center; gap: 13px; font-size: 13px;
+      padding: 9px 0; border-bottom: 1px solid var(--border);
     }
+    .rc-mod:last-child { border-bottom: none; }
+    /* 50% on one attempt is a different claim from 50% on three. Without this
+       the bars imply a stable measurement that does not exist yet. */
+    .rc-attempts { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); }
+    .rc-attempts b { color: var(--text-2); font-weight: 400; }
     .rc-bar {
       height: 7px; background: var(--card2);
       border: 1px solid var(--border); position: relative;
@@ -1550,19 +1620,36 @@
       text-transform: uppercase; color: var(--amber); margin-bottom: 8px;
     }
 
+    /* ── global scrollbars ──────────────────────────────────────────── */
+    /* Blended, not hidden: on a long report card these are the only cue that
+       it continues below the fold. The 2px --bg border on the thumb is what
+       makes it read as a hairline rather than a widget. */
+    * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+    *::-webkit-scrollbar { width: 9px; height: 9px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: var(--border); border: 2px solid var(--bg); }
+    *::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+    *::-webkit-scrollbar-corner { background: transparent; }
+
     /* ── responsive ─────────────────────────────────────────────────── */
-    /* Below 760 the ladder keeps concept and pips and drops the rate and
-       tag: the pips still carry the count, which is the point of the row. */
-    @media (max-width: 760px) {
-      .rc-split { grid-template-columns: 1fr; }
-      .rc-row { grid-template-columns: 22px 1fr minmax(0, 108px); gap: 10px; }
-      .rc-rate, .rc-tag, .rc-row.head .rc-rate-h, .rc-row.head .rc-tag-h { display: none; }
-      .rc-pip { width: 9px; height: 9px; }
-      .rc-pips { gap: 4px; }
+    /* Dropping the score line lets five tabs fit 380px without scrolling;
+       the fade mask covers topic scope, where there may be ten. */
+    @media (max-width: 600px) {
+      .rc-tab { padding: 8px 11px; }
+      .rc-tab .n { display: none; }
+      .rc-tab .t { display: none; }
+      .rc-tab .t-short {
+        display: block; font-family: var(--font-display);
+        font-weight: 600; font-size: 12.5px;
+      }
     }
-    @media (max-width: 620px) {
-      .rc-mod { grid-template-columns: 1fr auto; }
-      .rc-bar { grid-column: 1 / -1; order: 3; }
+    /* The row keeps label, rate and chevron. Pips move into the expansion,
+       where the chips carry the same evidence in full. */
+    @media (max-width: 760px) {
+      .rc-row { grid-template-columns: 1fr 78px 22px; gap: 10px; }
+      .rc-pips, .rc-tagwrap { display: none; }
+      .rc-mod { grid-template-columns: 1fr 96px; }
+      .rc-bar, .rc-attempts { display: none; }
     }
 
     /* A fifth nav item takes the topbar past a 380px viewport, which would
