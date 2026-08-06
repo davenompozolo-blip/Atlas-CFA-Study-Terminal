@@ -208,6 +208,7 @@ function ReadingPane({ docId, unitId, theme, onToggleTheme }) {
   const [doc, setDoc] = useState(null);
   const [units, setUnits] = useState(null);
   const [blocks, setBlocks] = useState({});
+  const [figures, setFigures] = useState({});
   const [progress, setProgress] = useState({});  // unit_id → progress row
   const [unitIdx, setUnitIdx] = useState(() => getResume(docId));
   const [err, setErr] = useState(null);
@@ -228,6 +229,17 @@ function ReadingPane({ docId, unitId, theme, onToggleTheme }) {
         ]);
         if (docRes.error) throw docRes.error;
         setDoc(docRes.data);
+
+        // One query per reading, not one per figure block: the topic's figures
+        // are fetched as a set and resolved locally by fig_id, so a figure used
+        // by several units costs nothing extra.
+        const figRes = await sb.from("codex_figures")
+          .select("fig_id, title, alt, view_box, svg, caption, origin")
+          .eq("topic_id", docRes.data.topic_id)
+          .eq("origin", "generated");
+        const figMap = {};
+        for (const f of (figRes.data || [])) figMap[f.fig_id] = f;
+        setFigures(figMap);
 
         const byUnit = {};
         for (const b of (blockRes.data || [])) (byUnit[b.unit_id] ||= []).push(b);
@@ -348,7 +360,7 @@ function ReadingPane({ docId, unitId, theme, onToggleTheme }) {
           ),
         )
       : unit
-        ? h(UnitShell, { unit, progress: progress[unit.id], docId, blocks: blocks[unit.id],
+        ? h(UnitShell, { unit, progress: progress[unit.id], docId, blocks: blocks[unit.id], figures,
             onMarkDone: async (unitId, conf) => {
               try {
                 const sb = await getClient();
@@ -395,7 +407,7 @@ function ReadingPane({ docId, unitId, theme, onToggleTheme }) {
 
 // ── Unit shell (stub renderer — full renderers in PR9) ────────────────────────
 
-function UnitShell({ unit, progress, docId, onMarkDone, blocks }) {
+function UnitShell({ unit, progress, docId, onMarkDone, blocks, figures }) {
   const [conf, setConf] = useState(progress?.confidence || null);
   const isDone = progress?.status === "done";
 
@@ -412,7 +424,7 @@ function UnitShell({ unit, progress, docId, onMarkDone, blocks }) {
     ),
     unit.title && h("h2", { class: "unit-title" }, unit.title),
 
-    h(UnitRenderer, { unit, blocks }),
+    h(UnitRenderer, { unit, blocks, figures }),
 
     // Confidence control (not on practice/recap — those have their own gates)
     unit.kind !== "practice" && unit.kind !== "recap" && unit.kind !== "los" &&
@@ -479,6 +491,11 @@ const PLACEHOLDER = /^placeholder\b/i;
 // be positively empty or positively scaffolding to be dropped, so a terse but
 // real unit still shows.
 function isStudyable(unit, blocks) {
+  // Typed blocks are content by definition, whatever the kind. The Quant corpus
+  // carries every los, example and recap unit as blocks with an empty payload,
+  // so gating those kinds on payload fields would hide a third of the reading —
+  // including four of its figures.
+  if (blocks && blocks.length) return true;
   const p = unit.payload || {};
   switch (unit.kind) {
     case "practice":
@@ -526,12 +543,81 @@ function markLeadIn(html) {
   return `<span class="lead-in">${m[1]}</span> ${html.slice(m[0].length)}`;
 }
 
+// Typed-block text carries two different authoring styles. The ALT and FI
+// corpora were written with inline HTML (<strong>, <sub>); Quant was written
+// with `**bold**` markers, `\n` line breaks and backtick spans. Escaping first
+// and restoring the allowlist keeps the former safe; converting the markers
+// afterwards renders the latter, and neither corpus disturbs the other.
+function blockInline(text) {
+  return safeInline(text)
+    .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n/g, "<br>");
+}
+
 function rawHtml(cls, html, leadIn) {
-  const safe = safeInline(html);
+  const safe = blockInline(html);
   return h("div", {
     class: cls,
     dangerouslySetInnerHTML: { __html: leadIn ? markLeadIn(safe) : safe },
   });
+}
+
+// ── figures ───────────────────────────────────────────────────────────────────
+// A figure block carries only {fig_id}; the artwork lives in codex_figures and
+// is resolved from the map the reading fetched once. Storing it once means a
+// fix to a figure reaches every reference.
+
+// The SVG is first-party generated artwork and the table constrains origin, but
+// it still reaches the DOM as markup, so scripts and inline handlers come out
+// first. Entities are left alone — captions contain &mdash; and escaping them
+// would print the entity.
+const SVG_SCRIPT = /<script[\s\S]*?<\/script>/gi;
+const SVG_HANDLER = /\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
+
+function safeSvg(markup) {
+  return String(markup || "").replace(SVG_SCRIPT, "").replace(SVG_HANDLER, "");
+}
+
+// "0 0 700 160" → 700. Falls back to the column width when the box is unusable.
+function viewBoxWidth(viewBox) {
+  const w = Number(String(viewBox || "").trim().split(/\s+/)[2]);
+  return Number.isFinite(w) && w > 0 ? Math.round(w) : 700;
+}
+
+function FigureBlock({ figure, figId }) {
+  // Not yet loaded. Say so rather than leaving a hole in the reading — the row
+  // arrives with the figure load, and the block starts rendering with no
+  // further change here.
+  if (!figure) {
+    return h("figure", { class: "blk-figure missing" },
+      h("figcaption", { class: "blk-fig-head" },
+        h("span", null, "Figure not loaded"), h("b", null, figId || "—")),
+      h("div", { class: "blk-fig-cap" },
+        "This figure is referenced by the reading but has no row in ",
+        h("code", { class: "inline-code" }, "codex_figures"), " yet."));
+  }
+  // Belt and braces with the table's own check constraint.
+  if (figure.origin !== "generated") return null;
+  return h("figure", { class: "blk-figure" },
+    h("figcaption", { class: "blk-fig-head" },
+      h("span", null, figure.title || "Figure"),
+      h("b", null, figure.fig_id)),
+    h("div", { class: "blk-fig-body" },
+      h("svg", {
+        viewBox: figure.view_box, role: "img",
+        "aria-label": figure.alt || figure.title || "Figure",
+        // Width 100% alone magnifies a narrow figure: a 320-unit viewBox blown
+        // up to the column width dwarfs a 700-unit one on the same page. Capping
+        // at the figure's own width keeps the set to one visual scale.
+        style: { maxWidth: `${viewBoxWidth(figure.view_box)}px` },
+        dangerouslySetInnerHTML: { __html: safeSvg(figure.svg) },
+      })),
+    figure.caption && h("div", {
+      class: "blk-fig-cap",
+      dangerouslySetInnerHTML: { __html: safeSvg(figure.caption) },
+    }),
+  );
 }
 
 // Every authored string carries inline markup — subscripts and superscripts
@@ -597,7 +683,7 @@ function WorkedBlock({ payload }) {
 
 const CALLOUT_BLOCK = { key: ["blk-key", "KEY"], trap: ["blk-trap", "EXAM TRAP"], exam: ["blk-exam", "EXAM"] };
 
-function ContentBlock({ block }) {
+function ContentBlock({ block, figures }) {
   const p = block.payload || {};
   switch (block.block_type) {
     case "lead":         return rawHtml("blk-lead", p.text, true);
@@ -610,9 +696,18 @@ function ContentBlock({ block }) {
     case "list_ordered": return h("ol", { class: "md-list blk-list" },
                             (p.items || []).map((it, i) =>
                               h("li", { key: i, dangerouslySetInnerHTML: { __html: markLeadIn(safeInline(it)) } })));
-    case "formula":      return h("div", { class: "blk-formula" },
-                            p.label && inlineText("div", "blk-formula-label", p.label),
-                            inlineText("div", "blk-formula-expr", p.expr));
+    // `expr` is LaTeX in the Quant corpus and renders as unreadable source, so
+    // `unicode` is what displays. ALT and FI predate that column and carry only
+    // `expr`, already written as plain text — preferring unicode renders Quant
+    // correctly without blanking the 54 formulas that have no unicode.
+    case "formula": {
+      const shown = p.unicode || p.expr;
+      return h("div", { class: "blk-formula" },
+        p.label && inlineText("div", "blk-formula-label", p.label),
+        shown && inlineText("div", "blk-formula-expr", shown),
+        p.note && inlineText("div", "blk-formula-note", p.note));
+    }
+    case "figure":       return h(FigureBlock, { figure: figures?.[p.fig_id], figId: p.fig_id });
     case "worked":       return h(WorkedBlock, { payload: p });
     case "key": case "trap": case "exam": {
       const [cls, label] = CALLOUT_BLOCK[block.block_type];
@@ -625,13 +720,22 @@ function ContentBlock({ block }) {
   }
 }
 
-function BlockList({ blocks }) {
+function BlockList({ blocks, figures }) {
   return h("div", { class: "unit-blocks" },
-    blocks.map((b, i) => h(ContentBlock, { key: b.ord ?? i, block: b })));
+    blocks.map((b, i) => h(ContentBlock, { key: b.ord ?? i, block: b, figures })));
 }
 
-function UnitRenderer({ unit, blocks }) {
+function UnitRenderer({ unit, blocks, figures }) {
   const p = unit.payload || {};
+
+  // Typed blocks win for every kind except practice, which is driven by its own
+  // payload. ALT and FI only ever carry blocks on concept units, so this is a
+  // no-op there; Quant carries its los, example and recap units as blocks with
+  // an empty payload, and without this their content — a lead, a six-step
+  // worked example, the recap's key and exam callouts — never reaches the page.
+  if (unit.kind !== "practice" && blocks && blocks.length) {
+    return h(BlockList, { blocks, figures });
+  }
 
   if (unit.kind === "los") {
     const outcomes = p.outcomes || [];
@@ -651,7 +755,7 @@ function UnitRenderer({ unit, blocks }) {
   if (unit.kind === "concept") {
     // typed blocks when the unit has been migrated; prose_md otherwise, so
     // units can move across one at a time without breaking the reader
-    if (blocks && blocks.length) return h(BlockList, { blocks });
+    if (blocks && blocks.length) return h(BlockList, { blocks, figures });
     return h("div", { class: "unit-concept" },
       p.prose_md && h("div", { class: "unit-prose", dangerouslySetInnerHTML: { __html: mdToHtml(p.prose_md) } }),
       p.formulas?.length > 0 && h("div", { class: "unit-formulas" },
