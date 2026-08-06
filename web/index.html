@@ -1185,20 +1185,93 @@
     ul.blk-list li::before { content: none; }
     ol.blk-list li::marker { color: var(--cyan); font-family: var(--font-mono); font-size: 14px; }
 
-    /* formulas are centred and mono — they read as objects, not sentences */
+    /* Formulas read as objects, not sentences. They are wide, so the block
+       scrolls rather than letting an expression wrap in the middle — a broken
+       expression is worse than a scrollbar. */
     .blk-formula {
       font-family: var(--font-mono); font-size: 14.5px;
       color: var(--cyan); background: var(--card);
       border: 1px solid var(--border); border-left: 2px solid var(--cyan);
       border-radius: 3px; padding: 16px 20px; margin: 22px 0;
-      text-align: center; line-height: 1.5;
+      line-height: 1.5; overflow-x: auto;
     }
     .blk-formula-label {
       display: block; font-family: var(--font-body);
       font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase;
       color: var(--text-3); margin-bottom: 9px;
     }
-    .blk-formula-expr { white-space: pre-wrap; }
+    .blk-formula-expr {
+      display: block; font-size: 15px; letter-spacing: .01em; white-space: nowrap;
+    }
+    .blk-formula-note {
+      display: block; margin-top: 7px; font-family: var(--font-body);
+      font-size: 11.5px; color: var(--text-3); white-space: normal;
+    }
+
+    /* ── figures ────────────────────────────────────────────────────── */
+    /* Generated SVG only. The stylesheet is the one the figures were drawn
+       against, remapped from the mockup's token names onto the app's. */
+    .blk-figure {
+      border: 1px solid var(--border); background: var(--card);
+      margin: 22px 0; border-radius: 3px; overflow: hidden;
+    }
+    .blk-fig-head {
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 9px 14px; border-bottom: 1px solid var(--border);
+      background: var(--card2); font-family: var(--font-mono);
+      font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--text-3);
+    }
+    .blk-fig-head b { color: var(--cyan); font-weight: 400; }
+    .blk-fig-body { padding: 16px 14px 4px; }
+    .blk-fig-cap {
+      padding: 12px 14px 14px; font-size: 12.5px;
+      color: var(--text-2); line-height: 1.55; font-family: var(--font-body);
+    }
+    .blk-figure.missing { border-style: dashed; }
+    .blk-figure.missing .blk-fig-head b { color: var(--text-3); }
+
+    .blk-fig-body svg { display: block; width: 100%; height: auto; overflow: visible; margin: 0 auto; }
+    .blk-fig-body .grid, .blk-fig-body .ax { stroke: var(--text-3); stroke-width: 1; fill: none; }
+    .blk-fig-body .grid { stroke: var(--border); }
+    .blk-fig-body .lab { font-family: var(--font-mono); font-size: 8.5px; fill: var(--text-3); }
+    .blk-fig-body .ttl { font-family: var(--font-display); font-size: 10.5px; font-weight: 600; fill: var(--text-2); }
+    .blk-fig-body .nt  { font-family: var(--font-body); font-size: 9.5px; fill: var(--text); }
+    .blk-fig-body .nm  { font-family: var(--font-mono); font-size: 8px; fill: var(--text-3); }
+    .blk-fig-body .el  { font-family: var(--font-mono); font-size: 7.5px; fill: var(--text-3); }
+    .blk-fig-body .pt circle, .blk-fig-body .pt path { fill: var(--cyan); opacity: .72; }
+    .blk-fig-body .pt-w circle, .blk-fig-body .pt-w path { fill: var(--amber); opacity: .72; }
+    .blk-fig-body .pt-r circle, .blk-fig-body .pt-r path { fill: var(--red); opacity: .72; }
+    .blk-fig-body circle.pt { fill: var(--cyan); opacity: .72; }
+    .blk-fig-body circle.pt-w { fill: var(--amber); opacity: .72; }
+    .blk-fig-body circle.pt-r, .blk-fig-body path.pt-r { fill: var(--red); opacity: .72; }
+    .blk-fig-body circle.ptc { fill: var(--text-2); opacity: .6; }
+    .blk-fig-body .ok { fill: var(--green); }
+    .blk-fig-body .bad { fill: var(--red); }
+    .blk-fig-body .wn { fill: var(--amber); }
+    .blk-fig-body .node { fill: var(--card2); stroke: var(--border); }
+    .blk-fig-body .node-c { fill: rgba(58,214,224,.08); stroke: var(--cyan); }
+    .blk-fig-body .node-r { fill: rgba(224,90,90,.08); stroke: var(--red); }
+    .blk-fig-body .node-ok { fill: rgba(74,212,138,.07); stroke: var(--green); }
+    .blk-fig-body .edge { stroke: var(--text-3); stroke-width: 1; fill: none; }
+    .blk-fig-body .edge-y { stroke: var(--green); }
+    .blk-fig-body .edge-n { stroke: var(--amber); }
+    .blk-fig-body .cellbg { fill: var(--card2); stroke: var(--border); }
+    .blk-fig-body .hist { fill: var(--cyan); opacity: .4; }
+    .blk-fig-body .bar-t { fill: rgba(58,214,224,.14); stroke: var(--cyan); }
+    .blk-fig-body .bar-r { fill: rgba(74,212,138,.12); stroke: var(--green); }
+    .blk-fig-body .bar-e { fill: rgba(224,90,90,.12); stroke: var(--red); }
+    .blk-fig-body .barc { fill: var(--cyan); opacity: .55; }
+    .blk-fig-body .coef-on { fill: var(--cyan); opacity: .75; }
+    .blk-fig-body .coef-off { fill: var(--red); opacity: .8; }
+    .blk-fig-body .fold-t { fill: var(--card2); stroke: var(--border); }
+    .blk-fig-body .fold-v { fill: rgba(58,214,224,.3); stroke: var(--cyan); }
+    .blk-fig-body .nn-in { fill: var(--card2); stroke: var(--cyan); }
+    .blk-fig-body .nn-hid { fill: var(--card2); stroke: var(--border); }
+    .blk-fig-body .nn-out { fill: rgba(58,214,224,.25); stroke: var(--cyan); }
+    .blk-fig-body .nn-link { stroke: var(--border); stroke-width: .6; }
+    .blk-fig-body .cell-tp, .blk-fig-body .cell-tn { fill: rgba(74,212,138,.10); stroke: var(--green); }
+    .blk-fig-body .cell-fp, .blk-fig-body .cell-fn { fill: rgba(224,90,90,.10); stroke: var(--red); }
 
     .blk-callout {
       display: block; border-radius: 3px; padding: 18px 22px; margin: 24px 0;
