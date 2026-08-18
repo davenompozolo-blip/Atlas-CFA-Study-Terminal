@@ -68,16 +68,6 @@ function ErrorBox({ msg }) {
 function Chip({ band }) {
   return h("span", { class: `chip chip-${band}` }, band.toUpperCase());
 }
-function MasteryBar({ value }) {
-  const pct = Math.min(100, Math.max(0, value || 0));
-  const cls = pct < 40 ? "low" : pct < 65 ? "mid" : "";
-  return h("div", { class: "mastery-bar-wrap" },
-    h("div", { class: "mastery-bar" },
-      h("div", { class: `mastery-fill ${cls}`, style: { width: `${pct}%` } })
-    ),
-    h("span", { class: "mastery-val" }, `${Math.round(pct)}%`),
-  );
-}
 
 const KIND_ICON = { los: "📋", concept: "💡", example: "🔍", practice: "✏️", recap: "🎯" };
 const KIND_LABEL = { los: "Outcomes", concept: "Concept", example: "Example", practice: "Practice", recap: "Recap" };
@@ -93,21 +83,325 @@ function sm2Next(quality, prevEF, prevInterval) {
   return { ef, interval, nextDue: new Date(Date.now() + interval * 86400000).toISOString() };
 }
 
-// ── Home / Deficit Board ───────────────────────────────────────────────────────
+// ── Home / Codex Home ──────────────────────────────────────────────────────────
+// Replaces the Deficit Board. That board ranked ten topics by exam weight ×
+// mastery gap, and with codex_progress still empty it printed 0% and the same
+// 900 fi against every row — accurate, and useless. This page answers the three
+// questions the board could not: how long is left, what is worth doing now, and
+// where the evidence says the gaps are.
+//
+// Everything is derived on read from six relations — attempts, concept stats,
+// topics, figures, units, unit progress. Nothing is cached and nothing that can
+// be computed is written down, the countdown least of all.
+
+const STALE_DAYS     = 14;    // has attempts, none in a fortnight → STALE
+const HEAT_WEEKS     = 13;
+const TREND_DAYS     = 30;
+const CADENCE_DAYS   = 28;    // history the sessions estimate reads
+const BUILD_TARGET   = 0.7;   // share of topics built by the marker
+const BUILD_LEAD_DAYS = 35;   // marker sits five weeks before the sitting
+const QUEUE_ROWS     = 5;
+
+const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+
+// Attempts carry a date, unit progress a timestamp. Both collapse to a UTC day
+// key so one Map can hold the whole activity record.
+function dayKey(v) {
+  const t = typeof v === "number" ? v : Date.parse(v);
+  return Number.isNaN(t) ? null : new Date(t).toISOString().slice(0, 10);
+}
+function daysBetween(fromKey, toKey) {
+  return Math.round((Date.parse(toKey) - Date.parse(fromKey)) / DAY_MS);
+}
+function startOfWeekUTC(ms) {
+  const d = new Date(ms);
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));   // back to Monday
+  return d.getTime();
+}
+// Saturdays with their Sunday still ahead of the sitting. A lone Saturday is
+// not a weekend of study and counting it would flatter the number.
+function fullWeekends(fromMs, toMs) {
+  let n = 0;
+  const d = new Date(fromMs);
+  d.setUTCHours(0, 0, 0, 0);
+  for (let t = d.getTime(); t <= toMs; t += DAY_MS) {
+    if (new Date(t).getUTCDay() === 6 && t + DAY_MS <= toMs) n++;
+  }
+  return n;
+}
+function trim1(n) {
+  return (Math.round(n * 10) / 10).toFixed(1).replace(/\.0$/, "");
+}
+
+// PostgREST returns an embedded aggregate as [{count: n}].
+function embeddedCount(v) {
+  return Array.isArray(v) ? Number(v[0]?.count || 0) : Number(v?.count || 0);
+}
+
+function heatLevel(n) {
+  return n === 0 ? 0 : n <= 2 ? 1 : n <= 5 ? 2 : n <= 9 ? 3 : 4;
+}
+
+// A module's questions are numbered from one, so anything absent below the
+// highest q logged is a hole in the ledger rather than a session not yet sat.
+// Rounds are separate ledgers and are grouped as such.
+function ledgerGaps(attempts) {
+  const groups = new Map();
+  for (const a of attempts) {
+    if (a.q == null || a.module == null) continue;
+    const k = `${a.topic_id}|${a.module}|${a.round ?? 1}`;
+    if (!groups.has(k)) groups.set(k, new Set());
+    groups.get(k).add(Number(a.q));
+  }
+  const out = [];
+  for (const [k, seen] of groups) {
+    const [topicId, module, round] = k.split("|");
+    let max = 0;
+    for (const q of seen) if (q > max) max = q;
+    const missing = [];
+    for (let q = 1; q <= max; q++) if (!seen.has(q)) missing.push(q);
+    if (missing.length) {
+      let end = missing[0];
+      for (const q of missing) { if (q === end + 1) end = q; else if (q !== missing[0]) break; }
+      out.push({ topicId, module: Number(module), round: Number(round),
+                 from: missing[0], to: end, count: missing.length });
+    }
+  }
+  return out.sort((a, b) => b.count - a.count);
+}
+
+// ── the derivation ────────────────────────────────────────────────────────────
+// Kept whole and pure so the page below is only markup: every number on the
+// home view is decided here, once, from the rows as they came back.
+
+function homeModel(raw, nowMs) {
+  const todayKey = dayKey(nowMs);
+
+  // activity: attempts and unit views are both study, and the heatmap counts
+  // them together — a day spent reading is not an idle day.
+  const activity = new Map();
+  const bump = (k) => { if (k) activity.set(k, (activity.get(k) || 0) + 1); };
+  for (const a of raw.attempts) bump(dayKey(a.attempted_at));
+  for (const p of raw.progress)  bump(dayKey(p.last_viewed));
+
+  const topics = new Map();
+  for (const t of raw.topics) {
+    topics.set(t.id, {
+      id: t.id, name: t.name, sort: Number(t.sort || 0),
+      weight: (Number(t.weight_low) + Number(t.weight_high)) / 2,
+      weightLabel: `${Number(t.weight_low)}–${Number(t.weight_high)}%`,
+      attempted: 0, correct: 0, figures: 0, units: 0, built: false,
+      lastAttempt: null, lastTouch: null,
+    });
+  }
+  const touch = (t, key) => { if (key && (!t.lastTouch || key > t.lastTouch)) t.lastTouch = key; };
+
+  for (const a of raw.attempts) {
+    const t = topics.get(a.topic_id);
+    if (!t) continue;
+    t.attempted++;
+    if (a.is_correct) t.correct++;
+    const k = dayKey(a.attempted_at);
+    if (k && (!t.lastAttempt || k > t.lastAttempt)) t.lastAttempt = k;
+    touch(t, k);
+  }
+  for (const f of raw.figures) { const t = topics.get(f.topic_id); if (t) t.figures++; }
+  for (const u of raw.units) {
+    const t = topics.get(u.topic_id);
+    if (!t) continue;
+    t.units++;
+    if (embeddedCount(u.codex_blocks) > 0) t.built = true;
+  }
+  for (const p of raw.progress) {
+    const t = topics.get(p.codex_units?.topic_id);
+    if (t) touch(t, dayKey(p.last_viewed));
+  }
+
+  for (const t of topics.values()) {
+    t.accuracy = t.attempted ? t.correct / t.attempted : null;
+    t.idleDays = t.lastTouch ? daysBetween(t.lastTouch, todayKey) : null;
+    // A topic with no attempts is not a topic scoring zero, and a corpus that
+    // exists unread is not a corpus missing. Four states, four responses.
+    t.state = !t.attempted
+      ? (t.built ? "built" : "gap")
+      : (t.lastAttempt && daysBetween(t.lastAttempt, todayKey) <= STALE_DAYS) ? "reviewed" : "stale";
+  }
+
+  const rows = [...topics.values()].sort((a, b) =>
+    b.weight - a.weight || b.attempted - a.attempted || a.sort - b.sort);
+
+  // ── countdown ───────────────────────────────────────────────────────────────
+  const days = Math.max(0, Math.ceil((EXAM_DATE - nowMs) / DAY_MS));
+  const weekends = fullWeekends(nowMs, EXAM_DATE);
+  const recentActive = [...activity.keys()]
+    .filter(k => k <= todayKey && daysBetween(k, todayKey) < CADENCE_DAYS).length;
+  const perWeek = recentActive / (CADENCE_DAYS / 7);
+  const sessions = Math.round((days / 7) * perWeek);
+  const built = rows.filter(t => t.built).length;
+  const marker = new Date(EXAM_DATE - BUILD_LEAD_DAYS * DAY_MS);
+
+  const countdown = {
+    days, weekends, perWeek, sessions,
+    built, topicCount: rows.length,
+    targetLabel: `TARGET ${Math.round(BUILD_TARGET * 100)}% BY ${marker.getUTCDate()} ${MONTHS[marker.getUTCMonth()]}`,
+    fill: rows.length ? built / rows.length : 0,
+    mark: BUILD_TARGET,
+  };
+
+  // ── stat strip ──────────────────────────────────────────────────────────────
+  const correct = raw.attempts.filter(a => a.is_correct).length;
+  const accuracy = raw.attempts.length ? correct / raw.attempts.length : null;
+  const neverRight = raw.stats.filter(s => Number(s.lt_hits) === 0);
+  const modules = new Set(raw.attempts.filter(a => a.module != null)
+    .map(a => `${a.topic_id}|${a.module}`)).size;
+  const figureTopics = new Set(raw.figures.map(f => f.topic_id)).size;
+  const statTopics = new Set(raw.stats.map(s => s.topic_id)).size;
+
+  const stats = [
+    { k: "Questions logged", v: raw.attempts.length,
+      n: `${plural(rows.filter(t => t.attempted).length, "topic", "topics")} · ${plural(modules, "module", "modules")}` },
+    { k: "Overall accuracy", v: accuracy == null ? "—" : `${Math.round(accuracy * 100)}%`,
+      cls: accuracy == null ? "" : accuracy < 0.7 ? "rd" : accuracy < 0.8 ? "am" : "gr",
+      n: `${correct} correct` },
+    { k: "Concepts tracked", v: raw.stats.length, cls: "cy",
+      n: `across ${plural(statTopics, "topic", "topics")}` },
+    { k: "Never right", v: neverRight.length, cls: neverRight.length ? "rd" : "gr",
+      n: "relearn queue" },
+    { k: "Corpus", v: raw.figures.length, cls: "gr",
+      n: `figures · ${plural(figureTopics, "topic", "topics")}` },
+  ];
+
+  // ── today ───────────────────────────────────────────────────────────────────
+  // Three at most, and only conditions that are actually true. Nothing is
+  // padded to fill the panel: an empty list is a real answer.
+  const today = [];
+  if (neverRight.length) {
+    const lead = [...neverRight].sort(ladderOrder)[0];
+    const where = [topics.get(lead.topic_id)?.name, lead.module != null ? `M${lead.module}` : null, lead.label]
+      .filter(Boolean).join(" · ");
+    today.push({ tone: "hot",
+      text: `${neverRight.length} ${neverRight.length === 1 ? "concept has" : "concepts have"} never been answered correctly`,
+      note: neverRight.length > 1 ? `${where} + ${neverRight.length - 1}` : where });
+  }
+  const decaying = rows.filter(t => t.state === "stale")
+    .sort((a, b) => (b.idleDays ?? 1e6) - (a.idleDays ?? 1e6))[0];
+  if (decaying) {
+    const checklist = raw.stats.filter(s => s.topic_id === decaying.id && s.remediation !== "MAINTAIN").length;
+    today.push({ tone: "warm",
+      text: decaying.idleDays == null
+        ? `${decaying.name} has attempts but no dated activity`
+        : `${decaying.name} untouched for ${plural(decaying.idleDays, "day", "days")}`,
+      note: checklist
+        ? `${plural(checklist, "concept", "concepts")} decaying`
+        : `${plural(decaying.attempted, "attempt", "attempts")} logged, none recent` });
+  }
+  const gap = ledgerGaps(raw.attempts)[0];
+  if (gap) {
+    const span = gap.from === gap.to ? `Q${gap.from}` : `Q${gap.from}–${gap.to}`;
+    today.push({ tone: "",
+      text: `${topics.get(gap.topicId)?.name || gap.topicId} M${gap.module} ${span} missing from the ledger`,
+      note: "session dropped · re-run to complete" });
+  }
+
+  // ── heatmap ─────────────────────────────────────────────────────────────────
+  const start = startOfWeekUTC(nowMs) - (HEAT_WEEKS - 1) * 7 * DAY_MS;
+  const cells = [];
+  for (let i = 0; i < HEAT_WEEKS * 7; i++) {
+    const key = dayKey(start + i * DAY_MS);
+    const n = activity.get(key) || 0;
+    cells.push({ key, n, col: Math.floor(i / 7), row: i % 7, level: heatLevel(n), future: key > todayKey });
+  }
+  const activeDays = cells.filter(c => c.n > 0).length;
+
+  // ── mastery trend ───────────────────────────────────────────────────────────
+  // Lifetime accuracy, sampled daily. Undated attempts — the reconstructed
+  // Alternatives round — cannot be placed on the axis, so they are left out of
+  // the line rather than smeared along it.
+  const dated = raw.attempts.filter(a => dayKey(a.attempted_at));
+  const perDay = new Map();
+  for (const a of dated) {
+    const k = dayKey(a.attempted_at);
+    const c = perDay.get(k) || { n: 0, hits: 0 };
+    c.n++; if (a.is_correct) c.hits++;
+    perDay.set(k, c);
+  }
+  const firstDay = dayKey(startOfDayUTC(nowMs) - (TREND_DAYS - 1) * DAY_MS);
+  let cn = 0, ch = 0;
+  for (const [k, c] of [...perDay].sort()) {
+    if (k < firstDay) { cn += c.n; ch += c.hits; }
+  }
+  const trend = [];
+  for (let i = 0; i < TREND_DAYS; i++) {
+    const k = dayKey(startOfDayUTC(nowMs) - (TREND_DAYS - 1 - i) * DAY_MS);
+    const c = perDay.get(k);
+    if (c) { cn += c.n; ch += c.hits; }
+    if (cn) trend.push({ i, pct: (100 * ch) / cn });
+  }
+
+  // ── relearn queue ───────────────────────────────────────────────────────────
+  // Same ordering and the same fraction the report card's ladder uses, so the
+  // two views never disagree about which concept is worst.
+  const queue = raw.stats.filter(s => s.remediation === "RELEARN")
+    .sort(ladderOrder).slice(0, QUEUE_ROWS)
+    .map(s => ({
+      tag: s.concept_tag, label: s.label,
+      where: [topics.get(s.topic_id)?.name || s.topic_id,
+              s.module != null ? `M${s.module}` : null, s.root_ref].filter(Boolean).join(" · "),
+      hits: Number(s.lt_hits || 0), attempts: Number(s.lt_attempts || 0),
+      partial: Number(s.lt_hits || 0) > 0,
+    }));
+  const relearnTotal = raw.stats.filter(s => s.remediation === "RELEARN").length;
+
+  return { rows, countdown, stats, today, cells, activeDays, trend, queue, relearnTotal };
+}
+
+function startOfDayUTC(ms) {
+  const d = new Date(ms);
+  d.setUTCHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+// ── the view ──────────────────────────────────────────────────────────────────
+
+const STATE_LABEL = { reviewed: "REVIEWED", stale: "STALE", built: "BUILT · NO DATA", gap: "NOT BUILT" };
+const STATE_CLASS = { reviewed: "ok", stale: "wn", built: "cy", gap: "gp" };
 
 function Home() {
-  const [topics, setTopics] = useState(null);
-  const [docs, setDocs] = useState({});
-  const [open, setOpen] = useState({});
+  const [raw, setRaw] = useState(null);
   const [err, setErr] = useState(null);
+  const [open, setOpen] = useState(null);
+  const [docs, setDocs] = useState({});
 
   useEffect(() => {
     (async () => {
       try {
         const sb = await getClient();
-        const { data, error } = await sb.from("vw_codex_priority").select("*");
-        if (error) throw error;
-        setTopics(data);
+        const [topicRes, attRes, statRes, figRes, unitRes, progRes] = await Promise.all([
+          sb.from("codex_topics").select("id, name, weight_low, weight_high, sort"),
+          sb.from("codex_attempts").select("topic_id, module, q, round, is_correct, attempted_at"),
+          sb.from("codex_concept_stats")
+            .select("concept_tag, label, topic_id, module, root_ref, lt_hits, lt_attempts, hit_rate, remediation"),
+          sb.from("codex_figures").select("topic_id"),
+          // A topic counts as built when its units carry typed content, not
+          // when the generator left a row behind: every topic has codex_units,
+          // only four have blocks under them. The count comes back embedded so
+          // this stays one request instead of a scan of 1,200 block rows.
+          sb.from("codex_units").select("topic_id, codex_blocks(count)"),
+          sb.from("codex_unit_progress").select("last_viewed, codex_units(topic_id)"),
+        ]);
+        if (topicRes.error) throw topicRes.error;
+        // The attempt ledger and the concept stats are the Supabase seat's, and
+        // land separately. Without them the page still has a countdown, a
+        // corpus and a coverage list — it degrades rather than fails.
+        const soft = (r) => {
+          if (r.error) { if (isMissingRelation(r.error)) return []; throw r.error; }
+          return r.data || [];
+        };
+        setRaw({
+          topics: topicRes.data || [], attempts: soft(attRes), stats: soft(statRes),
+          figures: soft(figRes), units: soft(unitRes), progress: soft(progRes),
+        });
       } catch (e) { setErr(e.message); }
     })();
   }, []);
@@ -123,64 +417,135 @@ function Home() {
   }, [docs]);
 
   const toggle = useCallback((topicId) => {
-    const nowOpen = !open[topicId];
-    setOpen(prev => ({ ...prev, [topicId]: nowOpen }));
-    if (nowOpen) loadDocs(topicId);
-  }, [open, loadDocs]);
+    setOpen(prev => (prev === topicId ? null : topicId));
+    loadDocs(topicId);
+  }, [loadDocs]);
 
   if (err) return h(ErrorBox, { msg: err });
-  if (!topics) return h(Loader);
+  if (!raw) return h(Loader);
 
-  const crit = topics.filter(t => t.band === "crit");
-  const totalFocus = topics.reduce((s, t) => s + Number(t.focus_index || 0), 0);
-  const avgMastery = topics.length
-    ? Math.round(topics.reduce((s, t) => s + Number(t.avg_mastery || 0), 0) / topics.length)
-    : 0;
+  const m = homeModel(raw, Date.now());
+  const { countdown: cd } = m;
 
   return h(Fragment, null,
-    h("div", { class: "page-title" }, "Deficit Board"),
-    h("div", { class: "page-sub" }, "Focus where it hurts most. Ordered by exam-weight × mastery gap."),
-    h("div", { class: "stat-row" },
-      h("div", { class: "stat-card" },
-        h("div", { class: "stat-label" }, "Avg Mastery"),
-        h("div", { class: `stat-value ${avgMastery < 50 ? "red" : avgMastery < 68 ? "amber" : ""}` }, `${avgMastery}%`),
+    // Ambient only: it never intercepts a click, and it sits behind the page.
+    h("div", { class: "ch-glow", "aria-hidden": "true" }),
+    h("div", { class: "ch-wrap" },
+      h("div", { class: "ch-hero" },
+        h("div", { class: "ch-card accent" },
+          h("div", { class: "ch-eyebrow" }, "Level II · 19 November 2026"),
+          h("div", { class: "ch-count" },
+            h("div", { class: "ch-days" }, cd.days),
+            h("div", { class: "ch-dlab" },
+              h("b", null, cd.days === 1 ? "day remaining" : "days remaining"),
+              `${plural(cd.weekends, "full weekend", "full weekends")}`,
+              h("br", null),
+              cd.perWeek > 0
+                ? `≈ ${plural(cd.sessions, "study session", "study sessions")} at ${trim1(cd.perWeek)}/week`
+                : "no study days logged in the last four weeks",
+            ),
+          ),
+          h("div", { class: "ch-prog" },
+            h("div", { class: "ch-ptrack" },
+              h("div", { class: "ch-pfill", style: { width: `${Math.round(cd.fill * 100)}%` } }),
+              h("div", { class: "ch-pmark", style: { left: `${Math.round(cd.mark * 100)}%` } }),
+            ),
+            h("div", { class: "ch-pmeta" },
+              h("span", null, `${cd.built} OF ${cd.topicCount} TOPICS BUILT`),
+              h("span", null, cd.targetLabel),
+            ),
+          ),
+        ),
+        h("div", { class: "ch-card" },
+          h("div", { class: "ch-eyebrow" }, "Today"),
+          m.today.length
+            ? h("div", { class: "ch-tl" },
+                m.today.map((it, i) =>
+                  h("div", { key: i, class: `ch-ti ${it.tone}` },
+                    h("div", { class: "ch-tdot" }),
+                    h("div", { class: "ch-tt" }, it.text, h("small", null, it.note)),
+                  )))
+            : h("p", { class: "ch-none" },
+                "Nothing flagged. No concept is unanswered, no topic has gone stale " +
+                "and the ledger has no holes in it."),
+        ),
       ),
-      h("div", { class: "stat-card" },
-        h("div", { class: "stat-label" }, "Crit Topics"),
-        h("div", { class: "stat-value red" }, crit.length),
+
+      h("div", { class: "ch-strip" },
+        m.stats.map(s =>
+          h("div", { key: s.k, class: "ch-st" },
+            h("div", { class: "ch-k" }, s.k),
+            h("div", { class: `ch-v ${s.cls || ""}` }, s.v),
+            h("div", { class: "ch-n" }, s.n),
+          ))),
+
+      h("div", { class: "ch-split" },
+        h("div", null,
+          h("h2", { class: "ch-h2" }, "Coverage"),
+          h("p", { class: "ch-sub" },
+            "Bar shows accuracy where you have data. Weight is share of the exam."),
+          m.rows.map(t =>
+            h(CoverageRow, {
+              key: t.id, topic: t,
+              isOpen: open === t.id,
+              onToggle: () => toggle(t.id),
+              docs: open === t.id ? (docs[t.id] || null) : null,
+            })),
+        ),
+        h("div", null,
+          h("div", { class: "ch-card" },
+            h("div", { class: "ch-eyebrow" }, `Activity · ${HEAT_WEEKS} weeks`),
+            h(Heatmap, { cells: m.cells, activeDays: m.activeDays }),
+            h("div", { class: "ch-sparkw" },
+              h("div", { class: "ch-eyebrow" }, `Mastery trend · ${TREND_DAYS} days`),
+              h(Sparkline, { points: m.trend }),
+            ),
+          ),
+          h("div", { style: { marginTop: "20px" } },
+            h("h2", { class: "ch-h2" }, "Relearn queue"),
+            h("p", { class: "ch-sub" }, "Never answered correctly. Ordered by attempts."),
+            m.queue.length
+              ? h(Fragment, null,
+                  m.queue.map(c =>
+                    h("div", { key: c.tag, class: `ch-wc ${c.partial ? "mid" : ""}` },
+                      h("div", { class: "ch-wcn" }, c.label, h("small", null, c.where)),
+                      h("div", { class: "ch-wcr" }, `${c.hits}/${c.attempts}`),
+                    )),
+                  h("button", { class: "ch-cta", onClick: () => navigate("#/review") },
+                    m.relearnTotal > m.queue.length
+                      ? `START TARGETED REVIEW · ${m.relearnTotal} →`
+                      : "START TARGETED REVIEW →"),
+                )
+              : h("p", { class: "ch-none" },
+                  "Nothing tagged RELEARN. The queue fills from the attempt ledger."),
+          ),
+        ),
       ),
-      h("div", { class: "stat-card" },
-        h("div", { class: "stat-label" }, "Total Focus Index"),
-        h("div", { class: "stat-value amber" }, Math.round(totalFocus)),
-      ),
-      h("div", { class: "stat-card" },
-        h("div", { class: "stat-label" }, "Target Date"),
-        h("div", { class: "stat-value" }, "19 Nov"),
-      ),
-    ),
-    h("div", { class: "topic-grid" },
-      topics.map(t =>
-        h(TopicRow, {
-          key: t.topic_id, topic: t,
-          isOpen: !!open[t.topic_id],
-          onToggle: () => toggle(t.topic_id),
-          docs: docs[t.topic_id] || null,
-        })
-      )
     ),
   );
 }
 
-function TopicRow({ topic, isOpen, onToggle, docs }) {
-  const focusHigh = Number(topic.focus_index) > 200;
-  return h("div", { class: `topic-row ${topic.band} ${isOpen ? "open" : ""}` },
-    h("div", { class: "topic-header", onClick: onToggle },
-      h("div", { class: "topic-name" }, topic.name, h(Chip, { band: topic.band })),
-      h(MasteryBar, { value: topic.avg_mastery }),
-      h("span", { class: `focus-score ${focusHigh ? "high" : ""}` }, `${Number(topic.focus_index).toFixed(0)} fi`),
-      h("span", { class: "expand-icon" }, "▼"),
+// The row is a control, not a report line: opening it lists the readings behind
+// the topic, which is the only way into the reading pane from here.
+function CoverageRow({ topic, isOpen, onToggle, docs }) {
+  const cls = STATE_CLASS[topic.state];
+  const pct = topic.accuracy == null ? null : Math.round(topic.accuracy * 100);
+  const label = topic.state === "stale" && topic.idleDays != null
+    ? `STALE · ${topic.idleDays}d` : STATE_LABEL[topic.state];
+  return h(Fragment, null,
+    h("button", {
+      class: `ch-trow ${topic.state === "gap" ? "gap" : ""} ${isOpen ? "open" : ""}`,
+      "aria-expanded": isOpen ? "true" : "false",
+      onClick: onToggle,
+    },
+      h("div", { class: "ch-tn" }, topic.name, h("span", { class: "ch-twt" }, topic.weightLabel)),
+      h("div", { class: "ch-tbar" },
+        h("div", { class: `ch-tfill ${cls}`, style: { width: `${pct == null ? 0 : pct}%` } })),
+      h("div", { class: `ch-tpc ch-${cls}` }, pct == null ? "—" : `${pct}%`),
+      h("div", { class: `ch-tst ch-${cls}` }, label),
+      h("div", { class: "ch-tat" }, topic.attempted || ""),
     ),
-    h("div", { class: "readings-panel" },
+    isOpen && h("div", { class: "ch-docs" },
       docs === null ? h(Loader)
         : docs.length === 0
           ? h("div", { style: { color: "var(--text-3)", fontSize: 13 } }, "No documents loaded.")
@@ -192,12 +557,71 @@ function TopicRow({ topic, isOpen, onToggle, docs }) {
                 },
                   h("div", { class: "reading-title" }, readingTitle(doc)),
                   h("div", { class: "reading-meta" },
-                    readingMeta(doc).map((m, k) =>
-                      h("span", { key: k, class: "reading-meta-item" }, m)),
+                    readingMeta(doc).map((x, k) =>
+                      h("span", { key: k, class: "reading-meta-item" }, x)),
                   ),
-                )
-              )
-            )
+                ))),
+    ),
+  );
+}
+
+// 13 columns of 7. Geometry matches the mockup: a 10.5px cell on a 13px pitch.
+function Heatmap({ cells, activeDays }) {
+  const W = HEAT_WEEKS * 13 - 2.5, H = 92;
+  return h(Fragment, null,
+    h("svg", {
+      class: "ch-hm", viewBox: `0 0 ${W} ${H}`, xmlns: "http://www.w3.org/2000/svg",
+      role: "img",
+      "aria-label": `${HEAT_WEEKS} week activity heatmap, ${activeDays} active days.`,
+    },
+      cells.map(c =>
+        h("rect", {
+          key: c.key, class: `ch-hc ch-lv${c.future ? 0 : c.level}`,
+          x: c.col * 13, y: c.row * 13, width: 10.5, height: 10.5, rx: 2,
+        }))),
+    h("div", { class: "ch-hleg" },
+      "LESS",
+      [1, 2, 3, 4].map(l => h("i", { key: l, class: `ch-lv${l}` })),
+      "MORE",
+      h("span", { style: { marginLeft: "auto" } }, `${activeDays} ACTIVE DAYS`),
+    ),
+  );
+}
+
+// Lifetime accuracy over the window. A line needs a run of days behind it to
+// mean anything: two points hard against the right edge would read as a spike
+// when all it says is that the ledger starts there. Below that span the panel
+// says so instead of drawing one.
+const TREND_MIN_SPAN = 7;
+
+function Sparkline({ points }) {
+  const span = points.length ? points[points.length - 1].i - points[0].i : 0;
+  if (points.length < 2 || span < TREND_MIN_SPAN) {
+    return h("p", { class: "ch-none", style: { fontSize: "12px" } },
+      `The dated ledger covers ${plural(span + (points.length ? 1 : 0), "day", "days")} of the ` +
+      `last ${TREND_DAYS}. The trend draws once attempts span more of the window.`);
+  }
+  const W = 260, H = 54, PAD = 4;
+  const x = i => PAD + (i / (TREND_DAYS - 1)) * (W - 2 * PAD);
+  const y = p => H - 6 - (p / 100) * (H - 12);
+  const d = points.map((p, i) => `${i ? "L" : "M"}${x(p.i).toFixed(1)} ${y(p.pct).toFixed(1)}`).join(" ");
+  const last = points[points.length - 1];
+  return h(Fragment, null,
+    h("svg", {
+      viewBox: `0 0 ${W} ${H}`, xmlns: "http://www.w3.org/2000/svg", role: "img",
+      "aria-label": `Mastery from ${Math.round(points[0].pct)} percent to ${Math.round(last.pct)} percent over ${TREND_DAYS} days.`,
+    },
+      h("defs", null,
+        h("linearGradient", { id: "ch-sg", x1: "0", y1: "0", x2: "0", y2: "1" },
+          h("stop", { offset: "0", "stop-color": "var(--cyan)", "stop-opacity": ".28" }),
+          h("stop", { offset: "1", "stop-color": "var(--cyan)", "stop-opacity": "0" }))),
+      h("path", { d: `${d} L${x(last.i).toFixed(1)} ${H} L${x(points[0].i).toFixed(1)} ${H} Z`, fill: "url(#ch-sg)" }),
+      h("path", { d, stroke: "var(--cyan)", "stroke-width": "1.7", fill: "none" }),
+      h("circle", { cx: x(last.i).toFixed(1), cy: y(last.pct).toFixed(1), r: 3, fill: "var(--cyan)" }),
+    ),
+    h("div", { class: "ch-hleg" },
+      h("span", null, `${Math.round(points[0].pct)}%`),
+      h("span", { style: { marginLeft: "auto", color: "var(--cyan)" } }, `${Math.round(last.pct)}% NOW`),
     ),
   );
 }

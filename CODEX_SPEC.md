@@ -162,7 +162,7 @@ title block, and can be overridden with `--topic`.
 Stack and house style are the ATLAS defaults: vanilla CDN React, `h` alias, Supabase client, no bundler. Design tokens unchanged: `--cyan` #3ad6e0, `--amber`, `--card`, `--bg` #0a0d12; Syne display, DM Sans body, JetBrains Mono data.
 
 ### 5.1 Codex Home — the deficit board
-Reads `vw_codex_priority`. Topics ranked by focus index, the three deficits at top in amber/crit, strengths sinking to the bottom marked Maintain. Same visual language as the study terminal. Each row expands to its readings (`codex_documents` for that topic) with a per-reading progress ring from `codex_progress`.
+**Superseded by `CODEX_HOME_SPEC.md`.** The deficit board shipped and did not survive contact with the data: with `codex_progress` empty it ranked all ten topics at 0% mastery behind an identical focus index, so every row looked the same and the headline figure was a zero. The home view now reads the attempt ledger instead — countdown, today, stat strip, coverage with four states, activity and relearn queue. Rows still expand to their readings (`codex_documents` for that topic), which is the way into the reading pane. `vw_codex_priority` remains, and still ranks the Formula Sheet, the Example Drill and the LOS Tracker.
 
 ### 5.2 Reading view
 Renders `codex_chunks` for a document in `ord`. Formula chunks get the navy EXACT treatment, examples render as collapsible green blocks, matching how the source notes already look. Section headers from `section_title`. A right rail lists the document's LOS with mastery dots.
