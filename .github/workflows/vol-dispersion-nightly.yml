@@ -1,0 +1,45 @@
+# Nightly EOD compute of the volatility dispersion signal.
+# Same precompute-and-store pattern as the Valuation House weekly sync,
+# daily cadence. 01:30 UTC Tue-Sat covers Mon-Fri US sessions after close.
+#
+# Required repo secrets:
+#   ALPHAVANTAGE_API_KEY        (premium -- HISTORICAL_OPTIONS endpoint)
+#   SUPABASE_URL
+#   SUPABASE_SERVICE_ROLE_KEY
+
+name: vol-dispersion-nightly
+
+on:
+  schedule:
+    - cron: "30 1 * * 2-6"
+  workflow_dispatch:
+    inputs:
+      backfill_days:
+        description: "Backfill this many calendar days instead of the previous session"
+        required: false
+        default: ""
+
+jobs:
+  compute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install "supabase>=2.3.0"
+
+      - name: Compute and store spreads
+        env:
+          ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -n "${{ github.event.inputs.backfill_days }}" ]; then
+            python ingest/vol_dispersion.py --backfill "${{ github.event.inputs.backfill_days }}"
+          else
+            python ingest/vol_dispersion.py
+          fi
